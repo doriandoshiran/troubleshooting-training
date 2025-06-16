@@ -110,15 +110,22 @@ function clearTerminal() {
 }
 
 function showNewPrompt() {
-    // Don't add empty lines - keep it compact like real terminal
-    updatePrompt();
-    scrollToBottom();
+    // Create a new input line and add it to the terminal
+    var terminal = document.getElementById('terminal-output');
+    var newInputLine = document.createElement('div');
+    newInputLine.className = 'input-line';
+    newInputLine.innerHTML = '<span class="prompt">' + getPromptString() + '</span><input type="text" class="command-input" autocomplete="off"><span class="cursor">_</span>';
     
-    // Focus the main input
-    var mainInput = document.getElementById('main-command-input');
-    if (mainInput) {
-        mainInput.focus();
+    terminal.appendChild(newInputLine);
+    
+    // Focus the new input
+    var newInput = newInputLine.querySelector('.command-input');
+    if (newInput) {
+        newInput.focus();
+        newInput.addEventListener('keydown', handleMainKeyPress);
     }
+    
+    scrollToBottom();
 }
 
 // Progress tracking functions
@@ -184,9 +191,6 @@ function checkForFlag(text) {
 }
 
 function updatePrompt() {
-    var promptText = getPromptString();
-    document.querySelector('.prompt').textContent = promptText;
-    
     var hostStatus = 'Host: ' + getPromptHost();
     if (currentHost !== 'jumphost') {
         hostStatus += ' (' + currentDir + ')';
@@ -235,7 +239,7 @@ window.addEventListener('DOMContentLoaded', function() {
     addOutput('System ready. Type "start" to begin training.', 'info');
     updateCtfProgress();
     updateTaskProgress();
-    showNewPrompt();
+    updatePrompt();
 });;
     }
 }

@@ -7,10 +7,15 @@ function handleMainKeyPress(event) {
     if (event.key === 'Enter') {
         var command = input.value.trim();
         if (command) {
-            addOutput(getPromptString() + ' ' + command, 'info');
+            // Show the command on the current line by replacing the input
+            replaceInputWithCommand(getPromptString() + ' ' + command);
             executeCommand(command);
             commandHistory.push(command);
             historyIndex = commandHistory.length;
+        } else {
+            // Just show empty prompt if no command
+            replaceInputWithCommand(getPromptString());
+            showNewPrompt();
         }
         input.value = '';
     } else if (event.key === 'ArrowUp') {
@@ -36,7 +41,7 @@ function handleMainKeyPress(event) {
         if (completions.length === 1) {
             input.value = completions[0];
         } else if (completions.length > 1) {
-            addOutput('');
+            replaceInputWithCommand(getPromptString() + ' ' + partial);
             var output = '';
             for (var i = 0; i < completions.length; i++) {
                 output += completions[i].split(' ').pop() + '  ';
@@ -46,6 +51,17 @@ function handleMainKeyPress(event) {
             input.value = partial;
         }
     }
+}
+
+function replaceInputWithCommand(text) {
+    // Remove the current input line
+    var inputLine = document.querySelector('.input-line');
+    if (inputLine && inputLine.parentNode) {
+        inputLine.parentNode.removeChild(inputLine);
+    }
+    
+    // Add the command as output
+    addOutput(text, 'info');
 }
 
 function getTabCompletions(partial) {
