@@ -9,40 +9,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="terminal-container">
-            <div class="terminal-header">
-                <span>🖥️ Training Terminal</span>
-                <span id="system-status">Connection: Local Training Environment</span>
-            </div>
-            
-            <div class="terminal" id="terminal-output">
-                <div class="output info">+==============================================================================+
-|                   ACME Corporation - Infrastructure Training                |
-|                                                                              |
-|  Welcome to the enterprise infrastructure training environment.             |
-|  This simulation provides hands-on experience with:                         |
-|                                                                              |
-|  • CentOS system administration and preparation                             |
-|  • Kubernetes troubleshooting and debugging                                 |
-|  • Security incident investigation (CTF challenges)                         |
-|                                                                              |
-|  Type 'start' to begin training or 'help' for available commands.          |
-+==============================================================================+</div>
-                <div class="input-line">
-                    <span class="prompt">acme-training@jumphost:~$</span>
-                    <input type="text" class="command-input" id="main-command-input" autocomplete="off" autofocus onkeydown="handleMainKeyPress(event)">
-                    <span class="cursor">_</span>
-                </div>
-            </div>
-            
-            <div class="status-bar">
-                <span id="current-host">Host: jumphost (training environment)</span>
-                <span id="task-progress">Tasks: Not connected</span>
-                <span id="ctf-progress">Flags: 0/3 found</span>
-            </div>
-        </div>
-        
-        <!-- Right sidebar with tabs -->
+        <!-- Left sidebar with tabs -->
         <div class="sidebar">
             <div class="tab active" data-tab="docs" onclick="switchTab('docs')">📖 Documentation</div>
             <div class="tab" data-tab="files" onclick="switchTab('files')">📁 Files</div>
@@ -213,6 +180,39 @@
                         <li><code>ping [host]</code> - Test connectivity</li>
                     </ul>
                 </div>
+            </div>
+        </div>
+        
+        <div class="terminal-container">
+            <div class="terminal-header">
+                <span>🖥️ Training Terminal</span>
+                <span id="system-status">Connection: Local Training Environment</span>
+            </div>
+            
+            <div class="terminal" id="terminal-output">
+                <div class="output info">+==============================================================================+
+|                   ACME Corporation - Infrastructure Training                |
+|                                                                              |
+|  Welcome to the enterprise infrastructure training environment.             |
+|  This simulation provides hands-on experience with:                         |
+|                                                                              |
+|  • CentOS system administration and preparation                             |
+|  • Kubernetes troubleshooting and debugging                                 |
+|  • Security incident investigation (CTF challenges)                         |
+|                                                                              |
+|  Type 'start' to begin training or 'help' for available commands.          |
++==============================================================================+</div>
+                <div class="input-line">
+                    <span class="prompt">acme-training@jumphost:~$</span>
+                    <input type="text" class="command-input" id="main-command-input" autocomplete="off" autofocus onkeydown="handleMainKeyPress(event)">
+                    <span class="cursor">_</span>
+                </div>
+            </div>
+            
+            <div class="status-bar">
+                <span id="current-host">Host: jumphost (training environment)</span>
+                <span id="task-progress">Tasks: Not connected</span>
+                <span id="ctf-progress">Flags: 0/3 found</span>
             </div>
         </div>
     </div>
