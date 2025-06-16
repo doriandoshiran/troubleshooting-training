@@ -346,4 +346,179 @@ function listFiles(args) {
         }
     } else {
         var output = '';
-        for (var i = 0; i < items.length; i
+        for (var i = 0; i < items.length; i++) {
+            var name = items[i];
+            var displayName = name;
+            if (name.endsWith('/')) {
+                displayName = name.slice(0, -1);
+            }
+            output += displayName + '  ';
+        }
+        addOutput(output.trim());
+    }
+}
+
+function changeDirectory(path) {
+    var currentFS = getCurrentFileSystem();
+    
+    if (!path || path === '~') {
+        currentDir = '/root';
+        return;
+    }
+    
+    if (path === '..') {
+        if (currentDir !== '/') {
+            var parts = currentDir.split('/');
+            parts.pop();
+            currentDir = parts.join('/') || '/';
+        }
+        return;
+    }
+    
+    if (path === '/') {
+        currentDir = '/';
+        return;
+    }
+    
+    var targetPath;
+    if (path.startsWith('/')) {
+        targetPath = path;
+    } else {
+        targetPath = currentDir + '/' + path;
+        targetPath = targetPath.replace(/\/+/g, '/');
+    }
+    
+    if (currentFS[targetPath]) {
+        currentDir = targetPath;
+    } else {
+        addOutput('cd: ' + path + ': No such file or directory', 'error');
+    }
+}
+
+function viewFile(filename) {
+    if (!filename) {
+        addOutput('cat: missing file argument', 'error');
+        addOutput('Usage: cat [file]');
+        return;
+    }
+    
+    var filePath;
+    if (filename.startsWith('/')) {
+        filePath = filename;
+    } else {
+        filePath = currentDir + '/' + filename;
+        filePath = filePath.replace(/\/+/g, '/');
+    }
+    
+    if (configFiles[filePath]) {
+        var content = configFiles[filePath];
+        
+        // Handle dynamic content (like swap status)
+        if (filePath === '/proc/meminfo' || filePath === '/proc/swaps') {
+            content = content.replace(/\$\{([^}]+)\}/g, function(match, expr) {
+                try {
+                    return eval(expr);
+                } catch (e) {
+                    return match;
+                }
+            });
+        }
+        
+        var lines = content.split('\n');
+        for (var i = 0; i < lines.length; i++) {
+            addOutput(lines[i]);
+        }
+        
+        // Check for flags in the content
+        checkForFlag(content);
+        
+    } else {
+        var currentFS = getCurrentFileSystem();
+        var dirContent = currentFS[currentDir];
+        
+        if (dirContent && dirContent[filename]) {
+            if (dirContent[filename] === 'directory') {
+                addOutput('cat: ' + filename + ': Is a directory', 'error');
+            } else {
+                addOutput('cat: ' + filename + ': File content simulation');
+                addOutput('Use the actual file paths for real content.');
+            }
+        } else {
+            addOutput('cat: ' + filename + ': No such file or directory', 'error');
+        }
+    }
+}
+
+function editFile(filename) {
+    if (!filename) {
+        addOutput('vi: missing file argument', 'error');
+        addOutput('Usage: vi [file]');
+        return;
+    }
+    
+    var filePath;
+    if (filename.startsWith('/')) {
+        filePath = filename;
+    } else {
+        filePath = currentDir + '/' + filename;
+        filePath = filePath.replace(/\/+/g, '/');
+    }
+    
+    addOutput('Opening file in vi editor: ' + filePath, 'info');
+    addOutput('');
+    addOutput('--- Simulated vi editor ---', 'warning');
+    addOutput('In a real environment, this would open the vi text editor.');
+    addOutput('');
+    
+    if (configFiles[filePath]) {
+        addOutput('Current file contents:', 'info');
+        var lines = configFiles[filePath].split('\n');
+        for (var i = 0; i < lines.length; i++) {
+            addOutput((i + 1) + ': ' + lines[i]);
+        }
+        addOutput('');
+        addOutput('Use this information to understand the file structure.', 'success');
+        
+        // Special handling for platform configuration
+        if (filePath === '/opt/platform/config/platform-config.yaml') {
+            addOutput('');
+            addOutput('💡 CONFIGURATION TIPS:', 'warning');
+            addOutput('1. Change "CHANGE_ME" values to appropriate settings');
+            addOutput('2. Set database.host to your database server IP');
+            addOutput('3. Set a secure database password');
+            addOutput('4. Verify all port configurations match your firewall rules');
+            
+            if (!systemState.centos.platformConfigured) {
+                systemState.centos.platformConfigured = true;
+                completedTasks.add('platform');
+                updateTaskProgress();
+                addOutput('');
+                addOutput('✓ Platform configuration reviewed!', 'success');
+            }
+        }
+        
+        // Special handling for YUM configuration
+        if (filePath === '/etc/yum.conf') {
+            addOutput('');
+            addOutput('💡 YUM PROXY CONFIGURATION:', 'warning');
+            addOutput('Uncomment and modify these lines:');
+            addOutput('proxy=http://proxy.company.com:8080');
+            addOutput('proxy_username=your_username');
+            addOutput('proxy_password=your_password');
+            
+            if (!systemState.centos.yumProxyConfigured) {
+                systemState.centos.yumProxyConfigured = true;
+                completedTasks.add('yum-proxy');
+                updateTaskProgress();
+                addOutput('');
+                addOutput('✓ YUM proxy configuration completed!', 'success');
+            }
+        }
+        
+    } else {
+        addOutput('File does not exist. In vi, you could create a new file here.', 'info');
+    }
+    
+    addOutput('');
+    addOutput('--- End of vi simulation ---', 'warning');
+}

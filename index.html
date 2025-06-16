@@ -172,18 +172,36 @@
             </div>
             
             <div class="terminal" id="terminal-output">
-                <div class="output info">+==============================================================================+
-|                   ACME Corporation - Infrastructure Training                |
-|                                                                              |
-|  Welcome to the enterprise infrastructure training environment.             |
-|  This simulation provides hands-on experience with:                         |
-|                                                                              |
-|  • CentOS system administration and preparation                             |
-|  • Kubernetes troubleshooting and debugging                                 |
-|  • Security incident investigation (CTF challenges)                         |
-|                                                                              |
-|  Type 'start' to begin training or 'help' for available commands.          |
-+==============================================================================+</div>
+                <div class="output info">╔══════════════════════════════════════════════════════════════════════════════╗
+║                        ACME Corporation Training Program                     ║
+║                                                                              ║
+║  Welcome to the Infrastructure Security Training Environment               ║
+║                                                                              ║
+║  Available Training Hosts:                                                  ║
+║                                                                              ║
+║  🖥️  prod-centos-01.company.local    - CentOS 7.9 system preparation       ║
+║      • Configure firewall and network security                              ║
+║      • Setup swap, NTP, and system services                                 ║
+║      • Install and configure enterprise platform                           ║
+║                                                                              ║
+║  ☸️  k8s-master-01.company.local     - Kubernetes troubleshooting          ║
+║      • Investigate pod crashes and service issues                          ║
+║      • Debug storage and networking problems                                ║
+║      • Find hidden security flags in logs (CTF challenges)                 ║
+║                                                                              ║
+║  Training Objectives:                                                       ║
+║  • Master Linux system administration skills                                ║
+║  • Learn Kubernetes troubleshooting techniques                             ║
+║  • Develop security incident investigation abilities                        ║
+║  • Practice with real-world enterprise scenarios                           ║
+║                                                                              ║
+║  Connection Instructions:                                                    ║
+║  ssh root@prod-centos-01.company.local    (System preparation)            ║
+║  ssh root@k8s-master-01.company.local     (Kubernetes troubleshooting)    ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Training environment initialized. Choose a host to begin:</div>
                 <div class="input-line">
                     <span class="prompt">acme-training@jumphost:~$</span>
                     <input type="text" class="command-input" id="main-command-input" autocomplete="off" autofocus onkeydown="handleMainKeyPress(event)">
