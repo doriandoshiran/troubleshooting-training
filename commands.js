@@ -90,8 +90,8 @@ function replaceInputWithCommand(text) {
         inputLine.parentNode.removeChild(inputLine);
     }
     
-    // Add the command as output
-    addOutput(text, 'info');
+    // Add the command as output with original prompt styling
+    addOutput(text);
 }
 
 function getTabCompletions(partial) {
@@ -365,7 +365,7 @@ function startTraining() {
     addOutput('╚══════════════════════════════════════════════════════════════════════════════╝', 'info');
     addOutput('');
     addOutput('Training environment initialized. Choose a host to begin:', 'success');
-    addOutput('');
+    // Don't add extra empty line here
 }
 
 function disconnectFromHost() {
