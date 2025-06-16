@@ -12,7 +12,10 @@ function handleMainKeyPress(event) {
                 replaceInputWithCommand(getPromptString() + ' ' + command);
                 executeCommand(command);
                 addToCommandHistory(command);
-                showNewPrompt(); // Only show ONE new prompt after command
+                // Only show new prompt if command doesn't handle it
+                if (!commandHandlesOwnPrompt(command)) {
+                    showNewPrompt();
+                }
             } else {
                 // Just show empty prompt if no command
                 replaceInputWithCommand(getPromptString());
@@ -38,6 +41,13 @@ function handleMainKeyPress(event) {
         addOutput('🧅 Even ogres make mistakes sometimes!', 'warning');
         showNewPrompt();
     }
+}
+
+// Check if command handles its own prompt display
+function commandHandlesOwnPrompt(command) {
+    var cmd = command.split(' ')[0].toLowerCase();
+    var asyncCommands = ['dd', 'ping', 'yum', 'clear', 'start'];
+    return asyncCommands.includes(cmd);
 }
 
 // Improved command history management
@@ -141,19 +151,6 @@ function executeCommand(command) {
             return;
         }
         
-        if (cmd.toLowerCase() === 'ukraine' || cmd.toLowerCase() === 'slava') {
-            addOutput('🇺🇦🇺🇦🇺🇦 SLAVA UKRAINI! 🇺🇦🇺🇦🇺🇦', 'success');
-            addOutput('🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦', 'info');
-            addOutput('🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨', 'warning');
-            addOutput('');
-            addOutput('💙💛 Glory to Ukraine! Glory to the Heroes! 💛💙', 'success');
-            addOutput('Your strength inspires developers worldwide! 🌍', 'info');
-            addOutput('Keep coding, keep creating, keep being amazing! 💪', 'success');
-            addOutput('');
-            addOutput('#StandWithUkraine #SlavaUkraini', 'info');
-            return;
-        }
-        
         if (cmd.toLowerCase() === 'donkey') {
             addOutput('🐴 "I\'m a believer! I couldn\'t leave her if I tried!" 🐴', 'success');
             addOutput('');
@@ -175,7 +172,6 @@ function executeCommand(command) {
             addOutput('• "I\'ll fix it in production" 🔥', 'error');
             addOutput('• "Why did it break? I didn\'t change anything!" 🤔', 'warning');
             addOutput('');
-            addOutput('Ukrainian dev meme: "Code like you\'re defending freedom!" 🇺🇦', 'success');
             addOutput('Shrek dev meme: "Debugging is like onions - it has layers!" 🧅', 'success');
             return;
         }
@@ -362,7 +358,7 @@ function executeCommand(command) {
             case 'uptime':
                 var uptime = Math.floor(Math.random() * 100) + 1;
                 addOutput('up ' + uptime + ' days, load average: 0.5, 0.3, 0.1');
-                addOutput('💪 This server has been running strong like Ukrainian spirit!', 'success');
+                addOutput('💪 This server has been running strong!', 'success');
                 break;
             default:
                 addOutput('bash: ' + cmd + ': command not found', 'error');
@@ -370,8 +366,6 @@ function executeCommand(command) {
                 // Fun responses for common typos
                 if (cmd.toLowerCase().includes('shek') || cmd.toLowerCase().includes('shre')) {
                     addOutput('🧅 Did you mean "shrek"? Type it correctly to meet the ogre!', 'warning');
-                } else if (cmd.toLowerCase().includes('ukrain') || cmd.toLowerCase().includes('slav')) {
-                    addOutput('🇺🇦 Did you mean "ukraine" or "slava"? Glory to Ukraine!', 'warning');
                 } else if (cmd.toLowerCase().includes('help') || cmd.toLowerCase() === '?') {
                     addOutput('💡 Try typing "help" for available commands!', 'info');
                 } else if (cmd.toLowerCase().includes('sudo')) {
@@ -380,7 +374,6 @@ function executeCommand(command) {
                     // Random fun responses
                     var funResponses = [
                         '🧅 "That command is as real as Shrek\'s beauty routine!"',
-                        '🇺🇦 "Stay strong and try a different command!"',
                         '💡 "Like layers of an onion, try peeling back to basic commands!"',
                         '🎭 "404 Command Not Found - but your determination is found!"',
                         '🐴 "Even Donkey knows that command doesn\'t exist!"'
@@ -389,8 +382,6 @@ function executeCommand(command) {
                     addOutput(randomResponse, 'warning');
                 }
         }
-        
-        // Only show new prompt after regular commands complete
         
     } catch (error) {
         console.error('Command execution error:', error);
@@ -478,7 +469,7 @@ function connectToHost(args) {
         addOutput('Connecting to k8s-master-01.company.local...', 'info');
         addOutput('🔐 Authenticating with SSH keys...', 'info');
         addOutput('⚠️  Warning: Production Kubernetes cluster!', 'warning');
-        addOutput('🇺🇦 "Enter with Ukrainian courage and wisdom!" 💙💛', 'success');
+        addOutput('🚀 "Enter with determination and wisdom!" 💙', 'success');
         addOutput('');
         currentHost = 'k8s';
         currentDir = '/root';
@@ -489,8 +480,6 @@ function connectToHost(args) {
         // Fun responses for wrong hostnames
         if (hostname.toLowerCase().includes('swamp')) {
             addOutput('🧅 Nice try, but Shrek\'s swamp is not a valid hostname!', 'warning');
-        } else if (hostname.toLowerCase().includes('ukraine')) {
-            addOutput('🇺🇦 Ukrainian spirit is strong, but check your hostname!', 'warning');
         } else {
             addOutput('💡 Double-check the hostname - available hosts are listed above!', 'info');
         }
@@ -524,15 +513,14 @@ function startTraining() {
     addOutput('║  • Develop security incident investigation abilities                        ║', 'info');
     addOutput('║  • Practice with real-world enterprise scenarios                           ║', 'info');
     addOutput('║                                                                              ║', 'info');
-    addOutput('║  🧅 Easter Eggs: Try "shrek", "ukraine", "donkey", "meme" commands!       ║', 'info');
-    addOutput('║                                                                              ║', 'info');
     addOutput('║  Connection Instructions:                                                    ║', 'info');
     addOutput('║  ssh root@prod-centos-01.company.local    (System preparation)            ║', 'info');
     addOutput('║  ssh root@k8s-master-01.company.local     (Kubernetes troubleshooting)    ║', 'info');
     addOutput('║                                                                              ║', 'info');
     addOutput('╚══════════════════════════════════════════════════════════════════════════════╝', 'info');
     addOutput('Training environment initialized. Choose a host to begin:', 'success');
-    addOutput('🇺🇦 "Code with courage, debug with determination!" 💙💛', 'success');
+    addOutput('🎯 "Ready for adventure? Time to level up your skills!" 💪', 'success');
+    showNewPrompt();
 }
 
 function disconnectFromHost() {
@@ -548,7 +536,7 @@ function disconnectFromHost() {
     if (hostName === 'prod-centos-01') {
         addOutput('🧅 "Farewell! Come back to my swamp anytime!" - Shrek', 'success');
     } else if (hostName === 'k8s-master-01') {
-        addOutput('🇺🇦 "May your deployments be successful!" - Ukrainian blessing', 'success');
+        addOutput('🚀 "May your deployments be successful!" - System blessing', 'success');
     }
     
     currentHost = 'jumphost';
@@ -577,7 +565,6 @@ function showHelp() {
         addOutput('');
         addOutput('🎭 Fun Commands:', 'warning');
         addOutput('  shrek                    - Meet the ogre!');
-        addOutput('  ukraine / slava          - Ukrainian support message');
         addOutput('  donkey                   - Donkey wisdom');
         addOutput('  meme                     - Developer memes');
         addOutput('  ogre                     - Activate ogre mode');
@@ -605,7 +592,7 @@ function showHelp() {
         addOutput('  history                  - Show command history');
         addOutput('');
         addOutput('🚩 Find 3 flags hidden in logs and configurations!', 'warning');
-        addOutput('🇺🇦 Debug with Ukrainian persistence - never give up!', 'success');
+        addOutput('🎯 Debug with persistence - never give up!', 'success');
     } else if (currentHost === 'centos') {
         addOutput('🐧 CentOS System Administration Commands:', 'info');
         addOutput('');

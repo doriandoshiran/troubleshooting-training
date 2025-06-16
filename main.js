@@ -328,7 +328,6 @@ window.addEventListener('DOMContentLoaded', function() {
         // Setup focus management
         maintainInputFocus();
         
-        // Initial display - just show prompt without extra text
         // Update progress displays
         updateCtfProgress();
         updateTaskProgress();

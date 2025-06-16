@@ -48,8 +48,7 @@ var fileSystem = {
     },
     '/opt/platform/scripts': {
         'prepare-system.sh': 'System preparation script',
-        'validate-setup.sh': 'Setup validation script',
-        'ukraine-flag.sh': 'Special Ukrainian script'
+        'validate-setup.sh': 'Setup validation script'
     },
     '/opt/platform/logs': {
         'preparation.log': 'Preparation log file',
@@ -79,8 +78,7 @@ var fileSystem = {
         'memes/': 'directory'
     },
     '/home/training/memes': {
-        'shrek-quotes.txt': 'Shrek wisdom',
-        'ukrainian-memes.txt': 'Ukrainian humor'
+        'shrek-quotes.txt': 'Shrek wisdom'
     }
 };
 
@@ -95,8 +93,7 @@ var clusterFileSystem = {
     '/root': {
         '.kube/': 'directory',
         'troubleshooting/': 'directory',
-        '.bashrc': 'Bash configuration',
-        'ukraine-support.txt': 'Ukraine support message'
+        '.bashrc': 'Bash configuration'
     },
     '/root/.kube': {
         'config': 'Kubernetes configuration'
@@ -146,8 +143,8 @@ server 1.centos.pool.ntp.org iburst
 server 2.centos.pool.ntp.org iburst
 server 3.centos.pool.ntp.org iburst
 
-# Ukrainian time servers (because why not!)
-# server ntp.ua iburst`,
+# Additional time servers can be added here
+# server ntp.example.com iburst`,
 
     '/etc/yum.conf': `[main]
 cachedir=/var/cache/yum/$basearch/$releasever
@@ -175,7 +172,7 @@ distroverpkg=centos-release
 192.168.1.100 prod-centos-01.company.local prod-centos-01
 192.168.1.200 db.company.local db-server
 # 192.168.1.42 shrek.swamp.local shrek
-# 🇺🇦 Slava Ukraini!`,
+# 🎯 Ready for enterprise configuration!`,
 
     '/root/shrek.txt': `🟢 SHREK WISDOM FOR SYSADMINS 🟢
 
@@ -188,19 +185,6 @@ distroverpkg=centos-release
 Remember: Even ogres need proper system monitoring!
 🧅 Ogres are like servers - they have layers! 🧅`,
 
-    '/opt/platform/scripts/ukraine-flag.sh': `#!/bin/bash
-# Ukrainian Flag Script 🇺🇦
-# Slava Ukraini! 
-
-echo "🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦"
-echo "🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦"
-echo "🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨" 
-echo ""
-echo "Glory to Ukraine! 🇺🇦"
-echo "Glory to the Heroes! 💙💛"
-echo ""
-echo "Stay strong, keep deploying! 💪"`,
-
     '/home/training/memes/shrek-quotes.txt': `🧅 SHREK TECH QUOTES 🧅
 
 "This is the part where you run away" - When seeing the server bill
@@ -211,37 +195,6 @@ echo "Stay strong, keep deploying! 💪"`,
 "I'm looking down!" - Checking server metrics
 
 Pro tip: Be like Shrek - embrace the layers (of your application stack)!`,
-
-    '/home/training/memes/ukrainian-memes.txt': `🇺🇦 UKRAINIAN TECH HUMOR 🇺🇦
-
-Why do Ukrainian developers love Docker?
-Because containers are like borscht - better when everything is properly layered!
-
-What's the difference between Russian software and Ukrainian software?
-Ukrainian software actually works and doesn't invade your system!
-
-Ukrainian programmers favorite HTTP status code: 200 OK
-Russian programmers favorite: 404 - Territory Not Found
-
-Remember: Code like a Ukrainian - with resilience, creativity, and unwavering spirit!
-💙💛 Stay strong, code stronger! 💙💛`,
-
-    '/root/ukraine-support.txt': `🇺🇦 SUPPORT UKRAINE MESSAGE 🇺🇦
-
-To our Ukrainian colleagues in tech:
-Your resilience inspires us all. While you defend your homeland,
-we stand with you in solidarity.
-
-Your contributions to the global tech community are invaluable.
-Keep coding, keep creating, keep being amazing.
-
-💙💛 #StandWithUkraine 💙💛
-🔵🟡 Slava Ukraini! 🔵🟡
-
-Resources for support:
-- tech.ukraine.com
-- donate.thedigital.gov.ua
-- supportukrainenow.org`,
 
     '/opt/platform/config/platform-config.yaml': `# Platform Configuration Template
 # Single Node Deployment with Separate Database Host
@@ -262,7 +215,7 @@ database:
   port: 5432
   database_name: "platform_db"
   username: "platform_user"
-  password: "CHANGE_ME"  # Database password - make it strong like Ukrainian spirit!
+  password: "CHANGE_ME"  # Database password - make it strong!
   
 network:
   http_port: 80
@@ -360,19 +313,19 @@ Commands to investigate:
 Look for FLAGS in the output!
 
 💡 Pro tip: Debugging Kubernetes is like peeling an onion - lots of layers and it might make you cry!
-🇺🇦 Remember: Stay strong like Ukrainian defenders - never give up on finding the root cause!`,
+🎯 Remember: Stay persistent - never give up on finding the root cause!`,
 
     '/root/troubleshooting/meme-logs.txt': `🎭 KUBERNETES MEME TROUBLESHOOTING LOG 🎭
 
 [ERROR] Pod crashed harder than my hopes and dreams
 [WARN] Storage class not found - it's like looking for Shrek in a beauty contest
 [INFO] Service selector wrong - more lost than Donkey without Shrek
-[DEBUG] 🇺🇦 Ukrainian resilience mode: ACTIVATED 🇺🇦
+[DEBUG] 🎯 Persistent debugging mode: ACTIVATED 🎯
 [ERROR] Database connection timeout - even Shrek waits for no one!
 [SUCCESS] Finally fixed! 🎉 Victory tastes better than onions!
 
 Moral of the story: 
-- Persistence pays off (like Ukrainian spirit)
+- Persistence pays off (never give up)
 - Read the logs (they're like ogres - have layers)
 - Never give up (Shrek didn't give up on Fiona)
 
@@ -393,7 +346,7 @@ var ctfLogs = {
 2025-06-16T14:30:36.890Z INFO  Container exit code: 1 (sadder than when Fiona turned into an ogre)
 2025-06-16T14:30:37.123Z DEBUG Investigation shows database service is running but unreachable
 2025-06-16T14:30:38.456Z DEBUG FLAG{DATABASE_CONNECTION_TIMEOUT_DETECTED}
-2025-06-16T14:30:39.789Z DEBUG 🇺🇦 Stay strong, debug stronger! 🇺🇦`,
+2025-06-16T14:30:39.789Z DEBUG 🎯 Stay focused, debug harder! 🎯`,
 
     'database-pv-claim': `Name:          database-pv-claim
 Namespace:     default
@@ -422,7 +375,7 @@ metadata:
   namespace: default
   labels:
     app: nginx
-    # 🇺🇦 Deployed with Ukrainian determination 🇺🇦
+    # 🎯 Deployed with determination and precision 🎯
 spec:
   selector:
     app: nginx-app-WRONG  # This selector is as wrong as calling Shrek handsome!
@@ -444,7 +397,7 @@ spec:
 # FLAG{SERVICE_SELECTOR_LABEL_MISMATCH_FOUND}
 # 
 # 🧅 Remember: Labels are like ogres - they have to match exactly! 🧅
-# 🇺🇦 Debug with Ukrainian persistence - never surrender! 🇺🇦`
+# 🎯 Debug with persistence - never surrender! 🎯`
 };
 
 // File operation functions with improved error handling
@@ -543,8 +496,6 @@ function changeDirectory(path) {
         // Easter egg responses
         if (path.toLowerCase().includes('swamp')) {
             addOutput('🧅 "What are you doing in my swamp?!" - Directory not found, but Shrek approves of the attempt!', 'warning');
-        } else if (path.toLowerCase().includes('ukraine') || path.toLowerCase().includes('kyiv') || path.toLowerCase().includes('kiev')) {
-            addOutput('🇺🇦 Strong like Ukraine, but this directory needs to exist first! 💙💛', 'warning');
         } else {
             addOutput('💡 Hint: Use "ls" to see available directories, like peeling an onion layer by layer!', 'info');
         }
@@ -593,9 +544,6 @@ function viewFile(filename) {
         if (filePath.includes('shrek')) {
             addOutput('', 'success');
             addOutput('🧅 Shrek wisdom has been revealed! Remember: Like onions, good sysadmins have layers! 🧅', 'success');
-        } else if (filePath.includes('ukraine')) {
-            addOutput('', 'success');
-            addOutput('🇺🇦 Slava Ukraini! Your resilience inspires us all! 💙💛', 'success');
         }
         
     } else {
@@ -684,7 +632,7 @@ function editFile(filename) {
             addOutput('proxy=http://proxy.company.com:8080');
             addOutput('proxy_username=your_username');
             addOutput('proxy_password=your_password');
-            addOutput('🇺🇦 Configure with Ukrainian determination!', 'success');
+            addOutput('🎯 Configure with determination!', 'success');
             
             if (!systemState.centos.yumProxyConfigured) {
                 systemState.centos.yumProxyConfigured = true;
@@ -699,9 +647,6 @@ function editFile(filename) {
         if (filePath.includes('shrek')) {
             addOutput('');
             addOutput('🧅 Editing Shrek wisdom! "This is the part where you run away... from bad configs!"', 'success');
-        } else if (filePath.includes('ukraine')) {
-            addOutput('');
-            addOutput('🇺🇦 Editing with Ukrainian spirit! Stay strong! 💙💛', 'success');
         }
         
     } else {

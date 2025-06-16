@@ -36,7 +36,7 @@ function executeSystemctl(args) {
                 addOutput('   Active: active (running) since Mon 2025-06-16 14:30:00 UTC', 'success');
                 addOutput('   Main PID: 1234 (ntpd)');
                 addOutput('   Status: "synchronised to NTP server (0.centos.pool.ntp.org)"');
-                addOutput('🇺🇦 Time sync strong like Ukrainian spirit!', 'success');
+                addOutput('🎯 Time sync running perfectly!', 'success');
             } else {
                 addOutput('● ntpd.service - Network Time Protocol daemon');
                 addOutput('   Loaded: loaded (/usr/lib/systemd/system/ntpd.service; disabled)', 'warning');
@@ -56,7 +56,7 @@ function executeSystemctl(args) {
             addOutput('   Loaded: loaded (/usr/lib/systemd/system/firewalld.service; enabled)', 'success');
             addOutput('   Active: active (running) since Mon 2025-06-16 14:00:00 UTC', 'success');
             addOutput('   Main PID: 987 (firewalld)');
-            addOutput('🔥 Firewall protecting like Ukrainian defenders!', 'success');
+            addOutput('🔥 Firewall protecting your system!', 'success');
         } else if (action === 'restart') {
             addOutput('Restarting firewalld service...', 'info');
             setTimeout(function() {
@@ -115,7 +115,7 @@ function executeFirewallCmd(args) {
             
             if (allOpened && !completedTasks.has('firewall')) {
                 addOutput('🎉 All required ports have been opened!', 'success');
-                addOutput('🔥 Your firewall is now configured like a Ukrainian fortress!', 'success');
+                addOutput('🔥 Your firewall is now configured like a fortress!', 'success');
                 systemState.centos.firewallConfigured = true;
                 completedTasks.add('firewall');
                 updateTaskProgress();
@@ -140,7 +140,7 @@ function executeFirewallCmd(args) {
         if (systemState.centos.openPorts && systemState.centos.openPorts.length > 0) {
             addOutput('🔄 Firewall rules reloaded and active', 'success');
             addOutput('📋 Active ports: ' + systemState.centos.openPorts.join(', '), 'success');
-            addOutput('🇺🇦 Reloaded with Ukrainian efficiency!', 'success');
+            addOutput('🎯 Reloaded with efficiency!', 'success');
         } else {
             addOutput('🔄 Firewall reloaded (no custom ports configured)', 'info');
         }
@@ -210,7 +210,7 @@ function executeYum(args) {
                     setTimeout(function() {
                         addOutput('Complete!', 'success');
                         addOutput('🎉 System updated with ' + packageCount + ' packages!', 'success');
-                        addOutput('🇺🇦 Updated with Ukrainian precision!', 'success');
+                        addOutput('🎯 Updated with precision!', 'success');
                         showNewPrompt();
                     }, 1500);
                 }, 2000);
@@ -355,7 +355,7 @@ function executeDf(args) {
         addOutput('/dev/sda2        1048576   153600    870400  15% /boot');
         addOutput('tmpfs            8388608        0   8388608   0% /dev/shm');
     }
-    addOutput('🇺🇦 Storage space managed with Ukrainian efficiency!', 'success');
+    addOutput('🎯 Storage space managed with efficiency!', 'success');
 }
 
 function executeDd(args) {
@@ -388,7 +388,7 @@ function executeDd(args) {
                 addOutput('3. swapon /swapfile           # Enable swap');
                 addOutput('4. Add to /etc/fstab          # Make persistent');
                 addOutput('');
-                addOutput('🇺🇦 Swap creation completed with Ukrainian determination!', 'success');
+                addOutput('🎯 Swap creation completed with determination!', 'success');
                 showNewPrompt();
             } else {
                 progressDiv.textContent = '📊 Progress: ' + Math.floor(progress) + '% - Writing ' + Math.floor(progress * 85.8) + ' MB...';
@@ -460,7 +460,7 @@ function executeSwapon(args) {
         addOutput('/swapfile swap swap defaults 0 0', 'info');
         addOutput('');
         addOutput('💡 You can edit fstab with: vi /etc/fstab', 'info');
-        addOutput('🇺🇦 Swap configured with Ukrainian resilience!', 'success');
+        addOutput('🎯 Swap configured with resilience!', 'success');
         checkAllTasksComplete();
     } else {
         addOutput('swapon: ' + file + ': No such file or directory', 'error');
@@ -497,7 +497,7 @@ function executePing(args) {
             addOutput('4 packets transmitted, 4 received, 0% packet loss, time 3003ms');
             addOutput('rtt min/avg/max/mdev = 1.2/5.4/9.8/3.2 ms', 'success');
             addOutput('🎉 Network connectivity confirmed!', 'success');
-            addOutput('🇺🇦 Connection strong like Ukrainian determination!', 'success');
+            addOutput('🎯 Connection strong like determination!', 'success');
             showNewPrompt();
         }
     }, 1000);
