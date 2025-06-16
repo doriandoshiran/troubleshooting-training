@@ -13,7 +13,6 @@
         <div class="sidebar">
             <div class="tab active" data-tab="docs">🎯 System Preparation Tasks</div>
             <div class="tab" data-tab="ctf">☸️ Cluster Troubleshooting</div>
-            <div class="tab" data-tab="files">📁 Files</div>
             <div class="tab" data-tab="help">❓ Help</div>
             
             <div class="tab-content active" id="docs">
@@ -91,26 +90,10 @@
             </div>
             
             <div class="tab-content" id="files">
-                <h3>System Files</h3>
-                <pre>
-/opt/platform/
-├── config/
-│   ├── platform-config.yaml
-│   ├── database-config.yaml
-│   └── ntp.conf.template
-├── scripts/
-│   ├── prepare-system.sh
-│   └── validate-setup.sh
-└── logs/
-    └── preparation.log
-                </pre>
-                
-                <h4>Configuration Templates</h4>
-                <ul>
-                    <li><strong>platform-config.yaml</strong> - Main platform configuration</li>
-                    <li><strong>database-config.yaml</strong> - Database connection settings</li>
-                    <li><strong>ntp.conf.template</strong> - NTP configuration template</li>
-                </ul>
+                <h3>File System</h3>
+                <div id="filesystem-display">
+                    <p>Connect to a host to view filesystem structure</p>
+                </div>
             </div>
             
             <div class="tab-content" id="ctf">
@@ -204,7 +187,6 @@
                 <div class="input-line">
                     <span class="prompt">acme-training@jumphost:~$</span>
                     <input type="text" class="command-input" id="main-command-input" autocomplete="off" autofocus onkeydown="handleMainKeyPress(event)">
-                    <span class="cursor">_</span>
                 </div>
             </div>
             

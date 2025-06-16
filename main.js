@@ -135,7 +135,7 @@ function showNewPrompt() {
     var terminal = document.getElementById('terminal-output');
     var newInputLine = document.createElement('div');
     newInputLine.className = 'input-line';
-    newInputLine.innerHTML = '<span class="prompt">' + getPromptString() + '</span><input type="text" class="command-input" autocomplete="off"><span class="cursor">_</span>';
+    newInputLine.innerHTML = '<span class="prompt">' + getPromptString() + '</span><input type="text" class="command-input" autocomplete="off">';
     
     terminal.appendChild(newInputLine);
     
