@@ -7,23 +7,28 @@ function executeSystemctl(args) {
     if (!action || !service) {
         addOutput('systemctl: missing arguments', 'error');
         addOutput('Usage: systemctl [start|stop|enable|disable|status] [service]');
+        addOutput('🧅 Even ogres need proper syntax!', 'warning');
         return;
     }
     
     if (service === 'ntpd') {
         if (action === 'start') {
             addOutput('Starting ntpd service...', 'info');
+            addOutput('🕐 Time sync is important - even Shrek needs to be on time!', 'info');
             setTimeout(function() {
                 addOutput('ntpd service started successfully', 'success');
+                addOutput('✅ Network Time Protocol daemon is now running', 'success');
                 systemState.centos.ntpConfigured = true;
                 completedTasks.add('ntp');
                 updateTaskProgress();
+                checkAllTasksComplete();
                 showNewPrompt();
             }, 1500);
             return;
         } else if (action === 'enable') {
             addOutput('Enabling ntpd service...', 'info');
             addOutput('Created symlink from /etc/systemd/system/multi-user.target.wants/ntpd.service to /usr/lib/systemd/system/ntpd.service', 'success');
+            addOutput('✅ ntpd will now start automatically on boot', 'success');
         } else if (action === 'status') {
             if (systemState.centos.ntpConfigured) {
                 addOutput('● ntpd.service - Network Time Protocol daemon');
@@ -31,11 +36,19 @@ function executeSystemctl(args) {
                 addOutput('   Active: active (running) since Mon 2025-06-16 14:30:00 UTC', 'success');
                 addOutput('   Main PID: 1234 (ntpd)');
                 addOutput('   Status: "synchronised to NTP server (0.centos.pool.ntp.org)"');
+                addOutput('🇺🇦 Time sync strong like Ukrainian spirit!', 'success');
             } else {
                 addOutput('● ntpd.service - Network Time Protocol daemon');
                 addOutput('   Loaded: loaded (/usr/lib/systemd/system/ntpd.service; disabled)', 'warning');
                 addOutput('   Active: inactive (dead)', 'warning');
+                addOutput('💡 Use "systemctl start ntpd" to start the service', 'info');
             }
+        } else if (action === 'stop') {
+            addOutput('Stopping ntpd service...', 'warning');
+            addOutput('ntpd service stopped', 'info');
+            systemState.centos.ntpConfigured = false;
+            completedTasks.delete('ntp');
+            updateTaskProgress();
         }
     } else if (service === 'firewalld') {
         if (action === 'status') {
@@ -43,9 +56,27 @@ function executeSystemctl(args) {
             addOutput('   Loaded: loaded (/usr/lib/systemd/system/firewalld.service; enabled)', 'success');
             addOutput('   Active: active (running) since Mon 2025-06-16 14:00:00 UTC', 'success');
             addOutput('   Main PID: 987 (firewalld)');
+            addOutput('🔥 Firewall protecting like Ukrainian defenders!', 'success');
+        } else if (action === 'restart') {
+            addOutput('Restarting firewalld service...', 'info');
+            setTimeout(function() {
+                addOutput('firewalld service restarted successfully', 'success');
+                showNewPrompt();
+            }, 1000);
+            return;
+        }
+    } else if (service === 'sshd') {
+        if (action === 'status') {
+            addOutput('● sshd.service - OpenSSH server daemon');
+            addOutput('   Loaded: loaded (/usr/lib/systemd/system/sshd.service; enabled)', 'success');
+            addOutput('   Active: active (running) since Mon 2025-06-16 13:00:00 UTC', 'success');
+            addOutput('   Main PID: 123 (sshd)');
+            addOutput('🔐 SSH gateway open for secure connections!', 'success');
         }
     } else {
         addOutput('systemctl: unknown service "' + service + '"', 'error');
+        addOutput('💡 Common services: ntpd, firewalld, sshd', 'info');
+        addOutput('🧅 "Not all services are created equal!" - Shrek wisdom', 'warning');
     }
 }
 
@@ -55,6 +86,8 @@ function executeFirewallCmd(args) {
         addOutput('Usage: firewall-cmd --add-port=PORT/PROTOCOL [--permanent]');
         addOutput('       firewall-cmd --list-ports');
         addOutput('       firewall-cmd --reload');
+        addOutput('       firewall-cmd --state');
+        addOutput('🔥 Firewall commands need proper arguments!', 'warning');
         return;
     }
     
@@ -81,39 +114,60 @@ function executeFirewallCmd(args) {
             });
             
             if (allOpened && !completedTasks.has('firewall')) {
-                addOutput('All required ports have been opened!', 'info');
+                addOutput('🎉 All required ports have been opened!', 'success');
+                addOutput('🔥 Your firewall is now configured like a Ukrainian fortress!', 'success');
                 systemState.centos.firewallConfigured = true;
                 completedTasks.add('firewall');
                 updateTaskProgress();
+                checkAllTasksComplete();
             }
             
             if (command.includes('--permanent')) {
-                addOutput('Port ' + port + ' added permanently to firewall', 'success');
+                addOutput('✅ Port ' + port + ' added permanently to firewall', 'success');
+                addOutput('🔒 This rule will survive reboots!', 'info');
             } else {
-                addOutput('Port ' + port + ' added to firewall (temporary)', 'warning');
-                addOutput('Use --permanent flag to make changes persistent', 'info');
+                addOutput('⚠️  Port ' + port + ' added to firewall (temporary)', 'warning');
+                addOutput('💡 Use --permanent flag to make changes persistent', 'info');
+                addOutput('🧅 "Better permanent than sorry!" - Shrek probably', 'warning');
             }
         } else {
             addOutput('firewall-cmd: invalid port format', 'error');
-            addOutput('Use format: --add-port=PORT/PROTOCOL (e.g., --add-port=80/tcp)');
+            addOutput('Use format: --add-port=PORT/PROTOCOL (e.g., --add-port=80/tcp)', 'info');
+            addOutput('💡 Don\'t forget the protocol (tcp/udp)!', 'warning');
         }
     } else if (command.includes('--reload')) {
         addOutput('success', 'success');
         if (systemState.centos.openPorts && systemState.centos.openPorts.length > 0) {
-            addOutput('Firewall rules reloaded and active', 'info');
-            addOutput('Active ports: ' + systemState.centos.openPorts.join(', '), 'success');
+            addOutput('🔄 Firewall rules reloaded and active', 'success');
+            addOutput('📋 Active ports: ' + systemState.centos.openPorts.join(', '), 'success');
+            addOutput('🇺🇦 Reloaded with Ukrainian efficiency!', 'success');
+        } else {
+            addOutput('🔄 Firewall reloaded (no custom ports configured)', 'info');
         }
     } else if (command.includes('--list-ports')) {
         if (systemState.centos.openPorts && systemState.centos.openPorts.length > 0) {
             addOutput(systemState.centos.openPorts.join(' '));
+            addOutput('📋 ' + systemState.centos.openPorts.length + ' custom ports configured', 'info');
         } else {
             addOutput('');
+            addOutput('📭 No custom ports configured yet', 'info');
+            addOutput('💡 Use --add-port to open ports for services', 'info');
         }
     } else if (command.includes('--state')) {
         addOutput('running', 'success');
+        addOutput('🔥 Firewall is active and protecting your server!', 'success');
+    } else if (command.includes('--help')) {
+        addOutput('Common firewall-cmd options:', 'info');
+        addOutput('  --state                  - Check firewall status');
+        addOutput('  --list-ports             - List open ports');
+        addOutput('  --add-port=PORT/PROTOCOL - Open a port');
+        addOutput('  --reload                 - Reload firewall rules');
+        addOutput('  --permanent              - Make changes persistent');
+        addOutput('🔥 Use --permanent with --add-port for lasting rules!', 'warning');
     } else {
         addOutput('firewall-cmd: invalid option', 'error');
-        addOutput('Try: firewall-cmd --help');
+        addOutput('Try: firewall-cmd --help for available options', 'info');
+        addOutput('🧅 "Even ogres read the manual sometimes!"', 'warning');
     }
 }
 
@@ -123,12 +177,14 @@ function executeYum(args) {
     if (!command) {
         addOutput('yum: missing command', 'error');
         addOutput('Usage: yum [update|install|search] [package]');
+        addOutput('🍰 YUM needs to know what you want to do!', 'warning');
         return;
     }
     
     if (command === 'update') {
         addOutput('Loaded plugins: fastestmirror', 'info');
         addOutput('Loading mirror speeds from cached hostfile', 'info');
+        addOutput('🌍 Finding fastest mirrors...', 'info');
         
         setTimeout(function() {
             addOutput('Resolving Dependencies', 'info');
@@ -137,18 +193,26 @@ function executeYum(args) {
             addOutput('');
             addOutput('Transaction Summary');
             addOutput('=====================================');
-            addOutput('Upgrade  ' + Math.floor(Math.random() * 50 + 20) + ' Packages');
+            var packageCount = Math.floor(Math.random() * 50 + 20);
+            addOutput('Upgrade  ' + packageCount + ' Packages');
             addOutput('');
-            addOutput('Total download size: ' + Math.floor(Math.random() * 200 + 50) + ' MB');
+            var downloadSize = Math.floor(Math.random() * 200 + 50);
+            addOutput('Total download size: ' + downloadSize + ' MB');
             addOutput('Is this ok [y/N]: ', 'warning');
             
             setTimeout(function() {
                 addOutput('y');
                 addOutput('Downloading packages...', 'info');
+                addOutput('📦 Package downloads in progress...', 'info');
                 setTimeout(function() {
                     addOutput('Running transaction', 'info');
-                    addOutput('Complete!', 'success');
-                    showNewPrompt();
+                    addOutput('🔄 Installing updates...', 'info');
+                    setTimeout(function() {
+                        addOutput('Complete!', 'success');
+                        addOutput('🎉 System updated with ' + packageCount + ' packages!', 'success');
+                        addOutput('🇺🇦 Updated with Ukrainian precision!', 'success');
+                        showNewPrompt();
+                    }, 1500);
                 }, 2000);
             }, 1000);
         }, 1000);
@@ -158,11 +222,13 @@ function executeYum(args) {
         if (packages.length === 0) {
             addOutput('yum install: missing package name', 'error');
             addOutput('Usage: yum install PACKAGE [PACKAGE2...]');
+            addOutput('💡 Specify which packages to install!', 'warning');
             return;
         }
         
         addOutput('Loaded plugins: fastestmirror', 'info');
         addOutput('Loading mirror speeds from cached hostfile', 'info');
+        addOutput('🔍 Searching for packages: ' + packages.join(', '), 'info');
         
         setTimeout(function() {
             var isNtp = packages.includes('ntp');
@@ -172,9 +238,11 @@ function executeYum(args) {
             
             if (isNtp || hasRequiredPackages) {
                 addOutput('Resolving Dependencies', 'info');
+                addOutput('--> Running transaction check', 'info');
                 addOutput('Dependencies Resolved', 'success');
                 addOutput('');
                 addOutput('Installing: ' + packages.join(', '));
+                addOutput('📦 Package installation starting...', 'info');
                 
                 setTimeout(function() {
                     addOutput('Complete!', 'success');
@@ -183,13 +251,22 @@ function executeYum(args) {
                         systemState.centos.packagesInstalled = true;
                         completedTasks.add('packages');
                         updateTaskProgress();
-                        addOutput('Required system packages installed successfully!', 'info');
+                        addOutput('🎉 Required system packages installed successfully!', 'success');
+                        addOutput('🧅 "Better to have and not need!" - Shrek wisdom', 'success');
+                        checkAllTasksComplete();
+                    }
+                    
+                    if (isNtp) {
+                        addOutput('💡 Don\'t forget to start and enable the ntpd service!', 'info');
+                        addOutput('Commands: systemctl start ntpd && systemctl enable ntpd', 'info');
                     }
                     
                     showNewPrompt();
                 }, 2000);
             } else {
                 addOutput('No package ' + packages[0] + ' available.', 'error');
+                addOutput('💡 Check the package name or try "yum search ' + packages[0] + '"', 'info');
+                addOutput('🧅 "Not all packages are created equal!" - Ogre wisdom', 'warning');
                 showNewPrompt();
             }
         }, 1500);
@@ -198,15 +275,42 @@ function executeYum(args) {
         var searchTerm = args[1];
         if (!searchTerm) {
             addOutput('yum search: missing search term', 'error');
+            addOutput('Usage: yum search TERM', 'info');
             return;
         }
         addOutput('Loaded plugins: fastestmirror', 'info');
         addOutput('Loading mirror speeds from cached hostfile', 'info');
+        addOutput('🔍 Searching repositories...', 'info');
         addOutput('========================== N/S matched: ' + searchTerm + ' ==========================');
-        addOutput('No matching packages found for: ' + searchTerm);
+        
+        // Provide some realistic search results
+        if (searchTerm.includes('ntp')) {
+            addOutput('ntp.x86_64 : The NTP daemon and utilities');
+            addOutput('ntpdate.x86_64 : Utility to set the date and time via NTP');
+        } else if (searchTerm.includes('wget')) {
+            addOutput('wget.x86_64 : A utility for retrieving files using the HTTP or FTP protocols');
+        } else if (searchTerm.includes('curl')) {
+            addOutput('curl.x86_64 : A utility for getting files from remote servers (FTP, HTTP, and others)');
+        } else {
+            addOutput('No matching packages found for: ' + searchTerm);
+            addOutput('💡 Try broader search terms or check spelling!', 'info');
+        }
+    } else if (command === 'list') {
+        if (args[1] === 'installed') {
+            addOutput('Loaded plugins: fastestmirror', 'info');
+            addOutput('Installed Packages', 'success');
+            addOutput('bash.x86_64                    4.2.46-34.el7                @anaconda');
+            addOutput('coreutils.x86_64              8.22-24.el7                   @anaconda');
+            addOutput('kernel.x86_64                 3.10.0-1160.el7               @anaconda');
+            addOutput('systemd.x86_64                219-78.el7                    @anaconda');
+            addOutput('📦 Showing sample of installed packages', 'info');
+        } else {
+            addOutput('Usage: yum list [installed|available|updates]', 'info');
+        }
     } else {
         addOutput('yum: unknown command "' + command + '"', 'error');
-        addOutput('Available commands: update, install, search');
+        addOutput('Available commands: update, install, search, list', 'info');
+        addOutput('💡 Try "yum --help" for more options', 'info');
     }
 }
 
@@ -218,8 +322,11 @@ function executeFree(args) {
         addOutput('Mem:            16G        4.2G        8.1G        256M        3.7G         11G');
         if (systemState.centos.swapConfigured) {
             addOutput('Swap:          8.0G          0B        8.0G');
+            addOutput('💾 Swap space configured and available!', 'success');
         } else {
             addOutput('Swap:            0B          0B          0B', 'warning');
+            addOutput('⚠️  No swap space configured - consider adding swap!', 'warning');
+            addOutput('💡 Use: dd, mkswap, swapon to create swap space', 'info');
         }
     } else {
         addOutput('             total       used       free     shared    buffers     cached');
@@ -230,6 +337,7 @@ function executeFree(args) {
             addOutput('Swap:            0          0          0', 'warning');
         }
     }
+    addOutput('🧅 Memory info revealed - like layers of an onion!', 'info');
 }
 
 function executeDf(args) {
@@ -240,12 +348,14 @@ function executeDf(args) {
         addOutput('/dev/sda1       500G   45G  429G  10% /');
         addOutput('/dev/sda2       1.0G  150M  851M  15% /boot');
         addOutput('tmpfs           8.0G     0  8.0G   0% /dev/shm');
+        addOutput('💾 Disk usage looks healthy!', 'success');
     } else {
         addOutput('Filesystem     1K-blocks     Used Available Use% Mounted on');
         addOutput('/dev/sda1      524288000 47185920 451102080  10% /');
         addOutput('/dev/sda2        1048576   153600    870400  15% /boot');
         addOutput('tmpfs            8388608        0   8388608   0% /dev/shm');
     }
+    addOutput('🇺🇦 Storage space managed with Ukrainian efficiency!', 'success');
 }
 
 function executeDd(args) {
@@ -253,7 +363,8 @@ function executeDd(args) {
     
     if (command.includes('if=/dev/zero') && command.includes('of=/swapfile')) {
         addOutput('Creating 8GB swap file...', 'info');
-        addOutput('This may take a few minutes...', 'warning');
+        addOutput('⚠️  This may take a few minutes...', 'warning');
+        addOutput('🧅 "Better out than in!" - Creating swap space like Shrek!', 'info');
         
         var progress = 0;
         var progressDiv = document.createElement('div');
@@ -269,16 +380,18 @@ function executeDd(args) {
                 addOutput('8388608+0 records in');
                 addOutput('8388608+0 records out');
                 addOutput('8589934592 bytes (8.6 GB) copied, 45.2341 s, 190 MB/s', 'success');
-                addOutput('Swap file created successfully!', 'success');
+                addOutput('🎉 Swap file created successfully!', 'success');
                 addOutput('');
                 addOutput('Next steps:', 'info');
-                addOutput('1. chmod 600 /swapfile');
-                addOutput('2. mkswap /swapfile');
-                addOutput('3. swapon /swapfile');
-                addOutput('4. Add to /etc/fstab for persistence');
+                addOutput('1. chmod 600 /swapfile        # Set secure permissions');
+                addOutput('2. mkswap /swapfile           # Initialize swap area');
+                addOutput('3. swapon /swapfile           # Enable swap');
+                addOutput('4. Add to /etc/fstab          # Make persistent');
+                addOutput('');
+                addOutput('🇺🇦 Swap creation completed with Ukrainian determination!', 'success');
                 showNewPrompt();
             } else {
-                progressDiv.textContent = 'Progress: ' + Math.floor(progress) + '% - Writing ' + Math.floor(progress * 85.8) + ' MB...';
+                progressDiv.textContent = '📊 Progress: ' + Math.floor(progress) + '% - Writing ' + Math.floor(progress * 85.8) + ' MB...';
                 scrollToBottom();
             }
         }, 400);
@@ -287,13 +400,16 @@ function executeDd(args) {
         addOutput('dd: creating file...', 'info');
         setTimeout(function() {
             addOutput('File created successfully', 'success');
+            addOutput('💾 DD command completed!', 'success');
             showNewPrompt();
         }, 1000);
         return;
     } else {
         addOutput('dd: invalid arguments', 'error');
-        addOutput('Example: dd if=/dev/zero of=/swapfile bs=1024 count=8388608');
-        addOutput('         dd if=/dev/zero of=/swapfile bs=1G count=8');
+        addOutput('Example: dd if=/dev/zero of=/swapfile bs=1024 count=8388608', 'info');
+        addOutput('         dd if=/dev/zero of=/swapfile bs=1G count=8', 'info');
+        addOutput('💡 Specify input file (if=) and output file (of=)', 'warning');
+        addOutput('🧅 "Even ogres need proper syntax!" - Shrek', 'warning');
     }
 }
 
@@ -302,7 +418,8 @@ function executeMkswap(args) {
     
     if (!file) {
         addOutput('mkswap: missing file argument', 'error');
-        addOutput('Usage: mkswap [file]');
+        addOutput('Usage: mkswap [file]', 'info');
+        addOutput('💡 Specify the swap file to initialize!', 'warning');
         return;
     }
     
@@ -310,11 +427,13 @@ function executeMkswap(args) {
         addOutput('Setting up swapspace version 1, size = 8388604 KiB');
         addOutput('no label, UUID=12345678-1234-1234-1234-123456789012', 'success');
         addOutput('');
-        addOutput('Swap file initialized successfully!', 'success');
-        addOutput('Next: swapon /swapfile', 'info');
+        addOutput('✅ Swap file initialized successfully!', 'success');
+        addOutput('💡 Next step: swapon /swapfile', 'info');
+        addOutput('🔄 Almost there - just need to activate it!', 'success');
     } else {
         addOutput('mkswap: ' + file + ': No such file or directory', 'error');
-        addOutput('Make sure the file exists first (use dd to create it)');
+        addOutput('💡 Make sure the file exists first (use dd to create it)', 'info');
+        addOutput('Example: dd if=/dev/zero of=/swapfile bs=1G count=8', 'info');
     }
 }
 
@@ -323,26 +442,30 @@ function executeSwapon(args) {
     
     if (!file) {
         addOutput('swapon: missing file argument', 'error');
-        addOutput('Usage: swapon [file]');
+        addOutput('Usage: swapon [file]', 'info');
+        addOutput('💡 Specify which swap file to activate!', 'warning');
         return;
     }
     
     if (file === '/swapfile') {
-        addOutput('Swap file activated successfully!', 'success');
+        addOutput('🎉 Swap file activated successfully!', 'success');
         addOutput('');
         systemState.centos.swapConfigured = true;
         completedTasks.add('swap');
         updateTaskProgress();
-        addOutput('✓ 8GB swap space is now active', 'success');
+        addOutput('✅ 8GB swap space is now active and ready!', 'success');
         addOutput('');
         addOutput('To make swap persistent across reboots:', 'warning');
-        addOutput('Add this line to /etc/fstab:');
+        addOutput('📝 Add this line to /etc/fstab:');
         addOutput('/swapfile swap swap defaults 0 0', 'info');
         addOutput('');
-        addOutput('You can edit fstab with: vi /etc/fstab');
+        addOutput('💡 You can edit fstab with: vi /etc/fstab', 'info');
+        addOutput('🇺🇦 Swap configured with Ukrainian resilience!', 'success');
+        checkAllTasksComplete();
     } else {
         addOutput('swapon: ' + file + ': No such file or directory', 'error');
-        addOutput('Make sure the swap file exists and is properly formatted');
+        addOutput('💡 Make sure the swap file exists and is properly formatted', 'info');
+        addOutput('Steps: 1) dd to create, 2) mkswap to format, 3) swapon to activate', 'info');
     }
 }
 
@@ -351,12 +474,14 @@ function executePing(args) {
     
     if (!host) {
         addOutput('ping: missing host argument', 'error');
-        addOutput('Usage: ping [hostname]');
+        addOutput('Usage: ping [hostname]', 'info');
+        addOutput('💡 Specify a host to ping!', 'warning');
         showNewPrompt();
         return;
     }
     
     addOutput('PING ' + host + ' (192.168.1.1) 56(84) bytes of data.', 'info');
+    addOutput('🏓 Pinging ' + host + ' - let\'s see if it responds!', 'info');
     
     var count = 0;
     var interval = setInterval(function() {
@@ -371,6 +496,8 @@ function executePing(args) {
             addOutput('--- ' + host + ' ping statistics ---');
             addOutput('4 packets transmitted, 4 received, 0% packet loss, time 3003ms');
             addOutput('rtt min/avg/max/mdev = 1.2/5.4/9.8/3.2 ms', 'success');
+            addOutput('🎉 Network connectivity confirmed!', 'success');
+            addOutput('🇺🇦 Connection strong like Ukrainian determination!', 'success');
             showNewPrompt();
         }
     }, 1000);
@@ -388,8 +515,9 @@ function executeKubectl(args) {
     
     if (!subcommand) {
         addOutput('kubectl: missing subcommand', 'error');
-        addOutput('Available commands: get, describe, logs');
-        addOutput('Try: kubectl get pods');
+        addOutput('Available commands: get, describe, logs', 'info');
+        addOutput('Try: kubectl get pods', 'info');
+        addOutput('⚓ Need to specify what kubectl should do!', 'warning');
         return;
     }
     
@@ -399,26 +527,32 @@ function executeKubectl(args) {
             addOutput('webapp-deployment-7d4b8c9f4d-xyz123  0/1     CrashLoopBackOff   5          10m', 'error');
             addOutput('database-statefulset-0              1/1     Running            0          1h', 'success');
             addOutput('nginx-ingress-controller-abc123     1/1     Running            0          2h', 'success');
+            addOutput('🚨 One pod is having issues - investigate with kubectl logs!', 'warning');
         } else if (resource === 'services' || resource === 'svc') {
             addOutput('NAME            TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE');
             addOutput('kubernetes      ClusterIP      10.96.0.1       <none>        443/TCP        3d');
             addOutput('webapp-service  LoadBalancer   10.96.245.123   <pending>     80:30080/TCP   1h');
             addOutput('nginx-service   LoadBalancer   10.96.100.200   <pending>     80:30081/TCP   2h', 'warning');
+            addOutput('🔗 Services listed - some external IPs are pending', 'info');
         } else if (resource === 'pvc' || resource === 'persistentvolumeclaims') {
             addOutput('NAME                STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE');
             addOutput('database-pv-claim   Pending                                      fast-ssd       30m', 'warning');
+            addOutput('💾 Storage claim is pending - check storage class!', 'warning');
         } else if (resource === 'events') {
             addOutput('LAST SEEN   TYPE      REASON              OBJECT                               MESSAGE');
             addOutput('2m          Warning   ProvisioningFailed  persistentvolumeclaim/database-pv-claim   storageclass "fast-ssd" not found', 'warning');
             addOutput('5m          Warning   BackOff             pod/webapp-deployment-7d4b8c9f4d-xyz123   Back-off restarting failed container', 'error');
             addOutput('1m          Normal    Scheduled           pod/database-statefulset-0               Successfully assigned default/database-statefulset-0 to node01');
+            addOutput('📋 Recent cluster events - investigate the warnings!', 'warning');
         } else if (resource === 'nodes') {
             addOutput('NAME      STATUS   ROLES                  AGE   VERSION');
             addOutput('master    Ready    control-plane,master   5d    v1.24.0', 'success');
             addOutput('node01    Ready    <none>                 5d    v1.24.0', 'success');
+            addOutput('🖥️  All nodes are ready and healthy!', 'success');
         } else {
             addOutput('kubectl get: unknown resource type "' + (resource || 'unknown') + '"', 'error');
-            addOutput('Available resources: pods, services, pvc, events, nodes');
+            addOutput('Available resources: pods, services, pvc, events, nodes', 'info');
+            addOutput('💡 Try: kubectl get pods', 'info');
         }
     } else if (subcommand === 'describe') {
         if (resource === 'pod' && name === 'webapp-deployment-7d4b8c9f4d-xyz123') {
@@ -446,6 +580,8 @@ function executeKubectl(args) {
             addOutput('  Type     Reason     Age                Message');
             addOutput('  ----     ------     ----               -------');
             addOutput('  Warning  BackOff    2m (x10 over 5m)   Back-off restarting failed container', 'warning');
+            addOutput('');
+            addOutput('🔍 Pod details revealed - check logs next!', 'info');
         } else if (resource === 'pvc' && name === 'database-pv-claim') {
             var pvcDesc = ctfLogs['database-pv-claim'];
             addOutput(pvcDesc);
@@ -456,6 +592,8 @@ function executeKubectl(args) {
             checkForFlag(serviceDesc);
         } else {
             addOutput('kubectl describe: resource "' + (resource || 'unknown') + '" "' + (name || 'unknown') + '" not found', 'error');
+            addOutput('💡 Check resource name and try again', 'info');
+            addOutput('Example: kubectl describe pod webapp-deployment-7d4b8c9f4d-xyz123', 'info');
         }
     } else if (subcommand === 'logs') {
         var podName = resource || name;
@@ -468,17 +606,22 @@ function executeKubectl(args) {
                 }
             }
             checkForFlag(logs);
+            addOutput('');
+            addOutput('📜 Pod logs retrieved - look for clues!', 'info');
         } else if (podName === 'database-statefulset-0') {
             addOutput('2025-06-16T14:25:00.123Z INFO  Starting PostgreSQL database...');
             addOutput('2025-06-16T14:25:01.456Z INFO  Database initialized successfully');
             addOutput('2025-06-16T14:25:02.789Z INFO  Accepting connections on port 5432');
             addOutput('2025-06-16T14:25:03.012Z INFO  Database ready for queries');
+            addOutput('💚 Database pod is healthy and running!', 'success');
         } else {
             addOutput('kubectl logs: pod "' + (podName || 'unknown') + '" not found', 'error');
-            addOutput('Available pods: webapp-deployment-7d4b8c9f4d-xyz123, database-statefulset-0');
+            addOutput('Available pods: webapp-deployment-7d4b8c9f4d-xyz123, database-statefulset-0', 'info');
+            addOutput('💡 Use full pod name from kubectl get pods', 'info');
         }
     } else {
         addOutput('kubectl: unknown subcommand "' + subcommand + '"', 'error');
-        addOutput('Available subcommands: get, describe, logs');
+        addOutput('Available subcommands: get, describe, logs', 'info');
+        addOutput('💡 Start with: kubectl get pods', 'info');
     }
 }

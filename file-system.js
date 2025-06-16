@@ -2,19 +2,36 @@
 
 // File system simulation for CentOS host
 var fileSystem = {
+    '/': {
+        'root/': 'directory',
+        'etc/': 'directory',
+        'opt/': 'directory',
+        'proc/': 'directory',
+        'var/': 'directory',
+        'home/': 'directory',
+        'usr/': 'directory',
+        'bin/': 'directory',
+        'sbin/': 'directory'
+    },
     '/root': {
         '.bash_history': 'Command history file',
-        '.bashrc': 'Bash configuration'
+        '.bashrc': 'Bash configuration',
+        '.vimrc': 'Vim configuration',
+        'shrek.txt': 'Secret Shrek quotes file'
     },
     '/etc': {
         'fstab': 'File system table',
         'ntp.conf': 'NTP configuration',
         'yum.conf': 'YUM configuration',
         'hosts': 'Host file',
-        'firewalld/': 'directory'
+        'passwd': 'User account information',
+        'shadow': 'User password hashes',
+        'firewalld/': 'directory',
+        'systemd/': 'directory'
     },
     '/etc/firewalld': {
-        'zones/': 'directory'
+        'zones/': 'directory',
+        'firewalld.conf': 'Firewall configuration'
     },
     '/opt': {
         'platform/': 'directory'
@@ -31,37 +48,62 @@ var fileSystem = {
     },
     '/opt/platform/scripts': {
         'prepare-system.sh': 'System preparation script',
-        'validate-setup.sh': 'Setup validation script'
+        'validate-setup.sh': 'Setup validation script',
+        'ukraine-flag.sh': 'Special Ukrainian script'
     },
     '/opt/platform/logs': {
-        'preparation.log': 'Preparation log file'
+        'preparation.log': 'Preparation log file',
+        'error.log': 'Error log file'
     },
     '/proc': {
         'meminfo': 'Memory information',
-        'swaps': 'Swap information'
+        'swaps': 'Swap information',
+        'cpuinfo': 'CPU information',
+        'version': 'Kernel version'
     },
     '/var/log': {
         'messages': 'System messages log',
+        'secure': 'Security log',
         'kubernetes/': 'directory'
     },
     '/var/log/kubernetes': {
         'scheduler.log': 'Kubernetes scheduler log',
         'controller-manager.log': 'Controller manager log',
         'kubelet.log': 'Kubelet log'
+    },
+    '/home': {
+        'training/': 'directory'
+    },
+    '/home/training': {
+        'README.txt': 'Training instructions',
+        'memes/': 'directory'
+    },
+    '/home/training/memes': {
+        'shrek-quotes.txt': 'Shrek wisdom',
+        'ukrainian-memes.txt': 'Ukrainian humor'
     }
 };
 
 // Cluster file system (when connected to k8s host)
 var clusterFileSystem = {
+    '/': {
+        'root/': 'directory',
+        'var/': 'directory',
+        'etc/': 'directory',
+        'home/': 'directory'
+    },
     '/root': {
         '.kube/': 'directory',
-        'troubleshooting/': 'directory'
+        'troubleshooting/': 'directory',
+        '.bashrc': 'Bash configuration',
+        'ukraine-support.txt': 'Ukraine support message'
     },
     '/root/.kube': {
         'config': 'Kubernetes configuration'
     },
     '/root/troubleshooting': {
-        'investigation-notes.txt': 'Investigation notes'
+        'investigation-notes.txt': 'Investigation notes',
+        'meme-logs.txt': 'Funny log analysis'
     },
     '/var/log': {
         'pods/': 'directory',
@@ -71,7 +113,8 @@ var clusterFileSystem = {
     '/var/log/pods': {
         'webapp-deployment-7d4b8c9f4d-xyz123/': 'directory',
         'database-statefulset-0/': 'directory',
-        'nginx-ingress-controller-abc123/': 'directory'
+        'nginx-ingress-controller-abc123/': 'directory',
+        'shrek-pod-123/': 'directory'
     },
     '/var/log/containers': {
         'webapp-container.log': 'Application container logs',
@@ -80,15 +123,18 @@ var clusterFileSystem = {
     }
 };
 
-// Configuration file contents
+// Configuration file contents with easter eggs
 var configFiles = {
     '/etc/fstab': `# /etc/fstab
 # Created by anaconda
+# Fun fact: This file is older than Shrek movies
 UUID=12345678-1234-1234-1234-123456789012 /                       xfs     defaults        0 0
 UUID=87654321-4321-4321-4321-210987654321 /boot                   xfs     defaults        0 0
-UUID=abcdefgh-ijkl-mnop-qrst-uvwxyz123456 swap                    swap    defaults        0 0`,
+UUID=abcdefgh-ijkl-mnop-qrst-uvwxyz123456 swap                    swap    defaults        0 0
+# /swapfile swap swap defaults 0 0`,
 
     '/etc/ntp.conf': `# NTP configuration file
+# Time sync is important - even Shrek needs to be on time!
 driftfile /var/lib/ntp/drift
 restrict default nomodify notrap nopeer noquery
 restrict 127.0.0.1 
@@ -98,7 +144,10 @@ restrict ::1
 server 0.centos.pool.ntp.org iburst
 server 1.centos.pool.ntp.org iburst
 server 2.centos.pool.ntp.org iburst
-server 3.centos.pool.ntp.org iburst`,
+server 3.centos.pool.ntp.org iburst
+
+# Ukrainian time servers (because why not!)
+# server ntp.ua iburst`,
 
     '/etc/yum.conf': `[main]
 cachedir=/var/cache/yum/$basearch/$releasever
@@ -116,15 +165,87 @@ distroverpkg=centos-release
 # Add proxy configuration here:
 # proxy=http://proxy.company.com:8080
 # proxy_username=your_username
-# proxy_password=your_password`,
+# proxy_password=your_password
+
+# Fun fact: YUM stands for "Yellow dog Updater, Modified"
+# Not "Yet another Unnecessary Manager" as some people think!`,
 
     '/etc/hosts': `127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 192.168.1.100 prod-centos-01.company.local prod-centos-01
-192.168.1.200 db.company.local db-server`,
+192.168.1.200 db.company.local db-server
+# 192.168.1.42 shrek.swamp.local shrek
+# 🇺🇦 Slava Ukraini!`,
+
+    '/root/shrek.txt': `🟢 SHREK WISDOM FOR SYSADMINS 🟢
+
+"Better out than in!" - Always check your logs
+"I'm not a monster, I'm just ahead of the curve" - When deploying on Friday
+"What are you doing in my swamp?!" - When users complain about server maintenance
+"Layers! Onions have layers!" - Just like network architecture
+"Some of you may die, but that is a sacrifice I am willing to make" - Load balancing strategy
+
+Remember: Even ogres need proper system monitoring!
+🧅 Ogres are like servers - they have layers! 🧅`,
+
+    '/opt/platform/scripts/ukraine-flag.sh': `#!/bin/bash
+# Ukrainian Flag Script 🇺🇦
+# Slava Ukraini! 
+
+echo "🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦🇺🇦"
+echo "🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦"
+echo "🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨" 
+echo ""
+echo "Glory to Ukraine! 🇺🇦"
+echo "Glory to the Heroes! 💙💛"
+echo ""
+echo "Stay strong, keep deploying! 💪"`,
+
+    '/home/training/memes/shrek-quotes.txt': `🧅 SHREK TECH QUOTES 🧅
+
+"This is the part where you run away" - When seeing the server bill
+"I like that boulder. That is a nice boulder." - Appreciating stable infrastructure  
+"Are we there yet?" - Every deployment ever
+"Do you know the muffin man?" - Asking about the on-call engineer
+"Donkey!" - When the backup fails
+"I'm looking down!" - Checking server metrics
+
+Pro tip: Be like Shrek - embrace the layers (of your application stack)!`,
+
+    '/home/training/memes/ukrainian-memes.txt': `🇺🇦 UKRAINIAN TECH HUMOR 🇺🇦
+
+Why do Ukrainian developers love Docker?
+Because containers are like borscht - better when everything is properly layered!
+
+What's the difference between Russian software and Ukrainian software?
+Ukrainian software actually works and doesn't invade your system!
+
+Ukrainian programmers favorite HTTP status code: 200 OK
+Russian programmers favorite: 404 - Territory Not Found
+
+Remember: Code like a Ukrainian - with resilience, creativity, and unwavering spirit!
+💙💛 Stay strong, code stronger! 💙💛`,
+
+    '/root/ukraine-support.txt': `🇺🇦 SUPPORT UKRAINE MESSAGE 🇺🇦
+
+To our Ukrainian colleagues in tech:
+Your resilience inspires us all. While you defend your homeland,
+we stand with you in solidarity.
+
+Your contributions to the global tech community are invaluable.
+Keep coding, keep creating, keep being amazing.
+
+💙💛 #StandWithUkraine 💙💛
+🔵🟡 Slava Ukraini! 🔵🟡
+
+Resources for support:
+- tech.ukraine.com
+- donate.thedigital.gov.ua
+- supportukrainenow.org`,
 
     '/opt/platform/config/platform-config.yaml': `# Platform Configuration Template
 # Single Node Deployment with Separate Database Host
+# ⚠️  Configure carefully - "With great power comes great responsibility" - Spider-Man (and Shrek)
 
 global:
   deployment_type: "single-node"
@@ -141,7 +262,7 @@ database:
   port: 5432
   database_name: "platform_db"
   username: "platform_user"
-  password: "CHANGE_ME"  # Database password
+  password: "CHANGE_ME"  # Database password - make it strong like Ukrainian spirit!
   
 network:
   http_port: 80
@@ -160,28 +281,10 @@ security:
   
 # Edit these values for your environment:
 # - Set database.host to your database server IP
-# - Set database.password to a secure password
-# - Verify all port configurations`,
-
-    '/opt/platform/config/database-config.yaml': `# Database Configuration Template
-# PostgreSQL connection settings for separate database host
-
-database:
-  host: "CHANGE_ME"  # Database server hostname/IP
-  port: 5432
-  name: "platform_db"
-  username: "platform_user"
-  password: "CHANGE_ME"  # Database password
-  
-connection:
-  max_connections: 100
-  timeout: 30
-  ssl_mode: "require"
-  
-backup:
-  enabled: true
-  schedule: "0 2 * * *"  # Daily at 2 AM
-  retention_days: 30`,
+# - Set database.password to a secure password (not "password123" or "shrek")
+# - Verify all port configurations match your firewall rules
+# 
+# Pro tip: Like ogres and onions, good configs have layers!`,
 
     '/proc/meminfo': `MemTotal:       16777216 kB
 MemFree:         8388608 kB
@@ -192,12 +295,18 @@ SwapCached:            0 kB
 Active:          4194304 kB
 Inactive:        2097152 kB
 SwapTotal:       ${systemState.centos.swapConfigured ? '8388608' : '0'} kB
-SwapFree:        ${systemState.centos.swapConfigured ? '8388608' : '0'} kB`,
+SwapFree:        ${systemState.centos.swapConfigured ? '8388608' : '0'} kB
+# Fun fact: This server has more RAM than Shrek's swamp has water!`,
 
     '/proc/swaps': systemState.centos.swapConfigured ? 
         `Filename				Type		Size	Used	Priority
-/swapfile                               file		8388608	0	-2` :
-        `Filename				Type		Size	Used	Priority`,
+/swapfile                               file		8388608	0	-2
+# Swap is like Shrek - not pretty, but essential!` :
+        `Filename				Type		Size	Used	Priority
+# No swap configured - even Shrek needs backup space!`,
+
+    '/proc/version': `Linux version 4.18.0-348.el8.x86_64 (mockbuild@centos.org) (gcc version 8.5.0) #1 SMP Tue Oct 19 15:14:05 UTC 2021
+Built with love, layers, and a little bit of ogre magic! 🧅`,
 
     '/root/.kube/config': `apiVersion: v1
 clusters:
@@ -217,7 +326,8 @@ users:
 - name: kubernetes-admin
   user:
     client-certificate-data: LS0tLS1CRUdJTi...
-    client-key-data: LS0tLS1CRUdJTi...`,
+    client-key-data: LS0tLS1CRUdJTi...
+# Remember: With great kubectl comes great responsibility!`,
 
     '/root/troubleshooting/investigation-notes.txt': `Kubernetes Cluster Investigation Notes
 =====================================
@@ -226,14 +336,17 @@ Issues Identified:
 1. webapp-deployment pod in CrashLoopBackOff state
    - Container exits with code 1
    - Check logs for database connection issues
+   - Status: More crashed than Shrek's morning routine
 
 2. database-pv-claim stuck in Pending status
    - StorageClass "fast-ssd" not found
    - Check storage configuration
+   - Status: More pending than Fiona waiting for rescue
 
 3. nginx-service connectivity problems
    - Service selector may be misconfigured
    - Check service and deployment labels
+   - Status: More confused than Donkey in the morning
 
 Commands to investigate:
 - kubectl get pods
@@ -244,28 +357,48 @@ Commands to investigate:
 - kubectl get services
 - kubectl describe service nginx-service
 
-Look for FLAGS in the output!`
+Look for FLAGS in the output!
+
+💡 Pro tip: Debugging Kubernetes is like peeling an onion - lots of layers and it might make you cry!
+🇺🇦 Remember: Stay strong like Ukrainian defenders - never give up on finding the root cause!`,
+
+    '/root/troubleshooting/meme-logs.txt': `🎭 KUBERNETES MEME TROUBLESHOOTING LOG 🎭
+
+[ERROR] Pod crashed harder than my hopes and dreams
+[WARN] Storage class not found - it's like looking for Shrek in a beauty contest
+[INFO] Service selector wrong - more lost than Donkey without Shrek
+[DEBUG] 🇺🇦 Ukrainian resilience mode: ACTIVATED 🇺🇦
+[ERROR] Database connection timeout - even Shrek waits for no one!
+[SUCCESS] Finally fixed! 🎉 Victory tastes better than onions!
+
+Moral of the story: 
+- Persistence pays off (like Ukrainian spirit)
+- Read the logs (they're like ogres - have layers)
+- Never give up (Shrek didn't give up on Fiona)
+
+🧅 "Better out than in!" - Always check your error logs! 🧅`
 };
 
-// CTF-related logs and files
+// CTF-related logs and files with easter eggs
 var ctfLogs = {
     'webapp-deployment-7d4b8c9f4d-xyz123': `2025-06-16T14:30:15.123Z INFO  Starting webapp container...
 2025-06-16T14:30:16.456Z INFO  Loading configuration from /etc/config/app.yaml
 2025-06-16T14:30:17.789Z INFO  Connecting to database at db.company.local:5432
 2025-06-16T14:30:18.012Z ERROR Failed to connect to database: connection timeout after 30s
-2025-06-16T14:30:19.345Z ERROR Database host db.company.local is unreachable
+2025-06-16T14:30:19.345Z ERROR Database host db.company.local is unreachable (more unreachable than Shrek's social skills)
 2025-06-16T14:30:20.678Z ERROR Retrying database connection (attempt 1/3)
 2025-06-16T14:30:25.901Z ERROR Retrying database connection (attempt 2/3)
 2025-06-16T14:30:30.234Z ERROR Retrying database connection (attempt 3/3)
 2025-06-16T14:30:35.567Z FATAL All database connection attempts failed, shutting down
-2025-06-16T14:30:36.890Z INFO  Container exit code: 1
+2025-06-16T14:30:36.890Z INFO  Container exit code: 1 (sadder than when Fiona turned into an ogre)
 2025-06-16T14:30:37.123Z DEBUG Investigation shows database service is running but unreachable
-2025-06-16T14:30:38.456Z DEBUG FLAG{DATABASE_CONNECTION_TIMEOUT_DETECTED}`,
+2025-06-16T14:30:38.456Z DEBUG FLAG{DATABASE_CONNECTION_TIMEOUT_DETECTED}
+2025-06-16T14:30:39.789Z DEBUG 🇺🇦 Stay strong, debug stronger! 🇺🇦`,
 
     'database-pv-claim': `Name:          database-pv-claim
 Namespace:     default
 StorageClass:  fast-ssd
-Status:        Pending
+Status:        Pending (more pending than Donkey waiting for attention)
 Volume:        
 Labels:        <none>
 Annotations:   volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/no-provisioner
@@ -279,7 +412,8 @@ Events:
   Warning  ProvisioningFailed  2m (x15 over 30m)  persistentvolume-controller  storageclass "fast-ssd" not found
   Normal   ExternalProvisioning 2m (x4 over 30m)  persistentvolume-controller  waiting for a volume to be created
   Warning  ProvisioningFailed  1m                  persistentvolume-controller  Failed to provision volume with StorageClass "fast-ssd": storageclass.storage.k8s.io "fast-ssd" not found
-  Warning  StorageClassNotFound 30s               persistentvolume-controller  FLAG{STORAGE_CLASS_MISCONFIGURATION_ERROR}`,
+  Warning  StorageClassNotFound 30s               persistentvolume-controller  FLAG{STORAGE_CLASS_MISCONFIGURATION_ERROR}
+  Info     OgreWisdom          10s                persistent-volume-controller  "Better out than in!" - Check your storage classes! 🧅`,
 
     'nginx-service-config': `apiVersion: v1
 kind: Service
@@ -288,9 +422,10 @@ metadata:
   namespace: default
   labels:
     app: nginx
+    # 🇺🇦 Deployed with Ukrainian determination 🇺🇦
 spec:
   selector:
-    app: nginx-app-WRONG  # This selector is incorrect!
+    app: nginx-app-WRONG  # This selector is as wrong as calling Shrek handsome!
   ports:
     - protocol: TCP
       port: 80
@@ -302,17 +437,23 @@ spec:
 # Actual nginx deployment uses label 'app: nginx-deployment'
 # This mismatch prevents the service from routing traffic to pods
 # 
+# It's like Donkey trying to connect to Dragon but calling her "Pretty Pony"
+# 
 # Network connectivity issue root cause:
 # Service selector label mismatch causes zero endpoints
-# FLAG{SERVICE_SELECTOR_LABEL_MISMATCH_FOUND}`
+# FLAG{SERVICE_SELECTOR_LABEL_MISMATCH_FOUND}
+# 
+# 🧅 Remember: Labels are like ogres - they have to match exactly! 🧅
+# 🇺🇦 Debug with Ukrainian persistence - never surrender! 🇺🇦`
 };
 
-// File operation functions
+// File operation functions with improved error handling
 function listFiles(args) {
     var currentFS = getCurrentFileSystem();
     var dirContent = currentFS[currentDir];
     if (!dirContent) {
         addOutput('ls: cannot access \'' + currentDir + '\': No such file or directory', 'error');
+        addOutput('💡 Pro tip: Like Shrek finding his way out of the swamp, double-check your path!', 'warning');
         return;
     }
     
@@ -380,11 +521,17 @@ function changeDirectory(path) {
         return;
     }
     
+    // Remove trailing slash from path for consistency
+    var cleanPath = path;
+    if (cleanPath.endsWith('/') && cleanPath !== '/') {
+        cleanPath = cleanPath.slice(0, -1);
+    }
+    
     var targetPath;
-    if (path.startsWith('/')) {
-        targetPath = path;
+    if (cleanPath.startsWith('/')) {
+        targetPath = cleanPath;
     } else {
-        targetPath = currentDir + '/' + path;
+        targetPath = currentDir + '/' + cleanPath;
         targetPath = targetPath.replace(/\/+/g, '/');
     }
     
@@ -392,6 +539,15 @@ function changeDirectory(path) {
         currentDir = targetPath;
     } else {
         addOutput('cd: ' + path + ': No such file or directory', 'error');
+        
+        // Easter egg responses
+        if (path.toLowerCase().includes('swamp')) {
+            addOutput('🧅 "What are you doing in my swamp?!" - Directory not found, but Shrek approves of the attempt!', 'warning');
+        } else if (path.toLowerCase().includes('ukraine') || path.toLowerCase().includes('kyiv') || path.toLowerCase().includes('kiev')) {
+            addOutput('🇺🇦 Strong like Ukraine, but this directory needs to exist first! 💙💛', 'warning');
+        } else {
+            addOutput('💡 Hint: Use "ls" to see available directories, like peeling an onion layer by layer!', 'info');
+        }
     }
 }
 
@@ -399,6 +555,7 @@ function viewFile(filename) {
     if (!filename) {
         addOutput('cat: missing file argument', 'error');
         addOutput('Usage: cat [file]');
+        addOutput('💡 Remember: "Better out than in!" - Shrek (also applies to file contents)', 'info');
         return;
     }
     
@@ -432,6 +589,15 @@ function viewFile(filename) {
         // Check for flags in the content
         checkForFlag(content);
         
+        // Easter egg responses for special files
+        if (filePath.includes('shrek')) {
+            addOutput('', 'success');
+            addOutput('🧅 Shrek wisdom has been revealed! Remember: Like onions, good sysadmins have layers! 🧅', 'success');
+        } else if (filePath.includes('ukraine')) {
+            addOutput('', 'success');
+            addOutput('🇺🇦 Slava Ukraini! Your resilience inspires us all! 💙💛', 'success');
+        }
+        
     } else {
         var currentFS = getCurrentFileSystem();
         var dirContent = currentFS[currentDir];
@@ -439,12 +605,22 @@ function viewFile(filename) {
         if (dirContent && dirContent[filename]) {
             if (dirContent[filename] === 'directory') {
                 addOutput('cat: ' + filename + ': Is a directory', 'error');
+                addOutput('💡 Hint: Use "cd ' + filename + '" to enter the directory, or "ls ' + filename + '" to list its contents!', 'info');
             } else {
                 addOutput('cat: ' + filename + ': File content simulation');
                 addOutput('Use the actual file paths for real content.');
             }
         } else {
             addOutput('cat: ' + filename + ': No such file or directory', 'error');
+            
+            // Fun error messages
+            if (filename.toLowerCase().includes('meme')) {
+                addOutput('🎭 No memes found, but the real meme is the friends we made along the way!', 'warning');
+            } else if (filename.toLowerCase().includes('donkey')) {
+                addOutput('🐴 "I\'m a believer!" - Donkey, but this file doesn\'t exist!', 'warning');
+            } else {
+                addOutput('💡 Pro tip: Check if the file exists with "ls" first!', 'info');
+            }
         }
     }
 }
@@ -453,6 +629,7 @@ function editFile(filename) {
     if (!filename) {
         addOutput('vi: missing file argument', 'error');
         addOutput('Usage: vi [file]');
+        addOutput('💡 Fun fact: vi stands for "visual" - just like how Shrek is "visually striking"! 😂', 'info');
         return;
     }
     
@@ -468,6 +645,7 @@ function editFile(filename) {
     addOutput('');
     addOutput('--- Simulated vi editor ---', 'warning');
     addOutput('In a real environment, this would open the vi text editor.');
+    addOutput('💡 Remember: In vi, everything is possible but nothing is easy!', 'info');
     addOutput('');
     
     if (configFiles[filePath]) {
@@ -485,8 +663,9 @@ function editFile(filename) {
             addOutput('💡 CONFIGURATION TIPS:', 'warning');
             addOutput('1. Change "CHANGE_ME" values to appropriate settings');
             addOutput('2. Set database.host to your database server IP');
-            addOutput('3. Set a secure database password');
+            addOutput('3. Set a secure database password (not "password123" or "shrek")');
             addOutput('4. Verify all port configurations match your firewall rules');
+            addOutput('🧅 Remember: Good configs are like ogres - they have layers!', 'success');
             
             if (!systemState.centos.platformConfigured) {
                 systemState.centos.platformConfigured = true;
@@ -505,6 +684,7 @@ function editFile(filename) {
             addOutput('proxy=http://proxy.company.com:8080');
             addOutput('proxy_username=your_username');
             addOutput('proxy_password=your_password');
+            addOutput('🇺🇦 Configure with Ukrainian determination!', 'success');
             
             if (!systemState.centos.yumProxyConfigured) {
                 systemState.centos.yumProxyConfigured = true;
@@ -515,10 +695,27 @@ function editFile(filename) {
             }
         }
         
+        // Easter egg for special files
+        if (filePath.includes('shrek')) {
+            addOutput('');
+            addOutput('🧅 Editing Shrek wisdom! "This is the part where you run away... from bad configs!"', 'success');
+        } else if (filePath.includes('ukraine')) {
+            addOutput('');
+            addOutput('🇺🇦 Editing with Ukrainian spirit! Stay strong! 💙💛', 'success');
+        }
+        
     } else {
         addOutput('File does not exist. In vi, you could create a new file here.', 'info');
+        
+        // Fun responses for non-existent files
+        if (filename.toLowerCase().includes('recipe')) {
+            addOutput('🧅 Shrek says: "Onions are the only recipe you need!"', 'warning');
+        } else if (filename.toLowerCase().includes('love')) {
+            addOutput('💕 "Love is like an onion - you peel away layer after layer and sometimes you cry!" - Shrek', 'warning');
+        }
     }
     
     addOutput('');
     addOutput('--- End of vi simulation ---', 'warning');
+    addOutput('💡 Pro tip: In real vi, press ESC then :q! to quit without saving!', 'info');
 }
