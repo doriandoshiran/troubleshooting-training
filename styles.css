@@ -13,21 +13,74 @@ body {
 
 .container {
     display: flex;
+    flex-direction: column;
     height: 100vh;
 }
 
-.sidebar {
-    width: 300px;
-    background: #1a1a1a;
-    border-right: 1px solid #333333;
-    overflow-y: auto;
-}
-
+/* Terminal container takes most of the space */
 .terminal-container {
     flex: 1;
     display: flex;
     flex-direction: column;
     background: #0c0c0c;
+    min-height: 0; /* Important for flex child */
+}
+
+/* Sidebar moved to bottom as panel */
+.sidebar-panel {
+    height: 300px;
+    background: #1a1a1a;
+    border-top: 1px solid #333333;
+    display: flex;
+    flex-direction: column;
+}
+
+.tab-container {
+    display: flex;
+    background: #1a1a1a;
+    border-bottom: 1px solid #333333;
+}
+
+.tab {
+    padding: 8px 12px;
+    background: #1a1a1a;
+    cursor: pointer;
+    border-right: 1px solid #333333;
+    user-select: none;
+    transition: background-color 0.2s;
+    color: #ffffff;
+    font-size: 12px;
+    flex: 1;
+    text-align: center;
+}
+
+.tab:hover {
+    background: #2a2a2a;
+}
+
+.tab.active {
+    background: #333333;
+    color: #55ffff;
+}
+
+.tab-content-container {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+}
+
+.tab-content {
+    display: none;
+    padding: 10px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: #ffffff;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.tab-content.active {
+    display: block;
 }
 
 .terminal-header {
@@ -99,47 +152,16 @@ body {
     color: #55ffff;
 }
 
-.tab {
-    padding: 12px 15px;
-    background: #1a1a1a;
-    cursor: pointer;
-    border-bottom: 1px solid #333333;
-    user-select: none;
-    transition: background-color 0.2s;
-    color: #ffffff;
-}
-
-.tab:hover {
-    background: #2a2a2a;
-}
-
-.tab.active {
-    background: #333333;
-    color: #55ffff;
-}
-
-.tab-content {
-    padding: 15px;
-    display: none;
-    font-size: 12px;
-    line-height: 1.6;
-    color: #ffffff;
-}
-
-.tab-content.active {
-    display: block;
-}
-
 .tab-content h3 {
     color: #55ffff;
-    margin-bottom: 10px;
-    font-size: 14px;
+    margin-bottom: 8px;
+    font-size: 13px;
 }
 
 .tab-content h4 {
     color: #ffff55;
-    margin: 15px 0 5px 0;
-    font-size: 13px;
+    margin: 12px 0 4px 0;
+    font-size: 12px;
 }
 
 .tab-content code {
@@ -152,25 +174,40 @@ body {
 
 .tab-content pre {
     background: #1a1a1a;
-    padding: 8px;
+    padding: 6px;
     border-radius: 3px;
-    margin: 8px 0;
+    margin: 6px 0;
     overflow-x: auto;
     border-left: 3px solid #55ffff;
+    font-size: 10px;
 }
 
 .tab-content ul {
-    margin-left: 20px;
+    margin-left: 15px;
 }
 
 .tab-content li {
-    margin: 3px 0;
+    margin: 2px 0;
+}
+
+.ctf-challenge {
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    padding: 8px;
+    margin: 6px 0;
+}
+
+.ctf-title {
+    color: #ffff55;
+    font-weight: bold;
+    margin-bottom: 4px;
 }
 
 .status-bar {
     background: #1a1a1a;
-    padding: 6px 12px;
-    font-size: 11px;
+    padding: 4px 8px;
+    font-size: 10px;
     border-top: 1px solid #333333;
     display: flex;
     justify-content: space-between;
@@ -192,23 +229,23 @@ body {
     background: #1a1a1a;
     border: 1px solid #333333;
     border-radius: 4px;
-    padding: 12px;
-    margin: 8px 0;
+    padding: 8px;
+    margin: 6px 0;
 }
 
 .ssh-host {
     color: #55ffff;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
 
 .ssh-command {
     background: #0c0c0c;
     color: #55ff55;
-    padding: 4px 6px;
+    padding: 3px 5px;
     border-radius: 2px;
     font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 12px;
+    font-size: 10px;
 }
 
 .cursor {
@@ -222,23 +259,40 @@ body {
 }
 
 /* Scrollbar styling */
-.sidebar::-webkit-scrollbar,
+.tab-content-container::-webkit-scrollbar,
 .terminal::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
-.sidebar::-webkit-scrollbar-track,
+.tab-content-container::-webkit-scrollbar-track,
 .terminal::-webkit-scrollbar-track {
     background: #0c0c0c;
 }
 
-.sidebar::-webkit-scrollbar-thumb,
+.tab-content-container::-webkit-scrollbar-thumb,
 .terminal::-webkit-scrollbar-thumb {
     background: #333333;
-    border-radius: 4px;
+    border-radius: 3px;
 }
 
-.sidebar::-webkit-scrollbar-thumb:hover,
+.tab-content-container::-webkit-scrollbar-thumb:hover,
 .terminal::-webkit-scrollbar-thumb:hover {
     background: #555555;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar-panel {
+        height: 250px;
+    }
+    
+    .tab {
+        font-size: 10px;
+        padding: 6px 8px;
+    }
+    
+    .tab-content {
+        font-size: 10px;
+        padding: 8px;
+    }
 }

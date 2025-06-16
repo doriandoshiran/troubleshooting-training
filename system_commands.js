@@ -19,7 +19,7 @@ function executeSystemctl(args) {
                 completedTasks.add('ntp');
                 updateTaskProgress();
                 showNewPrompt();
-            }, 1000);
+            }, 1500);
             return;
         } else if (action === 'enable') {
             addOutput('Enabling ntpd service...', 'info');
@@ -29,173 +29,9 @@ function executeSystemctl(args) {
                 addOutput('● ntpd.service - Network Time Protocol daemon');
                 addOutput('   Loaded: loaded (/usr/lib/systemd/system/ntpd.service; enabled)', 'success');
                 addOutput('   Active: active (running) since Mon 2025-06-16 14:30:00 UTC', 'success');
-                addOutput('Filesystem     1K-blocks     Used Available Use% Mounted on');
-        addOutput('/dev/sda1      524288000 47185920 451102080  10% /');
-        addOutput('/dev/sda2        1048576   153600    870400  15% /boot');
-        addOutput('tmpfs            8388608        0   8388608   0% /dev/shm');
-    }
-}
-
-function executeDd(args) {
-    var command = args.join(' ');
-    
-    if (command.includes('if=/dev/zero') && command.includes('of=/swapfile')) {
-        addOutput('Creating 8GB swap file...', 'info');
-        addOutput('This may take a few minutes...', 'warning');
-        
-        var progress = 0;
-        var progressDiv = document.createElement('div');
-        progressDiv.className = 'output';
-        document.getElementById('terminal-output').appendChild(progressDiv);
-        
-        var interval = setInterval(function() {
-            progress += Math.random() * 10 + 5;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-                progressDiv.remove();
-                addOutput('8388608+0 records in');
-                addOutput('8388608+0 records out');
-                addOutput('8589934592 bytes (8.6 GB) copied, 45.2341 s, 190 MB/s', 'success');
-                addOutput('Swap file created successfully!', 'success');
-                addOutput('Next: chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile', 'info');
-                showNewPrompt();
+                addOutput('   Main PID: 1234 (ntpd)');
+                addOutput('   Status: "synchronised to NTP server (0.centos.pool.ntp.org)"');
             } else {
-                progressDiv.textContent = 'Progress: ' + Math.floor(progress) + '% - Writing ' + Math.floor(progress * 85.8) + ' MB...';
-                scrollToBottom();
-            }
-        }, 300);
-        return;
-    } else {
-        addOutput('dd: invalid arguments', 'error');
-        addOutput('Example: dd if=/dev/zero of=/swapfile bs=1024 count=8388608');
-    }
-}
-
-function executeMkswap(args) {
-    var file = args[0];
-    
-    if (file === '/swapfile') {
-        addOutput('Setting up swapspace version 1, size = 8388604 KiB');
-        addOutput('no label, UUID=12345678-1234-1234-1234-123456789012', 'success');
-        addOutput('Swap file initialized! Next: swapon /swapfile', 'info');
-    } else {
-        addOutput('mkswap: ' + (file || 'missing file') + ': No such file or directory', 'error');
-    }
-}
-
-function executeSwapon(args) {
-    var file = args[0];
-    
-    if (file === '/swapfile') {
-        addOutput('Swap file activated successfully!', 'success');
-        systemState.centos.swapConfigured = true;
-        completedTasks.add('swap');
-        updateTaskProgress();
-        addOutput('Don\'t forget to add to /etc/fstab for persistence:', 'warning');
-        addOutput('echo "/swapfile swap swap defaults 0 0" >> /etc/fstab', 'info');
-    } else {
-        addOutput('swapon: ' + (file || 'missing file') + ': No such file or directory', 'error');
-    }
-}
-
-function executePing(args) {
-    var host = args[0];
-    
-    if (!host) {
-        addOutput('ping: missing host argument', 'error');
-        showNewPrompt();
-        return;
-    }
-    
-    addOutput('PING ' + host + ' (192.168.1.1) 56(84) bytes of data.', 'info');
-    
-    var count = 0;
-    var interval = setInterval(function() {
-        count++;
-        var time = (Math.random() * 10 + 1).toFixed(1);
-        addOutput('64 bytes from ' + host + ' (192.168.1.1): icmp_seq=' + count + ' ttl=64 time=' + time + ' ms');
-        
-        if (count >= 4) {
-            clearInterval(interval);
-            addOutput('');
-            addOutput('--- ' + host + ' ping statistics ---');
-            addOutput('4 packets transmitted, 4 received, 0% packet loss');
-            addOutput('rtt min/avg/max/mdev = 1.2/5.4/9.8/3.2 ms', 'success');
-            showNewPrompt();
-        }
-    }, 1000);
-}
-
-function executeKubectl(args) {
-    if (currentHost !== 'k8s') {
-        addOutput('kubectl: command not found', 'error');
-        return;
-    }
-    
-    var subcommand = args[0];
-    var resource = args[1];
-    var name = args[2];
-    
-    if (!subcommand) {
-        addOutput('kubectl: missing subcommand', 'error');
-        addOutput('Available: get, describe, logs');
-        return;
-    }
-    
-    if (subcommand === 'get') {
-        if (resource === 'pods') {
-            addOutput('NAME                                READY   STATUS             RESTARTS   AGE');
-            addOutput('webapp-deployment-7d4b8c9f4d-xyz123  0/1     CrashLoopBackOff   5          10m', 'error');
-            addOutput('database-statefulset-0              1/1     Running            0          1h', 'success');
-            addOutput('nginx-ingress-controller-abc123     1/1     Running            0          2h', 'success');
-        } else if (resource === 'services') {
-            addOutput('NAME            TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE');
-            addOutput('kubernetes      ClusterIP      10.96.0.1       <none>        443/TCP        3d');
-            addOutput('webapp-service  LoadBalancer   10.96.245.123   <pending>     80:30080/TCP   1h');
-            addOutput('nginx-service   LoadBalancer   10.96.100.200   <pending>     80:30081/TCP   2h');
-        } else if (resource === 'pvc' || resource === 'persistentvolumeclaims') {
-            addOutput('NAME                STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE');
-            addOutput('database-pv-claim   Pending                                      fast-ssd       30m', 'warning');
-        } else if (resource === 'events') {
-            addOutput('LAST SEEN   TYPE      REASON              OBJECT                               MESSAGE');
-            addOutput('2m          Warning   ProvisioningFailed  persistentvolumeclaim/database-pv-claim   storageclass "fast-ssd" not found');
-            addOutput('5m          Warning   BackOff             pod/webapp-deployment-7d4b8c9f4d-xyz123   Back-off restarting failed container');
-        }
-    } else if (subcommand === 'describe') {
-        if (resource === 'pod' && name === 'webapp-deployment-7d4b8c9f4d-xyz123') {
-            addOutput('Name:         webapp-deployment-7d4b8c9f4d-xyz123');
-            addOutput('Namespace:    default');
-            addOutput('Status:       Failed');
-            addOutput('Containers:');
-            addOutput('  webapp:');
-            addOutput('    State:          Waiting');
-            addOutput('    Reason:         CrashLoopBackOff');
-            addOutput('    Exit Code:      1');
-        } else if (resource === 'pvc' && name === 'database-pv-claim') {
-            var pvcDesc = ctfLogs['database-pv-claim'];
-            addOutput(pvcDesc);
-            checkForFlag(pvcDesc);
-        } else if (resource === 'service' && name === 'nginx-service') {
-            var serviceDesc = ctfLogs['nginx-service-config'];
-            addOutput(serviceDesc);
-            checkForFlag(serviceDesc);
-        }
-    } else if (subcommand === 'logs') {
-        if (resource === 'webapp-deployment-7d4b8c9f4d-xyz123' || resource === name) {
-            var logs = ctfLogs['webapp-deployment-7d4b8c9f4d-xyz123'];
-            var lines = logs.split('\n');
-            for (var i = 0; i < lines.length; i++) {
-                addOutput(lines[i]);
-            }
-            checkForFlag(logs);
-        } else {
-            addOutput('kubectl logs: pod "' + (resource || name || 'unknown') + '" not found', 'error');
-        }
-    } else {
-        addOutput('kubectl: unknown subcommand "' + subcommand + '"', 'error');
-    }
-}
                 addOutput('● ntpd.service - Network Time Protocol daemon');
                 addOutput('   Loaded: loaded (/usr/lib/systemd/system/ntpd.service; disabled)', 'warning');
                 addOutput('   Active: inactive (dead)', 'warning');
@@ -206,6 +42,7 @@ function executeKubectl(args) {
             addOutput('● firewalld.service - firewalld - dynamic firewall daemon');
             addOutput('   Loaded: loaded (/usr/lib/systemd/system/firewalld.service; enabled)', 'success');
             addOutput('   Active: active (running) since Mon 2025-06-16 14:00:00 UTC', 'success');
+            addOutput('   Main PID: 987 (firewalld)');
         }
     } else {
         addOutput('systemctl: unknown service "' + service + '"', 'error');
@@ -215,21 +52,27 @@ function executeKubectl(args) {
 function executeFirewallCmd(args) {
     if (args.length === 0) {
         addOutput('firewall-cmd: missing arguments', 'error');
+        addOutput('Usage: firewall-cmd --add-port=PORT/PROTOCOL [--permanent]');
+        addOutput('       firewall-cmd --list-ports');
+        addOutput('       firewall-cmd --reload');
         return;
     }
     
     var command = args.join(' ');
     
     if (command.includes('--add-port=')) {
-        var port = command.match(/--add-port=(\d+\/tcp)/);
-        if (port) {
+        var portMatch = command.match(/--add-port=(\d+\/tcp|\d+\/udp)/);
+        if (portMatch) {
+            var port = portMatch[1];
             addOutput('success', 'success');
             
             // Track opened ports
             if (!systemState.centos.openPorts) {
                 systemState.centos.openPorts = [];
             }
-            systemState.centos.openPorts.push(port[1]);
+            if (!systemState.centos.openPorts.includes(port)) {
+                systemState.centos.openPorts.push(port);
+            }
             
             // Check if all required ports are opened
             var requiredPorts = ['22/tcp', '80/tcp', '443/tcp', '8443/tcp', '5432/tcp', '9200/tcp', '6443/tcp'];
@@ -243,11 +86,22 @@ function executeFirewallCmd(args) {
                 completedTasks.add('firewall');
                 updateTaskProgress();
             }
+            
+            if (command.includes('--permanent')) {
+                addOutput('Port ' + port + ' added permanently to firewall', 'success');
+            } else {
+                addOutput('Port ' + port + ' added to firewall (temporary)', 'warning');
+                addOutput('Use --permanent flag to make changes persistent', 'info');
+            }
+        } else {
+            addOutput('firewall-cmd: invalid port format', 'error');
+            addOutput('Use format: --add-port=PORT/PROTOCOL (e.g., --add-port=80/tcp)');
         }
     } else if (command.includes('--reload')) {
         addOutput('success', 'success');
         if (systemState.centos.openPorts && systemState.centos.openPorts.length > 0) {
             addOutput('Firewall rules reloaded and active', 'info');
+            addOutput('Active ports: ' + systemState.centos.openPorts.join(', '), 'success');
         }
     } else if (command.includes('--list-ports')) {
         if (systemState.centos.openPorts && systemState.centos.openPorts.length > 0) {
@@ -255,8 +109,11 @@ function executeFirewallCmd(args) {
         } else {
             addOutput('');
         }
+    } else if (command.includes('--state')) {
+        addOutput('running', 'success');
     } else {
         addOutput('firewall-cmd: invalid option', 'error');
+        addOutput('Try: firewall-cmd --help');
     }
 }
 
@@ -265,69 +122,91 @@ function executeYum(args) {
     
     if (!command) {
         addOutput('yum: missing command', 'error');
+        addOutput('Usage: yum [update|install|search] [package]');
         return;
     }
     
     if (command === 'update') {
         addOutput('Loaded plugins: fastestmirror', 'info');
         addOutput('Loading mirror speeds from cached hostfile', 'info');
-        addOutput('Resolving Dependencies', 'info');
-        addOutput('--> Running transaction check', 'info');
-        addOutput('Dependencies Resolved', 'success');
-        addOutput('');
-        addOutput('Transaction Summary');
-        addOutput('=====================================');
-        addOutput('Upgrade  ' + Math.floor(Math.random() * 50 + 20) + ' Packages');
-        addOutput('');
-        addOutput('Total download size: ' + Math.floor(Math.random() * 200 + 50) + ' MB');
-        addOutput('Is this ok [y/N]: ', 'warning');
         
         setTimeout(function() {
-            addOutput('y');
-            addOutput('Downloading packages...', 'info');
+            addOutput('Resolving Dependencies', 'info');
+            addOutput('--> Running transaction check', 'info');
+            addOutput('Dependencies Resolved', 'success');
+            addOutput('');
+            addOutput('Transaction Summary');
+            addOutput('=====================================');
+            addOutput('Upgrade  ' + Math.floor(Math.random() * 50 + 20) + ' Packages');
+            addOutput('');
+            addOutput('Total download size: ' + Math.floor(Math.random() * 200 + 50) + ' MB');
+            addOutput('Is this ok [y/N]: ', 'warning');
+            
             setTimeout(function() {
-                addOutput('Running transaction', 'info');
-                addOutput('Complete!', 'success');
-                showNewPrompt();
-            }, 2000);
+                addOutput('y');
+                addOutput('Downloading packages...', 'info');
+                setTimeout(function() {
+                    addOutput('Running transaction', 'info');
+                    addOutput('Complete!', 'success');
+                    showNewPrompt();
+                }, 2000);
+            }, 1000);
         }, 1000);
         return;
     } else if (command === 'install') {
         var packages = args.slice(1);
         if (packages.length === 0) {
             addOutput('yum install: missing package name', 'error');
+            addOutput('Usage: yum install PACKAGE [PACKAGE2...]');
             return;
         }
         
         addOutput('Loaded plugins: fastestmirror', 'info');
         addOutput('Loading mirror speeds from cached hostfile', 'info');
         
-        var isNtp = packages.includes('ntp');
-        var hasRequiredPackages = packages.includes('wget') || packages.includes('curl') || packages.includes('unzip');
-        
-        if (isNtp || hasRequiredPackages) {
-            addOutput('Resolving Dependencies', 'info');
-            addOutput('Dependencies Resolved', 'success');
-            addOutput('');
-            addOutput('Installing: ' + packages.join(', '));
+        setTimeout(function() {
+            var isNtp = packages.includes('ntp');
+            var hasRequiredPackages = packages.some(function(pkg) {
+                return ['wget', 'curl', 'unzip', 'tar', 'net-tools', 'device-mapper-persistent-data', 'lvm2'].includes(pkg);
+            });
             
-            setTimeout(function() {
-                addOutput('Complete!', 'success');
+            if (isNtp || hasRequiredPackages) {
+                addOutput('Resolving Dependencies', 'info');
+                addOutput('Dependencies Resolved', 'success');
+                addOutput('');
+                addOutput('Installing: ' + packages.join(', '));
                 
-                if (hasRequiredPackages && !systemState.centos.packagesInstalled) {
-                    systemState.centos.packagesInstalled = true;
-                    completedTasks.add('packages');
-                    updateTaskProgress();
-                }
-                
+                setTimeout(function() {
+                    addOutput('Complete!', 'success');
+                    
+                    if (hasRequiredPackages && !systemState.centos.packagesInstalled) {
+                        systemState.centos.packagesInstalled = true;
+                        completedTasks.add('packages');
+                        updateTaskProgress();
+                        addOutput('Required system packages installed successfully!', 'info');
+                    }
+                    
+                    showNewPrompt();
+                }, 2000);
+            } else {
+                addOutput('No package ' + packages[0] + ' available.', 'error');
                 showNewPrompt();
-            }, 2000);
+            }
+        }, 1500);
+        return;
+    } else if (command === 'search') {
+        var searchTerm = args[1];
+        if (!searchTerm) {
+            addOutput('yum search: missing search term', 'error');
             return;
-        } else {
-            addOutput('No package ' + packages[0] + ' available.', 'error');
         }
+        addOutput('Loaded plugins: fastestmirror', 'info');
+        addOutput('Loading mirror speeds from cached hostfile', 'info');
+        addOutput('========================== N/S matched: ' + searchTerm + ' ==========================');
+        addOutput('No matching packages found for: ' + searchTerm);
     } else {
         addOutput('yum: unknown command "' + command + '"', 'error');
+        addOutput('Available commands: update, install, search');
     }
 }
 
@@ -362,3 +241,244 @@ function executeDf(args) {
         addOutput('/dev/sda2       1.0G  150M  851M  15% /boot');
         addOutput('tmpfs           8.0G     0  8.0G   0% /dev/shm');
     } else {
+        addOutput('Filesystem     1K-blocks     Used Available Use% Mounted on');
+        addOutput('/dev/sda1      524288000 47185920 451102080  10% /');
+        addOutput('/dev/sda2        1048576   153600    870400  15% /boot');
+        addOutput('tmpfs            8388608        0   8388608   0% /dev/shm');
+    }
+}
+
+function executeDd(args) {
+    var command = args.join(' ');
+    
+    if (command.includes('if=/dev/zero') && command.includes('of=/swapfile')) {
+        addOutput('Creating 8GB swap file...', 'info');
+        addOutput('This may take a few minutes...', 'warning');
+        
+        var progress = 0;
+        var progressDiv = document.createElement('div');
+        progressDiv.className = 'output info';
+        document.getElementById('terminal-output').appendChild(progressDiv);
+        
+        var interval = setInterval(function() {
+            progress += Math.random() * 8 + 2;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                progressDiv.remove();
+                addOutput('8388608+0 records in');
+                addOutput('8388608+0 records out');
+                addOutput('8589934592 bytes (8.6 GB) copied, 45.2341 s, 190 MB/s', 'success');
+                addOutput('Swap file created successfully!', 'success');
+                addOutput('');
+                addOutput('Next steps:', 'info');
+                addOutput('1. chmod 600 /swapfile');
+                addOutput('2. mkswap /swapfile');
+                addOutput('3. swapon /swapfile');
+                addOutput('4. Add to /etc/fstab for persistence');
+                showNewPrompt();
+            } else {
+                progressDiv.textContent = 'Progress: ' + Math.floor(progress) + '% - Writing ' + Math.floor(progress * 85.8) + ' MB...';
+                scrollToBottom();
+            }
+        }, 400);
+        return;
+    } else if (command.includes('if=') && command.includes('of=')) {
+        addOutput('dd: creating file...', 'info');
+        setTimeout(function() {
+            addOutput('File created successfully', 'success');
+            showNewPrompt();
+        }, 1000);
+        return;
+    } else {
+        addOutput('dd: invalid arguments', 'error');
+        addOutput('Example: dd if=/dev/zero of=/swapfile bs=1024 count=8388608');
+        addOutput('         dd if=/dev/zero of=/swapfile bs=1G count=8');
+    }
+}
+
+function executeMkswap(args) {
+    var file = args[0];
+    
+    if (!file) {
+        addOutput('mkswap: missing file argument', 'error');
+        addOutput('Usage: mkswap [file]');
+        return;
+    }
+    
+    if (file === '/swapfile') {
+        addOutput('Setting up swapspace version 1, size = 8388604 KiB');
+        addOutput('no label, UUID=12345678-1234-1234-1234-123456789012', 'success');
+        addOutput('');
+        addOutput('Swap file initialized successfully!', 'success');
+        addOutput('Next: swapon /swapfile', 'info');
+    } else {
+        addOutput('mkswap: ' + file + ': No such file or directory', 'error');
+        addOutput('Make sure the file exists first (use dd to create it)');
+    }
+}
+
+function executeSwapon(args) {
+    var file = args[0];
+    
+    if (!file) {
+        addOutput('swapon: missing file argument', 'error');
+        addOutput('Usage: swapon [file]');
+        return;
+    }
+    
+    if (file === '/swapfile') {
+        addOutput('Swap file activated successfully!', 'success');
+        addOutput('');
+        systemState.centos.swapConfigured = true;
+        completedTasks.add('swap');
+        updateTaskProgress();
+        addOutput('✓ 8GB swap space is now active', 'success');
+        addOutput('');
+        addOutput('To make swap persistent across reboots:', 'warning');
+        addOutput('Add this line to /etc/fstab:');
+        addOutput('/swapfile swap swap defaults 0 0', 'info');
+        addOutput('');
+        addOutput('You can edit fstab with: vi /etc/fstab');
+    } else {
+        addOutput('swapon: ' + file + ': No such file or directory', 'error');
+        addOutput('Make sure the swap file exists and is properly formatted');
+    }
+}
+
+function executePing(args) {
+    var host = args[0];
+    
+    if (!host) {
+        addOutput('ping: missing host argument', 'error');
+        addOutput('Usage: ping [hostname]');
+        showNewPrompt();
+        return;
+    }
+    
+    addOutput('PING ' + host + ' (192.168.1.1) 56(84) bytes of data.', 'info');
+    
+    var count = 0;
+    var interval = setInterval(function() {
+        count++;
+        var time = (Math.random() * 10 + 1).toFixed(1);
+        addOutput('64 bytes from ' + host + ' (192.168.1.1): icmp_seq=' + count + ' ttl=64 time=' + time + ' ms');
+        scrollToBottom();
+        
+        if (count >= 4) {
+            clearInterval(interval);
+            addOutput('');
+            addOutput('--- ' + host + ' ping statistics ---');
+            addOutput('4 packets transmitted, 4 received, 0% packet loss, time 3003ms');
+            addOutput('rtt min/avg/max/mdev = 1.2/5.4/9.8/3.2 ms', 'success');
+            showNewPrompt();
+        }
+    }, 1000);
+}
+
+function executeKubectl(args) {
+    if (currentHost !== 'k8s') {
+        addOutput('kubectl: command not found', 'error');
+        return;
+    }
+    
+    var subcommand = args[0];
+    var resource = args[1];
+    var name = args[2];
+    
+    if (!subcommand) {
+        addOutput('kubectl: missing subcommand', 'error');
+        addOutput('Available commands: get, describe, logs');
+        addOutput('Try: kubectl get pods');
+        return;
+    }
+    
+    if (subcommand === 'get') {
+        if (resource === 'pods') {
+            addOutput('NAME                                READY   STATUS             RESTARTS   AGE');
+            addOutput('webapp-deployment-7d4b8c9f4d-xyz123  0/1     CrashLoopBackOff   5          10m', 'error');
+            addOutput('database-statefulset-0              1/1     Running            0          1h', 'success');
+            addOutput('nginx-ingress-controller-abc123     1/1     Running            0          2h', 'success');
+        } else if (resource === 'services' || resource === 'svc') {
+            addOutput('NAME            TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE');
+            addOutput('kubernetes      ClusterIP      10.96.0.1       <none>        443/TCP        3d');
+            addOutput('webapp-service  LoadBalancer   10.96.245.123   <pending>     80:30080/TCP   1h');
+            addOutput('nginx-service   LoadBalancer   10.96.100.200   <pending>     80:30081/TCP   2h', 'warning');
+        } else if (resource === 'pvc' || resource === 'persistentvolumeclaims') {
+            addOutput('NAME                STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE');
+            addOutput('database-pv-claim   Pending                                      fast-ssd       30m', 'warning');
+        } else if (resource === 'events') {
+            addOutput('LAST SEEN   TYPE      REASON              OBJECT                               MESSAGE');
+            addOutput('2m          Warning   ProvisioningFailed  persistentvolumeclaim/database-pv-claim   storageclass "fast-ssd" not found', 'warning');
+            addOutput('5m          Warning   BackOff             pod/webapp-deployment-7d4b8c9f4d-xyz123   Back-off restarting failed container', 'error');
+            addOutput('1m          Normal    Scheduled           pod/database-statefulset-0               Successfully assigned default/database-statefulset-0 to node01');
+        } else if (resource === 'nodes') {
+            addOutput('NAME      STATUS   ROLES                  AGE   VERSION');
+            addOutput('master    Ready    control-plane,master   5d    v1.24.0', 'success');
+            addOutput('node01    Ready    <none>                 5d    v1.24.0', 'success');
+        } else {
+            addOutput('kubectl get: unknown resource type "' + (resource || 'unknown') + '"', 'error');
+            addOutput('Available resources: pods, services, pvc, events, nodes');
+        }
+    } else if (subcommand === 'describe') {
+        if (resource === 'pod' && name === 'webapp-deployment-7d4b8c9f4d-xyz123') {
+            addOutput('Name:         webapp-deployment-7d4b8c9f4d-xyz123');
+            addOutput('Namespace:    default');
+            addOutput('Priority:     0');
+            addOutput('Node:         node01/192.168.1.10');
+            addOutput('Start Time:   Mon, 16 Jun 2025 14:20:00 +0000');
+            addOutput('Labels:       app=webapp');
+            addOutput('              pod-template-hash=7d4b8c9f4d');
+            addOutput('Status:       Failed');
+            addOutput('IP:           10.244.1.5');
+            addOutput('');
+            addOutput('Containers:');
+            addOutput('  webapp:');
+            addOutput('    Container ID:   docker://abc123def456');
+            addOutput('    Image:          webapp:latest');
+            addOutput('    State:          Waiting');
+            addOutput('      Reason:       CrashLoopBackOff');
+            addOutput('    Last State:     Terminated');
+            addOutput('      Reason:       Error');
+            addOutput('      Exit Code:    1');
+            addOutput('');
+            addOutput('Events:');
+            addOutput('  Type     Reason     Age                Message');
+            addOutput('  ----     ------     ----               -------');
+            addOutput('  Warning  BackOff    2m (x10 over 5m)   Back-off restarting failed container', 'warning');
+        } else if (resource === 'pvc' && name === 'database-pv-claim') {
+            var pvcDesc = ctfLogs['database-pv-claim'];
+            addOutput(pvcDesc);
+            checkForFlag(pvcDesc);
+        } else if (resource === 'service' && name === 'nginx-service') {
+            var serviceDesc = ctfLogs['nginx-service-config'];
+            addOutput(serviceDesc);
+            checkForFlag(serviceDesc);
+        } else {
+            addOutput('kubectl describe: resource "' + (resource || 'unknown') + '" "' + (name || 'unknown') + '" not found', 'error');
+        }
+    } else if (subcommand === 'logs') {
+        var podName = resource || name;
+        if (podName === 'webapp-deployment-7d4b8c9f4d-xyz123' || podName === 'webapp-deployment') {
+            var logs = ctfLogs['webapp-deployment-7d4b8c9f4d-xyz123'];
+            var lines = logs.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    addOutput(lines[i]);
+                }
+            }
+            checkForFlag(logs);
+        } else if (podName === 'database-statefulset-0') {
+            addOutput('2025-06-16T14:25:00.123Z INFO  Starting PostgreSQL database...');
+            addOutput('2025-06-16T14:25:01.456Z INFO  Database initialized successfully');
+            addOutput('2025-06-16T14:25:02.789Z INFO  Accepting connections on port 5432');
+            addOutput('2025-06-16T14:25:03.012Z INFO  Database ready for queries');
+        } else {
+            addOutput('kubectl logs: pod "' + (podName || 'unknown') + '" not found', 'error');
+            addOutput('Available pods: webapp-deployment-7d4b8c9f4d-xyz123, database-statefulset-0');
+        }
+    } else {
+        addOutput('kubectl: unknown subcommand "' + subcommand + '"', 'error');
+        addOutput('Available subcommands: get, describe, logs');
+    }
+}

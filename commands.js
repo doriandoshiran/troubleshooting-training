@@ -1,31 +1,60 @@
 // Command execution and handling
 
-// Handle key press events for main input
+// Enhanced key press handler with better error handling
 function handleMainKeyPress(event) {
-    var input = document.getElementById('main-command-input');
+    try {
+        var input = event.target;
+        
+        if (event.key === 'Enter') {
+            var command = input.value.trim();
+            if (command) {
+                // Show the command on the current line by replacing the input
+                replaceInputWithCommand(getPromptString() + ' ' + command);
+                executeCommand(command);
+                addToCommandHistory(command);
+            } else {
+                // Just show empty prompt if no command
+                replaceInputWithCommand(getPromptString());
+                showNewPrompt();
+            }
+            input.value = '';
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            navigateHistory('up', input);
+        } else if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            navigateHistory('down', input);
+        } else if (event.key === 'Tab') {
+            event.preventDefault();
+            handleTabCompletion(input);
+        } else if (event.key === 'l' && event.ctrlKey) {
+            event.preventDefault();
+            clearTerminal();
+        }
+    } catch (error) {
+        console.error('Key press handling error:', error);
+        addOutput('Error processing command input', 'error');
+        showNewPrompt();
+    }
+}
+
+// Improved command history management
+function addToCommandHistory(command) {
+    commandHistory.push(command);
+    historyIndex = commandHistory.length;
     
-    if (event.key === 'Enter') {
-        var command = input.value.trim();
-        if (command) {
-            // Show the command on the current line by replacing the input
-            replaceInputWithCommand(getPromptString() + ' ' + command);
-            executeCommand(command);
-            commandHistory.push(command);
-            historyIndex = commandHistory.length;
-        } else {
-            // Just show empty prompt if no command
-            replaceInputWithCommand(getPromptString());
-            showNewPrompt();
-        }
-        input.value = '';
-    } else if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        if (historyIndex > 0) {
-            historyIndex--;
-            input.value = commandHistory[historyIndex];
-        }
-    } else if (event.key === 'ArrowDown') {
-        event.preventDefault();
+    // Limit history size to prevent memory issues
+    if (commandHistory.length > 1000) {
+        commandHistory = commandHistory.slice(-500);
+        historyIndex = commandHistory.length;
+    }
+}
+
+function navigateHistory(direction, input) {
+    if (direction === 'up' && historyIndex > 0) {
+        historyIndex--;
+        input.value = commandHistory[historyIndex];
+    } else if (direction === 'down') {
         if (historyIndex < commandHistory.length - 1) {
             historyIndex++;
             input.value = commandHistory[historyIndex];
@@ -33,29 +62,30 @@ function handleMainKeyPress(event) {
             historyIndex = commandHistory.length;
             input.value = '';
         }
-    } else if (event.key === 'Tab') {
-        event.preventDefault();
-        var partial = input.value;
-        var completions = getTabCompletions(partial);
-        
-        if (completions.length === 1) {
-            input.value = completions[0];
-        } else if (completions.length > 1) {
-            replaceInputWithCommand(getPromptString() + ' ' + partial);
-            var output = '';
-            for (var i = 0; i < completions.length; i++) {
-                output += completions[i].split(' ').pop() + '  ';
-            }
-            addOutput(output.trim());
-            showNewPrompt();
-            input.value = partial;
+    }
+}
+
+function handleTabCompletion(input) {
+    var partial = input.value;
+    var completions = getTabCompletions(partial);
+    
+    if (completions.length === 1) {
+        input.value = completions[0];
+    } else if (completions.length > 1) {
+        replaceInputWithCommand(getPromptString() + ' ' + partial);
+        var output = '';
+        for (var i = 0; i < completions.length; i++) {
+            output += completions[i].split(' ').pop() + '  ';
         }
+        addOutput(output.trim());
+        showNewPrompt();
+        input.value = partial;
     }
 }
 
 function replaceInputWithCommand(text) {
     // Remove the current input line
-    var inputLine = document.querySelector('.input-line');
+    var inputLine = document.querySelector('.input-line:last-child');
     if (inputLine && inputLine.parentNode) {
         inputLine.parentNode.removeChild(inputLine);
     }
@@ -90,143 +120,182 @@ function getTabCompletions(partial) {
     return completions;
 }
 
-// Execute command function
+// Enhanced command execution with better error handling and async support
 function executeCommand(command) {
-    var parts = command.split(' ');
-    var cmd = parts[0];
-    var args = parts.slice(1);
-    
-    switch (cmd.toLowerCase()) {
-        case 'start':
-            startTraining();
-            break;
-        case 'help':
-            showHelp();
-            break;
-        case 'ssh':
-            connectToHost(args);
-            break;
-        case 'exit':
-        case 'logout':
-            disconnectFromHost();
-            break;
-        case 'ls':
-            if (currentHost === 'jumphost') {
-                addOutput('bash: ls: command not found on jumphost', 'error');
-            } else {
-                listFiles(args);
-            }
-            break;
-        case 'cd':
-            if (currentHost === 'jumphost') {
-                addOutput('bash: cd: command not found on jumphost', 'error');
-            } else {
-                changeDirectory(args[0]);
-            }
-            break;
-        case 'cat':
-            if (currentHost === 'jumphost') {
-                addOutput('bash: cat: command not found on jumphost', 'error');
-            } else {
-                viewFile(args[0]);
-            }
-            break;
-        case 'vi':
-        case 'vim':
-        case 'nano':
-            if (currentHost === 'jumphost') {
-                addOutput('bash: ' + cmd + ': command not found on jumphost', 'error');
-            } else {
-                editFile(args[0]);
-            }
-            break;
-        case 'pwd':
-            if (currentHost === 'jumphost') {
-                addOutput('/home/training');
-            } else {
-                addOutput(currentDir);
-            }
-            break;
-        case 'clear':
-            clearTerminal();
-            break;
-        case 'kubectl':
-            if (currentHost === 'k8s') {
-                executeKubectl(args);
-            } else {
-                addOutput('kubectl: command not found', 'error');
-            }
-            break;
-        case 'systemctl':
-            if (currentHost === 'centos') {
-                executeSystemctl(args);
-            } else {
-                addOutput('systemctl: command not found', 'error');
-            }
-            break;
-        case 'firewall-cmd':
-            if (currentHost === 'centos') {
-                executeFirewallCmd(args);
-            } else {
-                addOutput('firewall-cmd: command not found', 'error');
-            }
-            break;
-        case 'yum':
-            if (currentHost === 'centos') {
-                executeYum(args);
-            } else {
-                addOutput('yum: command not found', 'error');
-            }
-            break;
-        case 'free':
-            if (currentHost !== 'jumphost') {
-                executeFree(args);
-            } else {
-                addOutput('free: command not found on jumphost', 'error');
-            }
-            break;
-        case 'df':
-            if (currentHost !== 'jumphost') {
-                executeDf(args);
-            } else {
-                addOutput('df: command not found on jumphost', 'error');
-            }
-            break;
+    try {
+        var parts = command.split(' ');
+        var cmd = parts[0];
+        var args = parts.slice(1);
+        
+        // Handle async commands that need special timing
+        var asyncCommands = ['dd', 'ping', 'yum'];
+        if (asyncCommands.includes(cmd.toLowerCase())) {
+            executeAsyncCommand(cmd.toLowerCase(), args);
+            return;
+        }
+        
+        switch (cmd.toLowerCase()) {
+            case 'start':
+                startTraining();
+                break;
+            case 'help':
+                showHelp();
+                break;
+            case 'ssh':
+                connectToHost(args);
+                break;
+            case 'exit':
+            case 'logout':
+                disconnectFromHost();
+                break;
+            case 'ls':
+                if (currentHost === 'jumphost') {
+                    addOutput('bash: ls: command not found on jumphost', 'error');
+                } else {
+                    listFiles(args);
+                }
+                break;
+            case 'cd':
+                if (currentHost === 'jumphost') {
+                    addOutput('bash: cd: command not found on jumphost', 'error');
+                } else {
+                    changeDirectory(args[0]);
+                }
+                break;
+            case 'cat':
+                if (currentHost === 'jumphost') {
+                    addOutput('bash: cat: command not found on jumphost', 'error');
+                } else {
+                    viewFile(args[0]);
+                }
+                break;
+            case 'vi':
+            case 'vim':
+            case 'nano':
+                if (currentHost === 'jumphost') {
+                    addOutput('bash: ' + cmd + ': command not found on jumphost', 'error');
+                } else {
+                    editFile(args[0]);
+                }
+                break;
+            case 'pwd':
+                if (currentHost === 'jumphost') {
+                    addOutput('/home/training');
+                } else {
+                    addOutput(currentDir);
+                }
+                break;
+            case 'clear':
+                clearTerminal();
+                return; // Don't show new prompt, clearTerminal handles it
+            case 'kubectl':
+                if (currentHost === 'k8s') {
+                    executeKubectl(args);
+                } else {
+                    addOutput('kubectl: command not found', 'error');
+                }
+                break;
+            case 'systemctl':
+                if (currentHost === 'centos') {
+                    executeSystemctl(args);
+                } else {
+                    addOutput('systemctl: command not found', 'error');
+                }
+                break;
+            case 'firewall-cmd':
+                if (currentHost === 'centos') {
+                    executeFirewallCmd(args);
+                } else {
+                    addOutput('firewall-cmd: command not found', 'error');
+                }
+                break;
+            case 'free':
+                if (currentHost !== 'jumphost') {
+                    executeFree(args);
+                } else {
+                    addOutput('free: command not found on jumphost', 'error');
+                }
+                break;
+            case 'df':
+                if (currentHost !== 'jumphost') {
+                    executeDf(args);
+                } else {
+                    addOutput('df: command not found on jumphost', 'error');
+                }
+                break;
+            case 'mkswap':
+                if (currentHost === 'centos') {
+                    executeMkswap(args);
+                } else {
+                    addOutput('mkswap: command not found', 'error');
+                }
+                break;
+            case 'swapon':
+                if (currentHost === 'centos') {
+                    executeSwapon(args);
+                } else {
+                    addOutput('swapon: command not found', 'error');
+                }
+                break;
+            case 'history':
+                showCommandHistory();
+                break;
+            default:
+                addOutput('bash: ' + cmd + ': command not found', 'error');
+        }
+        
+        showNewPrompt();
+        
+    } catch (error) {
+        console.error('Command execution error:', error);
+        addOutput('Error executing command: ' + command, 'error');
+        showNewPrompt();
+    }
+}
+
+// Handle async commands that need special timing control
+function executeAsyncCommand(cmd, args) {
+    switch (cmd) {
         case 'dd':
             if (currentHost === 'centos') {
                 executeDd(args);
-                return; // Don't show prompt immediately
+                // Don't show prompt immediately - executeDd handles timing
             } else {
                 addOutput('dd: command not found', 'error');
-            }
-            break;
-        case 'mkswap':
-            if (currentHost === 'centos') {
-                executeMkswap(args);
-            } else {
-                addOutput('mkswap: command not found', 'error');
-            }
-            break;
-        case 'swapon':
-            if (currentHost === 'centos') {
-                executeSwapon(args);
-            } else {
-                addOutput('swapon: command not found', 'error');
+                showNewPrompt();
             }
             break;
         case 'ping':
             if (currentHost !== 'jumphost') {
                 executePing(args);
-                return; // Don't show prompt immediately
+                // Don't show prompt immediately - executePing handles timing
             } else {
                 addOutput('ping: command not found on jumphost', 'error');
+                showNewPrompt();
             }
             break;
-        default:
-            addOutput('bash: ' + cmd + ': command not found', 'error');
+        case 'yum':
+            if (currentHost === 'centos') {
+                executeYum(args);
+                // executeYum handles its own timing
+            } else {
+                addOutput('yum: command not found', 'error');
+                showNewPrompt();
+            }
+            break;
+    }
+}
+
+function showCommandHistory() {
+    if (commandHistory.length === 0) {
+        addOutput('No commands in history');
+        return;
     }
     
-    showNewPrompt();
+    var start = Math.max(0, commandHistory.length - 50); // Show last 50 commands
+    for (var i = start; i < commandHistory.length; i++) {
+        addOutput((i + 1) + '  ' + commandHistory[i]);
+    }
 }
 
 // Connection commands
@@ -252,6 +321,7 @@ function connectToHost(args) {
             addOutput('1. Configure firewall (open required ports)');
             addOutput('2. Create and configure 8GB swap file');
             addOutput('3. Setup NTP time synchronization');
+            addOutput('4. Configure YUM proxy settings');
             addOutput('5. Install required system packages');
             addOutput('6. Configure platform for single-node deployment');
             addOutput('');
@@ -294,12 +364,12 @@ function startTraining() {
     addOutput('║                                                                              ║', 'info');
     addOutput('║  Available Training Hosts:                                                  ║', 'info');
     addOutput('║                                                                              ║', 'info');
-    addOutput('║  🖥️  prod-centos-01.acme.local    - CentOS 7.9 system preparation          ║', 'info');
+    addOutput('║  🖥️  prod-centos-01.company.local    - CentOS 7.9 system preparation       ║', 'info');
     addOutput('║      • Configure firewall and network security                              ║', 'info');
     addOutput('║      • Setup swap, NTP, and system services                                 ║', 'info');
     addOutput('║      • Install and configure enterprise platform                           ║', 'info');
     addOutput('║                                                                              ║', 'info');
-    addOutput('║  ☸️  k8s-master-01.acme.local     - Kubernetes troubleshooting             ║', 'info');
+    addOutput('║  ☸️  k8s-master-01.company.local     - Kubernetes troubleshooting          ║', 'info');
     addOutput('║      • Investigate pod crashes and service issues                          ║', 'info');
     addOutput('║      • Debug storage and networking problems                                ║', 'info');
     addOutput('║      • Find hidden security flags in logs (CTF challenges)                 ║', 'info');
@@ -311,8 +381,8 @@ function startTraining() {
     addOutput('║  • Practice with real-world enterprise scenarios                           ║', 'info');
     addOutput('║                                                                              ║', 'info');
     addOutput('║  Connection Instructions:                                                    ║', 'info');
-    addOutput('║  ssh root@prod-centos-01.acme.local    (System preparation)               ║', 'info');
-    addOutput('║  ssh root@k8s-master-01.acme.local     (Kubernetes troubleshooting)       ║', 'info');
+    addOutput('║  ssh root@prod-centos-01.company.local    (System preparation)            ║', 'info');
+    addOutput('║  ssh root@k8s-master-01.company.local     (Kubernetes troubleshooting)    ║', 'info');
     addOutput('║                                                                              ║', 'info');
     addOutput('╚══════════════════════════════════════════════════════════════════════════════╝', 'info');
     addOutput('');
@@ -326,7 +396,7 @@ function disconnectFromHost() {
         return;
     }
     
-    addOutput('Connection to ' + getPromptHost() + '.acme.local closed.', 'info');
+    addOutput('Connection to ' + getPromptHost() + '.company.local closed.', 'info');
     currentHost = 'jumphost';
     currentDir = '/root';
     updatePrompt();
@@ -341,12 +411,13 @@ function showHelp() {
         addOutput('  ssh root@[hostname]      - Connect to remote host');
         addOutput('');
         addOutput('Available Hosts:', 'success');
-        addOutput('  prod-centos-01.acme.local  - CentOS system preparation');
-        addOutput('  k8s-master-01.acme.local   - Kubernetes troubleshooting');
+        addOutput('  prod-centos-01.company.local  - CentOS system preparation');
+        addOutput('  k8s-master-01.company.local   - Kubernetes troubleshooting');
         addOutput('');
         addOutput('Basic Commands:', 'success');
         addOutput('  help                     - Show this help');
         addOutput('  clear                    - Clear terminal');
+        addOutput('  history                  - Show command history');
         addOutput('');
         addOutput('Begin by typing "start" to see the full training overview.');
     } else if (currentHost === 'k8s') {
@@ -366,6 +437,7 @@ function showHelp() {
         addOutput('  cd [directory]           - Change directory');
         addOutput('  pwd                      - Show current directory');
         addOutput('  clear                    - Clear terminal');
+        addOutput('  history                  - Show command history');
         addOutput('');
         addOutput('🚩 Find 3 flags hidden in logs and configurations!');
     } else if (currentHost === 'centos') {
@@ -381,6 +453,7 @@ function showHelp() {
         addOutput('  vi [file]                - Edit file');
         addOutput('  pwd                      - Show current directory');
         addOutput('  clear                    - Clear terminal');
+        addOutput('  history                  - Show command history');
         addOutput('');
         addOutput('System Administration:', 'success');
         addOutput('  systemctl [action] [service] - Manage services');

@@ -111,7 +111,17 @@ gpgcheck=1
 plugins=1
 installonly_limit=5
 bugtracker_url=http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum
-distroverpkg=centos-release`,
+distroverpkg=centos-release
+
+# Add proxy configuration here:
+# proxy=http://proxy.company.com:8080
+# proxy_username=your_username
+# proxy_password=your_password`,
+
+    '/etc/hosts': `127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.1.100 prod-centos-01.company.local prod-centos-01
+192.168.1.200 db.company.local db-server`,
 
     '/opt/platform/config/platform-config.yaml': `# Platform Configuration Template
 # Single Node Deployment with Separate Database Host
@@ -127,11 +137,11 @@ cluster:
     
 database:
   type: "postgresql"
-  host: "db.company.local"
+  host: "CHANGE_ME"  # Database server hostname/IP
   port: 5432
   database_name: "platform_db"
   username: "platform_user"
-  password: "change_me"
+  password: "CHANGE_ME"  # Database password
   
 network:
   http_port: 80
@@ -146,7 +156,12 @@ storage:
 security:
   ssl_enabled: true
   cert_path: "/opt/platform/certs/platform.crt"
-  key_path: "/opt/platform/certs/platform.key"`,
+  key_path: "/opt/platform/certs/platform.key"
+  
+# Edit these values for your environment:
+# - Set database.host to your database server IP
+# - Set database.password to a secure password
+# - Verify all port configurations`,
 
     '/opt/platform/config/database-config.yaml': `# Database Configuration Template
 # PostgreSQL connection settings for separate database host
@@ -168,31 +183,84 @@ backup:
   schedule: "0 2 * * *"  # Daily at 2 AM
   retention_days: 30`,
 
-    '/proc/meminfo': `MemTotal:       16384000 kB
-MemFree:         8192000 kB
-MemAvailable:   12288000 kB
-Buffers:          512000 kB
-Cached:          2048000 kB
+    '/proc/meminfo': `MemTotal:       16777216 kB
+MemFree:         8388608 kB
+MemAvailable:   12582912 kB
+Buffers:          524288 kB
+Cached:          2097152 kB
 SwapCached:            0 kB
-Active:          4096000 kB
-Inactive:        2048000 kB
-SwapTotal:             0 kB
-SwapFree:              0 kB`,
+Active:          4194304 kB
+Inactive:        2097152 kB
+SwapTotal:       ${systemState.centos.swapConfigured ? '8388608' : '0'} kB
+SwapFree:        ${systemState.centos.swapConfigured ? '8388608' : '0'} kB`,
 
-    '/proc/swaps': `Filename				Type		Size	Used	Priority`
+    '/proc/swaps': systemState.centos.swapConfigured ? 
+        `Filename				Type		Size	Used	Priority
+/swapfile                               file		8388608	0	-2` :
+        `Filename				Type		Size	Used	Priority`,
+
+    '/root/.kube/config': `apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTi...
+    server: https://192.168.1.10:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: kubernetes-admin
+  name: kubernetes-admin@kubernetes
+current-context: kubernetes-admin@kubernetes
+kind: Config
+preferences: {}
+users:
+- name: kubernetes-admin
+  user:
+    client-certificate-data: LS0tLS1CRUdJTi...
+    client-key-data: LS0tLS1CRUdJTi...`,
+
+    '/root/troubleshooting/investigation-notes.txt': `Kubernetes Cluster Investigation Notes
+=====================================
+
+Issues Identified:
+1. webapp-deployment pod in CrashLoopBackOff state
+   - Container exits with code 1
+   - Check logs for database connection issues
+
+2. database-pv-claim stuck in Pending status
+   - StorageClass "fast-ssd" not found
+   - Check storage configuration
+
+3. nginx-service connectivity problems
+   - Service selector may be misconfigured
+   - Check service and deployment labels
+
+Commands to investigate:
+- kubectl get pods
+- kubectl describe pod webapp-deployment-7d4b8c9f4d-xyz123
+- kubectl logs webapp-deployment-7d4b8c9f4d-xyz123
+- kubectl get pvc
+- kubectl describe pvc database-pv-claim
+- kubectl get services
+- kubectl describe service nginx-service
+
+Look for FLAGS in the output!`
 };
 
 // CTF-related logs and files
 var ctfLogs = {
     'webapp-deployment-7d4b8c9f4d-xyz123': `2025-06-16T14:30:15.123Z INFO  Starting webapp container...
 2025-06-16T14:30:16.456Z INFO  Loading configuration from /etc/config/app.yaml
-2025-06-16T14:30:17.789Z ERROR Failed to connect to database: connection timeout
-2025-06-16T14:30:18.012Z ERROR Retrying database connection (attempt 1/3)
-2025-06-16T14:30:19.345Z ERROR Retrying database connection (attempt 2/3)
-2025-06-16T14:30:20.678Z ERROR Retrying database connection (attempt 3/3)
-2025-06-16T14:30:21.901Z FATAL Database connection failed, shutting down
-2025-06-16T14:30:22.234Z INFO  Container exit code: 1
-2025-06-16T14:30:22.567Z DEBUG FLAG{DATABASE_CONNECTION_TIMEOUT_DETECTED}`,
+2025-06-16T14:30:17.789Z INFO  Connecting to database at db.company.local:5432
+2025-06-16T14:30:18.012Z ERROR Failed to connect to database: connection timeout after 30s
+2025-06-16T14:30:19.345Z ERROR Database host db.company.local is unreachable
+2025-06-16T14:30:20.678Z ERROR Retrying database connection (attempt 1/3)
+2025-06-16T14:30:25.901Z ERROR Retrying database connection (attempt 2/3)
+2025-06-16T14:30:30.234Z ERROR Retrying database connection (attempt 3/3)
+2025-06-16T14:30:35.567Z FATAL All database connection attempts failed, shutting down
+2025-06-16T14:30:36.890Z INFO  Container exit code: 1
+2025-06-16T14:30:37.123Z DEBUG Investigation shows database service is running but unreachable
+2025-06-16T14:30:38.456Z DEBUG FLAG{DATABASE_CONNECTION_TIMEOUT_DETECTED}`,
 
     'database-pv-claim': `Name:          database-pv-claim
 Namespace:     default
@@ -210,24 +278,32 @@ Events:
   ----     ------              ----               ----                         -------
   Warning  ProvisioningFailed  2m (x15 over 30m)  persistentvolume-controller  storageclass "fast-ssd" not found
   Normal   ExternalProvisioning 2m (x4 over 30m)  persistentvolume-controller  waiting for a volume to be created
-  Warning  ProvisioningFailed  1m                  persistentvolume-controller  FLAG{STORAGE_CLASS_MISCONFIGURATION_ERROR}`,
+  Warning  ProvisioningFailed  1m                  persistentvolume-controller  Failed to provision volume with StorageClass "fast-ssd": storageclass.storage.k8s.io "fast-ssd" not found
+  Warning  StorageClassNotFound 30s               persistentvolume-controller  FLAG{STORAGE_CLASS_MISCONFIGURATION_ERROR}`,
 
     'nginx-service-config': `apiVersion: v1
 kind: Service
 metadata:
   name: nginx-service
   namespace: default
+  labels:
+    app: nginx
 spec:
   selector:
-    app: nginx-app-WRONG
+    app: nginx-app-WRONG  # This selector is incorrect!
   ports:
     - protocol: TCP
       port: 80
       targetPort: 8080
   type: LoadBalancer
 ---
-# This service selector is wrong! Should be 'nginx-deployment' not 'nginx-app-WRONG'
-# Network connectivity issue: selector mismatch causes service to not find pods
+# SERVICE CONFIGURATION ANALYSIS:
+# The service selector 'nginx-app-WRONG' doesn't match any pods
+# Actual nginx deployment uses label 'app: nginx-deployment'
+# This mismatch prevents the service from routing traffic to pods
+# 
+# Network connectivity issue root cause:
+# Service selector label mismatch causes zero endpoints
 # FLAG{SERVICE_SELECTOR_LABEL_MISMATCH_FOUND}`
 };
 
@@ -236,7 +312,7 @@ function listFiles(args) {
     var currentFS = getCurrentFileSystem();
     var dirContent = currentFS[currentDir];
     if (!dirContent) {
-        addOutput('ls: cannot access directory', 'error');
+        addOutput('ls: cannot access \'' + currentDir + '\': No such file or directory', 'error');
         return;
     }
     
@@ -270,141 +346,4 @@ function listFiles(args) {
         }
     } else {
         var output = '';
-        for (var i = 0; i < items.length; i++) {
-            var name = items[i];
-            if (name.endsWith('/')) {
-                output += name.slice(0, -1) + '/  ';
-            } else {
-                output += name + '  ';
-            }
-        }
-        
-        if (output.trim()) {
-            addOutput(output.trim());
-        }
-    }
-}
-
-function changeDirectory(dir) {
-    if (!dir) {
-        currentDir = '/root';
-        updatePrompt();
-        return;
-    }
-    
-    var targetDir;
-    if (dir.startsWith('/')) {
-        targetDir = dir;
-    } else if (dir === '..') {
-        var parts = currentDir.split('/');
-        parts.pop();
-        targetDir = parts.join('/') || '/';
-    } else if (dir === '.') {
-        return;
-    } else {
-        targetDir = currentDir + '/' + dir;
-    }
-    
-    targetDir = targetDir.replace(/\/+/g, '/').replace(/\/$/, '') || '/';
-    
-    var currentFS = getCurrentFileSystem();
-    if (currentFS[targetDir]) {
-        currentDir = targetDir;
-        updatePrompt();
-    } else {
-        addOutput('cd: ' + dir + ': No such file or directory', 'error');
-    }
-}
-
-function viewFile(filename) {
-    if (!filename) {
-        addOutput('cat: missing file operand', 'error');
-        return;
-    }
-    
-    var fullPath = currentDir + '/' + filename;
-    if (configFiles[fullPath]) {
-        var lines = configFiles[fullPath].split('\n');
-        for (var i = 0; i < lines.length; i++) {
-            addOutput(lines[i]);
-        }
-    } else if (configFiles[filename]) {
-        var lines = configFiles[filename].split('\n');
-        for (var i = 0; i < lines.length; i++) {
-            addOutput(lines[i]);
-        }
-    } else if (currentHost === 'k8s' && filename.includes('log')) {
-        // Handle cluster log files
-        var logContent = ctfLogs[filename] || ctfLogs[filename.replace('.log', '')];
-        if (logContent) {
-            var lines = logContent.split('\n');
-            for (var i = 0; i < lines.length; i++) {
-                addOutput(lines[i]);
-            }
-            checkForFlag(logContent);
-        } else {
-            addOutput('cat: ' + filename + ': No such file or directory', 'error');
-        }
-    } else {
-        addOutput('cat: ' + filename + ': No such file or directory', 'error');
-    }
-}
-
-function editFile(filename) {
-    if (!filename) {
-        addOutput('vi: missing file operand', 'error');
-        return;
-    }
-    
-    addOutput('Opening ' + filename + ' in vi editor...', 'info');
-    addOutput('(This is a simulation - file editing interface not implemented)', 'warning');
-    addOutput('');
-    
-    if (filename === '/etc/yum.conf' || filename === 'yum.conf') {
-        addOutput('To configure YUM proxy, add these lines to /etc/yum.conf:', 'info');
-        addOutput('proxy=http://proxy.company.com:8080');
-        addOutput('proxy_username=your_username');
-        addOutput('proxy_password=your_password');
-        addOutput('');
-        addOutput('Simulating proxy configuration...', 'warning');
-        setTimeout(function() {
-            addOutput('YUM proxy configuration updated!', 'success');
-            systemState.centos.yumProxyConfigured = true;
-            completedTasks.add('yum-proxy');
-            updateTaskProgress();
-            showNewPrompt();
-        }, 2000);
-        return;
-    } else if (filename.includes('platform-config.yaml')) {
-        addOutput('Configure these settings for single-node deployment:', 'info');
-        addOutput('1. Set database.host to your database server IP');
-        addOutput('2. Update database.password');
-        addOutput('3. Verify network ports configuration');
-        addOutput('');
-        addOutput('Example configuration:');
-        addOutput('database:');
-        addOutput('  host: "192.168.1.200"  # Your database server');
-        addOutput('  password: "SecurePassword123"');
-        addOutput('');
-        addOutput('Simulating configuration update...', 'warning');
-        setTimeout(function() {
-            addOutput('Platform configuration updated!', 'success');
-            systemState.centos.platformConfigured = true;
-            completedTasks.add('platform-config');
-            updateTaskProgress();
-            checkAllTasksComplete();
-            showNewPrompt();
-        }, 2000);
-        return;
-    } else if (filename.includes('fstab')) {
-        addOutput('To make swap permanent, add this line to /etc/fstab:', 'info');
-        addOutput('/swapfile swap swap defaults 0 0');
-        addOutput('');
-        addOutput('Simulating fstab update...', 'warning');
-        setTimeout(function() {
-            addOutput('Fstab updated - swap will be persistent on reboot!', 'success');
-            showNewPrompt();
-        }, 1000);
-        return;
-    }
-}
+        for (var i = 0; i < items.length; i
