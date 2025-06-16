@@ -17,7 +17,7 @@ body {
 }
 
 .sidebar {
-    width: 300px;
+    width: 400px;
     background: #1a1a1a;
     border-right: 1px solid #333333;
     overflow-y: auto;
@@ -106,7 +106,13 @@ body {
     font-size: 14px;
     outline: none;
     flex: 1;
-    caret-color: #55ff55;
+    caret-color: #ffffff;
+}
+
+.cursor {
+    animation: blink 1s infinite;
+    color: #ffffff;
+    margin-left: 2px;
 }
 
 .output {
@@ -225,6 +231,17 @@ body {
     border-radius: 2px;
     font-family: 'Consolas', 'Courier New', monospace;
     font-size: 12px;
+}
+
+.cursor {
+    animation: blink 1s infinite;
+    color: #ffffff;
+    margin-left: 2px;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
 }
 
 /* Scrollbar styling */

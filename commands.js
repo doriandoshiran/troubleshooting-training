@@ -316,34 +316,12 @@ function connectToHost(args) {
         addOutput('Connecting to prod-centos-01.company.local...', 'info');
         addOutput('Welcome to CentOS Linux 7.9.2009 (Core)', 'success');
         addOutput('');
-        if (!connectedHosts.has('centos')) {
-            addOutput('🎯 SYSTEM PREPARATION TASKS:', 'warning');
-            addOutput('1. Configure firewall (open required ports)');
-            addOutput('2. Create and configure 8GB swap file');
-            addOutput('3. Setup NTP time synchronization');
-            addOutput('4. Configure YUM proxy settings');
-            addOutput('5. Install required system packages');
-            addOutput('6. Configure platform for single-node deployment');
-            addOutput('');
-            addOutput('Type "help" for available commands.', 'info');
-            connectedHosts.add('centos');
-        }
         currentHost = 'centos';
         currentDir = '/root';
     } else if (hostname === 'k8s-master-01.company.local' || hostname === 'k8s-master-01') {
         addOutput('Connecting to k8s-master-01.company.local...', 'info');
         addOutput('Warning: Production Kubernetes cluster!', 'warning');
         addOutput('');
-        if (!connectedHosts.has('k8s')) {
-            addOutput('🚨 CRITICAL ISSUES DETECTED:', 'error');
-            addOutput('• webapp-deployment pod keeps crashing');
-            addOutput('• database-pv-claim stuck in Pending status');
-            addOutput('• nginx-service has connectivity problems');
-            addOutput('');
-            addOutput('🔍 Your mission: Find 3 flags hidden in logs and configurations!', 'success');
-            addOutput('Use kubectl commands to investigate. Type "help" for guidance.', 'info');
-            connectedHosts.add('k8s');
-        }
         currentHost = 'k8s';
         currentDir = '/root';
         systemState.k8s.connected = true;
