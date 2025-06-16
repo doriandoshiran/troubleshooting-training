@@ -1,8 +1,88 @@
-// Global variables
+function listFiles(args) {
+    var currentFS = getCurrentFileSystem();
+    var dirContent = currentFS[currentDir];
+    if (!dirContent) {
+        addOutput('ls: cannot access directory', 'error');
+        return;
+    }
+    
+    var longFormat = args && (args.includes('-l') || args.includes('-la') || args.includes('-al'));
+    var showHidden = args && (args.includes('-a') || args.includes('-la') || args.includes('-al'));
+    
+    var items = Object.keys(dirContent);
+    
+    if (showHidden) {
+        items.unshift('.', '..');
+    }
+    
+    if (longFormat) {
+        if (showHidden) {
+            addOutput('total ' + (items.length * 4));
+        }
+        
+        for (var i = 0; i < items.length; i++) {
+            var name = items[i];
+            var isDir = name.endsWith('/') || name === '.' || name === '..';
+            var permissions = isDir ? 'drwxr-xr-x' : '-rw-r--r--';
+            var size = isDir ? '4096' : Math.floor(Math.random() * 10000 + 1000).toString();
+            var date = 'Jun 16 14:30';
+            
+            var displayName = name;
+            if (name.endsWith('/')) {
+                displayName = name.slice(0, -1);
+            }
+            
+            addOutput(permissions + '  1 root root ' + size.padStart(8) + ' ' + date + ' ' + displayName);
+        }
+    } else {
+        var output = '';
+        for (var i = 0; i < items.length; i++) {
+            var name = items[i];
+            if (name.endsWith('/')) {
+                output += name.slice(0, -1) + '/  ';
+            } else {
+                output += name + '  ';
+            }
+        }
+        
+        if (output.trim()) {
+            addOutput(output.trim());
+        }
+    }
+}
+
+function changeDirectory(dir) {
+    if (!dir) {
+        currentDir = '/root';
+        updatePrompt();
+        return;
+    }
+    
+    var targetDir;
+    if (dir.startsWith('/')) {
+        targetDir = dir;
+    } else if (dir === '..') {
+        var parts = currentDir.split('/');
+        parts.pop();
+        targetDir = parts.join('/') || '/';
+    } else if (dir === '.') {
+        return;
+    } else {
+        targetDir = currentDir + '/' + dir;
+    }
+    
+    targetDir = targetDir.replace(/\/+/g, '/').replace(/\/$/, '') || '/';
+    
+    var currentFS = getCurrentFileSystem();
+    if (currentFS[targetDir]) {
+        currentDir = targetDir;
+        updatePrompt();// Global variables
 var currentDir = '/root';
 var commandHistory = [];
 var historyIndex = -1;
 var completedTasks = new Set();
+var foundFlags = new Set();
+var currentHost = 'platform'; // 'platform' or 'cluster'
 var systemState = {
     firewallConfigured: false,
     swapConfigured: false,
@@ -51,6 +131,44 @@ var fileSystem = {
     '/proc': {
         'meminfo': 'Memory information',
         'swaps': 'Swap information'
+    },
+    '/var/log': {
+        'messages': 'System messages log',
+        'kubernetes/': 'directory'
+    },
+    '/var/log/kubernetes': {
+        'scheduler.log': 'Kubernetes scheduler log',
+        'controller-manager.log': 'Controller manager log',
+        'kubelet.log': 'Kubelet log'
+    }
+};
+
+// Cluster file system (when connected to cluster host)
+var clusterFileSystem = {
+    '/root': {
+        '.kube/': 'directory',
+        'troubleshooting/': 'directory'
+    },
+    '/root/.kube': {
+        'config': 'Kubernetes configuration'
+    },
+    '/root/troubleshooting': {
+        'investigation-notes.txt': 'Investigation notes'
+    },
+    '/var/log': {
+        'pods/': 'directory',
+        'containers/': 'directory',
+        'kubernetes/': 'directory'
+    },
+    '/var/log/pods': {
+        'webapp-deployment-7d4b8c9f4d-xyz123/': 'directory',
+        'database-statefulset-0/': 'directory',
+        'nginx-ingress-controller-abc123/': 'directory'
+    },
+    '/var/log/containers': {
+        'webapp-container.log': 'Application container logs',
+        'database-container.log': 'Database container logs',
+        'sidecar-proxy.log': 'Sidecar proxy logs'
     }
 };
 
@@ -156,13 +274,133 @@ SwapFree:              0 kB`,
     '/proc/swaps': `Filename				Type		Size	Used	Priority`
 };
 
+// CTF-related logs and files
+var ctfLogs = {
+    'webapp-deployment-7d4b8c9f4d-xyz123': `2025-06-16T14:30:15.123Z INFO  Starting webapp container...
+2025-06-16T14:30:16.456Z INFO  Loading configuration from /etc/config/app.yaml
+2025-06-16T14:30:17.789Z ERROR Failed to connect to database: connection timeout
+2025-06-16T14:30:18.012Z ERROR Retrying database connection (attempt 1/3)
+2025-06-16T14:30:19.345Z ERROR Retrying database connection (attempt 2/3)
+2025-06-16T14:30:20.678Z ERROR Retrying database connection (attempt 3/3)
+2025-06-16T14:30:21.901Z FATAL Database connection failed, shutting down
+2025-06-16T14:30:22.234Z INFO  Container exit code: 1
+2025-06-16T14:30:22.567Z DEBUG Flag: {CTF_FLAG_1:DATABASE_CONNECTION_TIMEOUT_ERROR}`,
+
+    'database-pv-claim': `Name:          database-pv-claim
+Namespace:     default
+StorageClass:  fast-ssd
+Status:        Pending
+Volume:        
+Labels:        <none>
+Annotations:   volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/no-provisioner
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      
+Access Modes:  
+VolumeMode:    Filesystem
+Events:
+  Type     Reason              Age                From                         Message
+  ----     ------              ----               ----                         -------
+  Warning  ProvisioningFailed  2m (x15 over 30m)  persistentvolume-controller  storageclass "fast-ssd" not found
+  Normal   ExternalProvisioning 2m (x4 over 30m)  persistentvolume-controller  waiting for a volume to be created
+  Warning  ProvisioningFailed  1m                  persistentvolume-controller  Flag: {CTF_FLAG_2:STORAGE_CLASS_NOT_FOUND}`,
+
+    'nginx-service-config': `apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: default
+spec:
+  selector:
+    app: nginx-app-WRONG
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer
+---
+# This service selector is wrong! Should be 'nginx-deployment' not 'nginx-app-WRONG'
+# Network connectivity issue: selector mismatch causes service to not find pods
+# Flag: {CTF_FLAG_3:SERVICE_SELECTOR_MISMATCH_NETWORK_ISSUE}`
+};http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum
+distroverpkg=centos-release`,
+
+    '/opt/platform/config/platform-config.yaml': `# Platform Configuration Template
+# Single Node Deployment with Separate Database Host
+
+global:
+  deployment_type: "single-node"
+  environment: "production"
+  
+cluster:
+  master_node:
+    hostname: "platform.company.local"
+    ip_address: "192.168.1.100"
+    
+database:
+  type: "postgresql"
+  host: "db.company.local"
+  port: 5432
+  database_name: "platform_db"
+  username: "platform_user"
+  password: "change_me"
+  
+network:
+  http_port: 80
+  https_port: 443
+  management_port: 8443
+  api_port: 6443
+  
+storage:
+  data_path: "/opt/platform/data"
+  logs_path: "/opt/platform/logs"
+  
+security:
+  ssl_enabled: true
+  cert_path: "/opt/platform/certs/platform.crt"
+  key_path: "/opt/platform/certs/platform.key"`,
+
+    '/opt/platform/config/database-config.yaml': `# Database Configuration Template
+# PostgreSQL connection settings for separate database host
+
+database:
+  host: "CHANGE_ME"  # Database server hostname/IP
+  port: 5432
+  name: "platform_db"
+  username: "platform_user"
+  password: "CHANGE_ME"  # Database password
+  
+connection:
+  max_connections: 100
+  timeout: 30
+  ssl_mode: "require"
+  
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 30`,
+
+    '/proc/meminfo': `MemTotal:       16384000 kB
+MemFree:         8192000 kB
+MemAvailable:   12288000 kB
+Buffers:          512000 kB
+Cached:          2048000 kB
+SwapCached:            0 kB
+Active:          4096000 kB
+Inactive:        2048000 kB
+SwapTotal:             0 kB
+SwapFree:              0 kB`,
+
+    '/proc/swaps': `Filename				Type		Size	Used	Priority`
+};
+
 // Available commands for tab completion
 var availableCommands = [
     'ls', 'cd', 'cat', 'vi', 'pwd', 'clear', 'mkdir', 'chmod', 'help', 'start',
     'systemctl', 'firewall-cmd', 'yum', 'rpm', 'service', 'chkconfig',
     'free', 'df', 'du', 'ps', 'top', 'netstat', 'ss', 'ping', 'curl', 'wget',
     'dd', 'mkswap', 'swapon', 'swapoff', 'mount', 'umount', 'fdisk',
-    'iptables', 'route', 'ifconfig', 'ip', 'hostnamectl', 'timedatectl'
+    'iptables', 'route', 'ifconfig', 'ip', 'hostnamectl', 'timedatectl',
+    'kubectl', 'ssh', 'connect'
 ];
 
 // Tab switching function
@@ -259,6 +497,14 @@ function getCurrentDirName() {
     return currentDir.split('/').pop() || '/';
 }
 
+function getPromptHost() {
+    return currentHost === 'cluster' ? 'cluster-master' : 'platform';
+}
+
+function getCurrentFileSystem() {
+    return currentHost === 'cluster' ? clusterFileSystem : fileSystem;
+}
+
 // Execute command function
 function executeCommand(command) {
     var parts = command.split(' ');
@@ -271,6 +517,10 @@ function executeCommand(command) {
             break;
         case 'start':
             startAssessment();
+            break;
+        case 'connect':
+        case 'ssh':
+            connectToHost(args[0]);
             break;
         case 'ls':
             listFiles(args);
@@ -292,14 +542,29 @@ function executeCommand(command) {
         case 'clear':
             clearTerminal();
             break;
+        case 'kubectl':
+            executeKubectl(args);
+            break;
         case 'systemctl':
-            executeSystemctl(args);
+            if (currentHost === 'cluster') {
+                addOutput('systemctl: not available on cluster host. Use kubectl instead.', 'error');
+            } else {
+                executeSystemctl(args);
+            }
             break;
         case 'firewall-cmd':
-            executeFirewallCmd(args);
+            if (currentHost === 'cluster') {
+                addOutput('firewall-cmd: not available on cluster host', 'error');
+            } else {
+                executeFirewallCmd(args);
+            }
             break;
         case 'yum':
-            executeYum(args);
+            if (currentHost === 'cluster') {
+                addOutput('yum: not available on cluster host', 'error');
+            } else {
+                executeYum(args);
+            }
             break;
         case 'free':
             executeFree(args);
@@ -314,13 +579,26 @@ function executeCommand(command) {
             executeSs(args);
             break;
         case 'dd':
-            executeDd(args);
-            return; // Don't show prompt immediately
+            if (currentHost === 'cluster') {
+                addOutput('dd: not available on cluster host', 'error');
+            } else {
+                executeDd(args);
+                return; // Don't show prompt immediately
+            }
+            break;
         case 'mkswap':
-            executeMkswap(args);
+            if (currentHost === 'cluster') {
+                addOutput('mkswap: not available on cluster host', 'error');
+            } else {
+                executeMkswap(args);
+            }
             break;
         case 'swapon':
-            executeSwapon(args);
+            if (currentHost === 'cluster') {
+                addOutput('swapon: not available on cluster host', 'error');
+            } else {
+                executeSwapon(args);
+            }
             break;
         case 'ping':
             executePing(args);
@@ -362,74 +640,286 @@ function updateTaskProgress() {
     document.getElementById('task-progress').textContent = 'Progress: ' + completed + '/' + total + ' tasks completed';
 }
 
+function updateCtfProgress() {
+    var total = 3;
+    var found = foundFlags.size;
+    document.getElementById('ctf-progress').textContent = 'CTF: ' + found + '/' + total + ' flags found';
+    
+    if (found > 0) {
+        updateFlagsDisplay();
+    }
+}
+
+function updateFlagsDisplay() {
+    var flagsDiv = document.getElementById('flags-display');
+    if (foundFlags.size === 0) {
+        flagsDiv.innerHTML = '<p>🔍 No flags found yet. Start investigating!</p>';
+        return;
+    }
+    
+    var flagsArray = Array.from(foundFlags);
+    var html = '<h4>🏆 Found Flags:</h4>';
+    flagsArray.forEach(function(flag, index) {
+        html += '<div class="flag-found">🚩 Flag ' + (index + 1) + ': ' + flag + '</div>';
+    });
+    
+    if (foundFlags.size === 3) {
+        html += '<div class="flag-found">🎉 All flags found! You are a debugging master!</div>';
+    }
+    
+    flagsDiv.innerHTML = html;
+}
+
+function checkForFlag(text) {
+    var flagRegex = /\{CTF_FLAG_(\d+):([^}]+)\}/g;
+    var match;
+    
+    while ((match = flagRegex.exec(text)) !== null) {
+        var flagNumber = match[1];
+        var flagContent = match[2];
+        var flagText = 'CTF_FLAG_' + flagNumber + ':' + flagContent;
+        
+        if (!foundFlags.has(flagText)) {
+            foundFlags.add(flagText);
+            addOutput('🚩 FLAG FOUND! ' + flagText, 'success');
+            updateCtfProgress();
+        }
+    }
+}
+
 function updatePrompt() {
-    document.getElementById('current-dir-display').textContent = 'Current Directory: ' + currentDir;
+    var promptText = '[root@' + getPromptHost() + ' ' + getCurrentDirName() + ']#';
+    document.querySelector('.prompt').textContent = promptText;
+    document.getElementById('current-dir-display').textContent = 'Current Directory: ' + currentDir + ' (' + getPromptHost() + ')';
+    
+    // Update terminal header
+    var statusElement = document.getElementById('system-status');
+    if (currentHost === 'cluster') {
+        statusElement.textContent = 'System: Online | Kubernetes Cluster';
+    } else {
+        statusElement.textContent = 'System: Online | CentOS 7.9';
+    }
 }
 
 // Command implementations
+function connectToHost(hostname) {
+    if (!hostname) {
+        addOutput('Available hosts:', 'info');
+        addOutput('  platform.company.local  - CentOS preparation host');
+        addOutput('  cluster.company.local   - Kubernetes cluster (CTF challenges)');
+        addOutput('');
+        addOutput('Usage: connect [hostname] or ssh [hostname]');
+        return;
+    }
+    
+    if (hostname === 'cluster.company.local' || hostname === 'cluster') {
+        addOutput('Connecting to cluster.company.local...', 'info');
+        addOutput('Warning: You are now connected to a production Kubernetes cluster!', 'warning');
+        addOutput('Use kubectl commands to investigate the cluster issues.', 'info');
+        addOutput('');
+        currentHost = 'cluster';
+        currentDir = '/root';
+    } else if (hostname === 'platform.company.local' || hostname === 'platform') {
+        addOutput('Connecting to platform.company.local...', 'info');
+        addOutput('Connected to CentOS preparation environment.', 'success');
+        addOutput('');
+        currentHost = 'platform';
+        currentDir = '/root';
+    } else {
+        addOutput('ssh: Could not resolve hostname ' + hostname, 'error');
+        return;
+    }
+    
+    updatePrompt();
+}
+
+function executeKubectl(args) {
+    if (currentHost !== 'cluster') {
+        addOutput('kubectl: command not found. Connect to cluster host first.', 'error');
+        addOutput('Use: connect cluster.company.local', 'info');
+        return;
+    }
+    
+    var subcommand = args[0];
+    var resource = args[1];
+    var name = args[2];
+    
+    if (!subcommand) {
+        addOutput('kubectl: missing subcommand', 'error');
+        addOutput('Available: get, describe, logs, events');
+        return;
+    }
+    
+    if (subcommand === 'get') {
+        if (resource === 'pods') {
+            addOutput('NAME                                READY   STATUS             RESTARTS   AGE');
+            addOutput('webapp-deployment-7d4b8c9f4d-xyz123  0/1     CrashLoopBackOff   5          10m', 'error');
+            addOutput('database-statefulset-0              1/1     Running            0          1h', 'success');
+            addOutput('nginx-ingress-controller-abc123     1/1     Running            0          2h', 'success');
+        } else if (resource === 'services') {
+            addOutput('NAME            TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE');
+            addOutput('kubernetes      ClusterIP      10.96.0.1       <none>        443/TCP        3d');
+            addOutput('webapp-service  LoadBalancer   10.96.245.123   <pending>     80:30080/TCP   1h');
+            addOutput('nginx-service   LoadBalancer   10.96.100.200   <pending>     80:30081/TCP   2h');
+        } else if (resource === 'pv' || resource === 'persistentvolumes') {
+            addOutput('NAME              CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE');
+            addOutput('database-pv       50Gi       RWO            Retain           Available           manual                  1h');
+        } else if (resource === 'pvc' || resource === 'persistentvolumeclaims') {
+            addOutput('NAME                STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE');
+            addOutput('database-pv-claim   Pending                                      fast-ssd       30m', 'warning');
+        } else if (resource === 'events') {
+            addOutput('LAST SEEN   TYPE      REASON              OBJECT                               MESSAGE');
+            addOutput('2m          Warning   ProvisioningFailed  persistentvolumeclaim/database-pv-claim   storageclass "fast-ssd" not found');
+            addOutput('5m          Warning   BackOff             pod/webapp-deployment-7d4b8c9f4d-xyz123   Back-off restarting failed container');
+            addOutput('8m          Normal    Pulling             pod/webapp-deployment-7d4b8c9f4d-xyz123   Pulling image "webapp:latest"');
+        }
+    } else if (subcommand === 'describe') {
+        if (resource === 'pod' && name === 'webapp-deployment-7d4b8c9f4d-xyz123') {
+            addOutput('Name:         webapp-deployment-7d4b8c9f4d-xyz123');
+            addOutput('Namespace:    default');
+            addOutput('Status:       Failed');
+            addOutput('Containers:');
+            addOutput('  webapp:');
+            addOutput('    State:          Waiting');
+            addOutput('    Reason:         CrashLoopBackOff');
+            addOutput('    Exit Code:      1');
+            addOutput('Events:');
+            addOutput('  Warning  BackOff  2m (x10 over 5m)  kubelet  Back-off restarting failed container');
+        } else if (resource === 'pvc' && name === 'database-pv-claim') {
+            var pvcDesc = ctfLogs['database-pv-claim'];
+            addOutput(pvcDesc);
+            checkForFlag(pvcDesc);
+        } else if (resource === 'service' && name === 'nginx-service') {
+            var serviceDesc = ctfLogs['nginx-service-config'];
+            addOutput(serviceDesc);
+            checkForFlag(serviceDesc);
+        }
+    } else if (subcommand === 'logs') {
+        if (resource === 'webapp-deployment-7d4b8c9f4d-xyz123' || resource === name) {
+            var logs = ctfLogs['webapp-deployment-7d4b8c9f4d-xyz123'];
+            var lines = logs.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                addOutput(lines[i]);
+            }
+            checkForFlag(logs);
+        } else {
+            addOutput('kubectl logs: pod "' + (resource || name || 'unknown') + '" not found', 'error');
+        }
+    } else {
+        addOutput('kubectl: unknown subcommand "' + subcommand + '"', 'error');
+    }
+}
 function showHelp() {
-    addOutput('CentOS System Preparation Commands:', 'info');
-    addOutput('');
-    addOutput('System Commands:', 'success');
-    addOutput('  ls [-la]         - List files and directories');
-    addOutput('  cd [directory]   - Change directory');
-    addOutput('  cat [file]       - Display file contents');
-    addOutput('  vi [file]        - Edit file');
-    addOutput('  pwd              - Show current directory');
-    addOutput('  clear            - Clear terminal');
-    addOutput('');
-    addOutput('System Administration:', 'success');
-    addOutput('  systemctl [action] [service] - Manage services');
-    addOutput('  firewall-cmd [options]       - Configure firewall');
-    addOutput('  yum [command] [package]      - Package management');
-    addOutput('  free [-h]                    - Show memory usage');
-    addOutput('  df [-h]                      - Show disk usage');
-    addOutput('');
-    addOutput('Network Commands:', 'success');
-    addOutput('  netstat -tuln    - Show listening ports');
-    addOutput('  ss -tuln         - Show socket statistics');
-    addOutput('  ping [host]      - Test connectivity');
-    addOutput('');
-    addOutput('Storage Commands:', 'success');
-    addOutput('  dd               - Create files/swap');
-    addOutput('  mkswap [file]    - Setup swap file');
-    addOutput('  swapon [file]    - Enable swap');
-    addOutput('');
-    addOutput('Type "start" to begin the assessment.');
+    if (currentHost === 'cluster') {
+        addOutput('Kubernetes Cluster Troubleshooting Commands:', 'info');
+        addOutput('');
+        addOutput('Connection Commands:', 'success');
+        addOutput('  connect [hostname]       - Switch between hosts');
+        addOutput('  ssh [hostname]           - Same as connect');
+        addOutput('');
+        addOutput('Kubernetes Commands:', 'success');
+        addOutput('  kubectl get [resource]   - List resources (pods, services, pvc, events)');
+        addOutput('  kubectl describe [type] [name] - Get detailed info');
+        addOutput('  kubectl logs [pod-name]  - View pod logs');
+        addOutput('');
+        addOutput('System Commands:', 'success');
+        addOutput('  ls [-la]                 - List files');
+        addOutput('  cat [file]               - View file contents');
+        addOutput('  cd [directory]           - Change directory');
+        addOutput('  pwd                      - Show current directory');
+        addOutput('  clear                    - Clear terminal');
+        addOutput('');
+        addOutput('🚩 CTF Challenge: Find 3 flags hidden in the cluster logs and configurations!');
+    } else {
+        addOutput('CentOS System Preparation Commands:', 'info');
+        addOutput('');
+        addOutput('Connection Commands:', 'success');
+        addOutput('  connect [hostname]       - Switch to cluster host for CTF challenges');
+        addOutput('');
+        addOutput('System Commands:', 'success');
+        addOutput('  ls [-la]                 - List files and directories');
+        addOutput('  cd [directory]           - Change directory');
+        addOutput('  cat [file]               - Display file contents');
+        addOutput('  vi [file]                - Edit file');
+        addOutput('  pwd                      - Show current directory');
+        addOutput('  clear                    - Clear terminal');
+        addOutput('');
+        addOutput('System Administration:', 'success');
+        addOutput('  systemctl [action] [service] - Manage services');
+        addOutput('  firewall-cmd [options]       - Configure firewall');
+        addOutput('  yum [command] [package]      - Package management');
+        addOutput('  free [-h]                    - Show memory usage');
+        addOutput('  df [-h]                      - Show disk usage');
+        addOutput('');
+        addOutput('Network Commands:', 'success');
+        addOutput('  netstat -tuln            - Show listening ports');
+        addOutput('  ss -tuln                 - Show socket statistics');
+        addOutput('  ping [host]              - Test connectivity');
+        addOutput('');
+        addOutput('Storage Commands:', 'success');
+        addOutput('  dd                       - Create files/swap');
+        addOutput('  mkswap [file]            - Setup swap file');
+        addOutput('  swapon [file]            - Enable swap');
+        addOutput('');
+        addOutput('Type "start" to begin the system preparation assessment.');
+        addOutput('Type "connect cluster.company.local" for CTF challenges.');
+    }
 }
 
 function startAssessment() {
-    addOutput('CentOS System Preparation Assessment Started!', 'success');
-    addOutput('');
-    addOutput('Complete the following preparation tasks:', 'info');
-    addOutput('');
-    addOutput('1. Configure Firewall:', 'warning');
-    addOutput('   - Open ports: 22, 80, 443, 8443, 5432, 9200, 6443');
-    addOutput('   - Use: firewall-cmd --permanent --add-port=PORT/tcp');
-    addOutput('   - Reload: firewall-cmd --reload');
-    addOutput('');
-    addOutput('2. Create Swap File (8GB):', 'warning');
-    addOutput('   - Create: dd if=/dev/zero of=/swapfile bs=1024 count=8388608');
-    addOutput('   - Setup: chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile');
-    addOutput('   - Permanent: echo "/swapfile swap swap defaults 0 0" >> /etc/fstab');
-    addOutput('');
-    addOutput('3. Configure NTP:', 'warning');
-    addOutput('   - Install: yum install -y ntp');
-    addOutput('   - Start: systemctl enable ntpd && systemctl start ntpd');
-    addOutput('   - Configure servers in /etc/ntp.conf');
-    addOutput('');
-    addOutput('4. Configure YUM Proxy:', 'warning');
-    addOutput('   - Edit /etc/yum.conf and add proxy settings');
-    addOutput('');
-    addOutput('5. Install Required Packages:', 'warning');
-    addOutput('   - yum update -y');
-    addOutput('   - yum install -y wget curl unzip tar net-tools');
-    addOutput('');
-    addOutput('6. Configure Platform Settings:', 'warning');
-    addOutput('   - Edit /opt/platform/config/platform-config.yaml');
-    addOutput('   - Set database host and credentials');
-    addOutput('');
-    addOutput('Start by checking current system status: free -h && df -h', 'success');
+    if (currentHost === 'cluster') {
+        addOutput('🚩 CTF Challenge Mode: Kubernetes Troubleshooting', 'success');
+        addOutput('');
+        addOutput('You are now investigating a production Kubernetes cluster with several issues.', 'warning');
+        addOutput('Your mission: Find 3 flags hidden in logs and configurations to prove your debugging skills!', 'info');
+        addOutput('');
+        addOutput('Known Issues:', 'error');
+        addOutput('1. 💥 webapp-deployment pod keeps crashing');
+        addOutput('2. 💾 database-pv-claim stuck in Pending status');
+        addOutput('3. 🌐 nginx-service has connectivity problems');
+        addOutput('');
+        addOutput('Investigation Tips:', 'info');
+        addOutput('• Use "kubectl get pods" to see pod status');
+        addOutput('• Use "kubectl logs [pod-name]" to check application logs');
+        addOutput('• Use "kubectl describe [resource] [name]" for detailed info');
+        addOutput('• Check events with "kubectl get events"');
+        addOutput('• Look for configuration issues in service definitions');
+        addOutput('');
+        addOutput('🔍 Start investigating! Flags are hidden in the detailed output.', 'success');
+    } else {
+        addOutput('CentOS System Preparation Assessment Started!', 'success');
+        addOutput('');
+        addOutput('Complete the following preparation tasks:', 'info');
+        addOutput('');
+        addOutput('1. Configure Firewall:', 'warning');
+        addOutput('   - Research and open ports: 22, 80, 443, 8443, 5432, 9200, 6443');
+        addOutput('   - Make configuration permanent and reload');
+        addOutput('');
+        addOutput('2. Create Swap File (8GB):', 'warning');
+        addOutput('   - Research dd command to create 8GB file');
+        addOutput('   - Set proper permissions and initialize swap');
+        addOutput('   - Activate swap and make it persistent');
+        addOutput('');
+        addOutput('3. Configure NTP:', 'warning');
+        addOutput('   - Install NTP package using yum');
+        addOutput('   - Configure time servers in config file');
+        addOutput('   - Enable and start the service');
+        addOutput('');
+        addOutput('4. Configure YUM Proxy:', 'warning');
+        addOutput('   - Research yum.conf configuration');
+        addOutput('   - Add proxy settings for corporate environment');
+        addOutput('');
+        addOutput('5. Install Required Packages:', 'warning');
+        addOutput('   - Update system packages');
+        addOutput('   - Install essential tools and dependencies');
+        addOutput('');
+        addOutput('6. Configure Platform Settings:', 'warning');
+        addOutput('   - Edit platform configuration for single-node deployment');
+        addOutput('   - Configure separate database host settings');
+        addOutput('');
+        addOutput('💡 Research commands online - this simulates real-world scenarios!', 'info');
+        addOutput('🚩 Want a challenge? Try: connect cluster.company.local', 'success');
+    }
 }
 
 function listFiles(args) {
@@ -508,7 +998,6 @@ function changeDirectory(dir) {
     
     if (fileSystem[targetDir]) {
         currentDir = targetDir;
-        updatePrompt();
     } else {
         addOutput('cd: ' + dir + ': No such file or directory', 'error');
     }
@@ -530,6 +1019,18 @@ function viewFile(filename) {
         var lines = configFiles[filename].split('\n');
         for (var i = 0; i < lines.length; i++) {
             addOutput(lines[i]);
+        }
+    } else if (currentHost === 'cluster' && filename.includes('log')) {
+        // Handle cluster log files
+        var logContent = ctfLogs[filename] || ctfLogs[filename.replace('.log', '')];
+        if (logContent) {
+            var lines = logContent.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                addOutput(lines[i]);
+            }
+            checkForFlag(logContent);
+        } else {
+            addOutput('cat: ' + filename + ': No such file or directory', 'error');
         }
     } else {
         addOutput('cat: ' + filename + ': No such file or directory', 'error');
@@ -949,7 +1450,12 @@ function checkAllTasksComplete() {
 
 // Initialize on page load
 window.onload = function() {
-    addOutput('CentOS 7.9 System Preparation Environment Initialized', 'success');
-    addOutput('Type "help" for commands or "start" to begin assessment.', 'info');
+    addOutput('Multi-Host Training Environment Initialized', 'success');
+    addOutput('Available hosts:', 'info');
+    addOutput('  • platform.company.local - CentOS preparation tasks');
+    addOutput('  • cluster.company.local  - Kubernetes CTF challenges');
+    addOutput('');
+    addOutput('Type "help" for commands, "start" for assessment, or "connect cluster.company.local" for CTF.', 'info');
+    updateCtfProgress();
     showNewPrompt();
 };
