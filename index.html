@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CentOS System Preparation - Platform Deployment Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="tab active" onclick="switchTab('docs')">📖 Documentation</div>
+            <div class="tab" onclick="switchTab('files')">📁 Files</div>
+            <div class="tab" onclick="switchTab('help')">❓ Help</div>
+            
+            <div class="tab-content active" id="docs">
+                <h3>CentOS System Preparation Guide</h3>
+                
+                <h4>Overview</h4>
+                <p>Prepare a CentOS 7.9 system for enterprise platform deployment. Complete all preparation tasks before proceeding with installation.</p>
+                
+                <h4>Task 1: System Prerequisites</h4>
+                <ul>
+                    <li>CentOS 7.9 minimal installation</li>
+                    <li>Minimum 16GB RAM, 8 CPU cores</li>
+                    <li>500GB+ storage space</li>
+                    <li>Network connectivity</li>
+                    <li>Root access</li>
+                </ul>
+                
+                <h4>Task 2: Configure Network & Firewall</h4>
+                <p>Open required ports for platform communication:</p>
+                <pre>
+# Open platform ports
+firewall-cmd --permanent --add-port=22/tcp     # SSH
+firewall-cmd --permanent --add-port=80/tcp     # HTTP
+firewall-cmd --permanent --add-port=443/tcp    # HTTPS
+firewall-cmd --permanent --add-port=8443/tcp   # Management
+firewall-cmd --permanent --add-port=5432/tcp   # Database
+firewall-cmd --permanent --add-port=9200/tcp   # Elasticsearch
+firewall-cmd --permanent --add-port=6443/tcp   # Kubernetes API
+firewall-cmd --reload
+                </pre>
+                
+                <h4>Task 3: Create & Configure Swap</h4>
+                <p>Platform requires adequate swap space:</p>
+                <pre>
+# Create 8GB swap file
+dd if=/dev/zero of=/swapfile bs=1024 count=8388608
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+
+# Make permanent
+echo '/swapfile swap swap defaults 0 0' >> /etc/fstab
+                </pre>
+                
+                <h4>Task 4: Configure NTP</h4>
+                <p>Ensure accurate time synchronization:</p>
+                <pre>
+yum install -y ntp
+systemctl enable ntpd
+systemctl start ntpd
+
+# Configure NTP servers in /etc/ntp.conf
+server 0.centos.pool.ntp.org
+server 1.centos.pool.ntp.org
+                </pre>
+                
+                <h4>Task 5: Configure YUM Proxy</h4>
+                <p>Setup proxy for package management:</p>
+                <pre>
+# Add to /etc/yum.conf
+proxy=http://proxy.company.com:8080
+proxy_username=your_username
+proxy_password=your_password
+                </pre>
+                
+                <h4>Task 6: Install Required Packages</h4>
+                <p>Install system dependencies:</p>
+                <pre>
+yum update -y
+yum install -y wget curl unzip tar net-tools
+yum install -y device-mapper-persistent-data lvm2
+yum install -y yum-utils
+                </pre>
+                
+                <h4>Task 7: Configure Platform Settings</h4>
+                <p>Edit the platform configuration file for single-node deployment with separate database host.</p>
+                <p>Configuration file: <code>/opt/platform/config/platform-config.yaml</code></p>
+            </div>
+            
+            <div class="tab-content" id="files">
+                <h3>System Files</h3>
+                <pre>
+/opt/platform/
+├── config/
+│   ├── platform-config.yaml
+│   ├── database-config.yaml
+│   └── ntp.conf.template
+├── scripts/
+│   ├── prepare-system.sh
+│   └── validate-setup.sh
+└── logs/
+    └── preparation.log
+                </pre>
+                
+                <h4>Configuration Templates</h4>
+                <ul>
+                    <li><strong>platform-config.yaml</strong> - Main platform configuration</li>
+                    <li><strong>database-config.yaml</strong> - Database connection settings</li>
+                    <li><strong>ntp.conf.template</strong> - NTP configuration template</li>
+                </ul>
+            </div>
+            
+            <div class="tab-content" id="help">
+                <h3>Available Commands</h3>
+                <h4>System Commands:</h4>
+                <ul>
+                    <li><code>ls [-la]</code> - List files</li>
+                    <li><code>cd [dir]</code> - Change directory</li>
+                    <li><code>cat [file]</code> - View file contents</li>
+                    <li><code>vi [file]</code> - Edit file</li>
+                    <li><code>pwd</code> - Show current directory</li>
+                    <li><code>clear</code> - Clear terminal</li>
+                </ul>
+                
+                <h4>System Administration:</h4>
+                <ul>
+                    <li><code>systemctl [action] [service]</code> - Manage services</li>
+                    <li><code>firewall-cmd [options]</code> - Configure firewall</li>
+                    <li><code>yum [command]</code> - Package management</li>
+                    <li><code>free -h</code> - Check memory/swap</li>
+                    <li><code>df -h</code> - Check disk space</li>
+                </ul>
+                
+                <h4>Network Commands:</h4>
+                <ul>
+                    <li><code>netstat -tuln</code> - Show listening ports</li>
+                    <li><code>ss -tuln</code> - Show socket statistics</li>
+                    <li><code>ping [host]</code> - Test connectivity</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="terminal-container">
+            <div class="terminal-header">
+                <span>🖥️ CentOS Terminal - platform.company.local</span>
+                <span id="system-status">System: Online | CentOS 7.9</span>
+            </div>
+            
+            <div class="terminal" id="terminal-output">
+                <div class="output info">╔══════════════════════════════════════════════════════════════════════════════╗
+║                    CentOS System Preparation Environment                     ║
+║                                                                              ║
+║  Welcome to the system preparation assessment.                              ║
+║  Your task: Prepare CentOS system for enterprise platform deployment.      ║
+║                                                                              ║
+║  Tasks to Complete:                                                          ║
+║  1. Configure firewall and open required ports                              ║
+║  2. Create and configure swap file (8GB)                                    ║
+║  3. Setup NTP time synchronization                                          ║
+║  4. Configure YUM proxy settings                                            ║
+║  5. Install required system packages                                        ║
+║  6. Configure platform settings for single-node deployment                 ║
+║                                                                              ║
+║  Type 'help' for available commands or 'start' to begin assessment.        ║
+╚══════════════════════════════════════════════════════════════════════════════╝</div>
+            </div>
+            
+            <div class="input-line">
+                <span class="prompt">[root@platform ~]#</span>
+                <input type="text" class="command-input" id="main-command-input" autocomplete="off" autofocus onkeydown="handleMainKeyPress(event)">
+                <span class="cursor">_</span>
+            </div>
+            
+            <div class="status-bar">
+                <span id="current-dir-display">Current Directory: /root</span>
+                <span id="task-progress">Progress: 0/6 tasks completed</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="terminal.js"></script>
+</body>
+</html>
