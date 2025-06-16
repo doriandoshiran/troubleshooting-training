@@ -74,6 +74,237 @@ var systemState = {
         if (output.trim()) {
             addOutput(output.trim());
         }
+function executeSystemctl(args) {
+    var action = args[0];
+    var service = args[1];
+    
+    if (!action || !service) {
+        addOutput('systemctl: missing arguments', 'error');
+        addOutput('Usage: systemctl [start|stop|enable|disable|status] [service]');
+        return;
+    }
+    
+    if (service === 'ntpd') {
+        if (action === 'start') {
+            addOutput('Starting ntpd service...', 'info');
+            setTimeout(function() {
+                addOutput('ntpd service started successfully', 'success');
+                systemState.centos.ntpConfigured = true;
+                completedTasks.add('ntp');
+                updateTaskProgress();
+                showNewPrompt();
+            }, 1000);
+            return;
+        } else if (action === 'enable') {
+            addOutput('Enabling ntpd service...', 'info');
+            addOutput('Created symlink from /etc/systemd/system/multi-user.target.wants/ntpd.service to /usr/lib/systemd/system/ntpd.service', 'success');
+        } else if (action === 'status') {
+            if (systemState.centos.ntpConfigured) {
+                addOutput('● ntpd.service - Network Time Protocol daemon');
+                addOutput('   Loaded: loaded (/usr/lib/systemd/system/ntpd.service; enabled)', 'success');
+                addOutput('   Active: active (running) since Mon 2025-06-16 14:30:00 UTC', 'success');
+            } else {
+                addOutput('● ntpd.service - Network Time Protocol daemon');
+                addOutput('   Loaded: loaded (/usr/lib/systemd/system/ntpd.service; disabled)', 'warning');
+                addOutput('   Active: inactive (dead)', 'warning');
+            }
+        }
+    } else if (service === 'firewalld') {
+        if (action === 'status') {
+            addOutput('● firewalld.service - firewalld - dynamic firewall daemon');
+            addOutput('   Loaded: loaded (/usr/lib/systemd/system/firewalld.service; enabled)', 'success');
+            addOutput('   Active: active (running) since Mon 2025-06-16 14:00:00 UTC', 'success');
+        }
+    } else {
+        addOutput('systemctl: unknown service "' + service + '"', 'error');
+    }
+}
+
+function executeFirewallCmd(args) {
+    if (args.length === 0) {
+        addOutput('firewall-cmd: missing arguments', 'error');
+        return;
+    }
+    
+    var command = args.join(' ');
+    
+    if (command.includes('--add-port=')) {
+        var port = command.match(/--add-port=(\d+\/tcp)/);
+        if (port) {
+            addOutput('success', 'success');
+            
+            // Track opened ports
+            if (!systemState.centos.openPorts) {
+                systemState.centos.openPorts = [];
+            }
+            systemState.centos.openPorts.push(port[1]);
+            
+            // Check if all required ports are opened
+            var requiredPorts = ['22/tcp', '80/tcp', '443/tcp', '8443/tcp', '5432/tcp', '9200/tcp', '6443/tcp'];
+            var allOpened = requiredPorts.every(function(p) {
+                return systemState.centos.openPorts.includes(p);
+            });
+            
+            if (allOpened && !completedTasks.has('firewall')) {
+                addOutput('All required ports have been opened!', 'info');
+                systemState.centos.firewallConfigured = true;
+                completedTasks.add('firewall');
+                updateTaskProgress();
+            }
+        }
+    } else if (command.includes('--reload')) {
+        addOutput('success', 'success');
+        if (systemState.centos.openPorts && systemState.centos.openPorts.length > 0) {
+            addOutput('Firewall rules reloaded and active', 'info');
+        }
+    } else if (command.includes('--list-ports')) {
+        if (systemState.centos.openPorts && systemState.centos.openPorts.length > 0) {
+            addOutput(systemState.centos.openPorts.join(' '));
+        } else {
+            addOutput('');
+        }
+function executeYum(args) {
+    var command = args[0];
+    
+    if (!command) {
+        addOutput('yum: missing command', 'error');
+        return;
+    }
+    
+    if (command === 'update') {
+        addOutput('Loaded plugins: fastestmirror', 'info');
+        addOutput('Loading mirror speeds from cached hostfile', 'info');
+        addOutput('Resolving Dependencies', 'info');
+        addOutput('--> Running transaction check', 'info');
+        addOutput('Dependencies Resolved', 'success');
+        addOutput('');
+        addOutput('Transaction Summary');
+        addOutput('=====================================');
+        addOutput('Upgrade  ' + Math.floor(Math.random() * 50 + 20) + ' Packages');
+        addOutput('');
+        addOutput('Total download size: ' + Math.floor(Math.random() * 200 + 50) + ' MB');
+        addOutput('Is this ok [y/N]: ', 'warning');
+        
+        setTimeout(function() {
+            addOutput('y');
+            addOutput('Downloading packages...', 'info');
+            setTimeout(function() {
+                addOutput('Running transaction', 'info');
+                addOutput('Complete!', 'success');
+                showNewPrompt();
+            }, 2000);
+        }, 1000);
+        return;
+    } else if (command === 'install') {
+        var packages = args.slice(1);
+        if (packages.length === 0) {
+            addOutput('yum install: missing package name', 'error');
+            return;
+        }
+        
+        addOutput('Loaded plugins: fastestmirror', 'info');
+        addOutput('Loading mirror speeds from cached hostfile', 'info');
+        
+        var isNtp = packages.includes('ntp');
+        var hasRequiredPackages = packages.includes('wget') || packages.includes('curl') || packages.includes('unzip');
+        
+        if (isNtp || hasRequiredPackages) {
+            addOutput('Resolving Dependencies', 'info');
+            addOutput('Dependencies Resolved', 'success');
+            addOutput('');
+            addOutput('Installing: ' + packages.join(', '));
+            
+            setTimeout(function() {
+                addOutput('Complete!', 'success');
+                
+                if (hasRequiredPackages && !systemState.centos.packagesInstalled) {
+                    systemState.centos.packagesInstalled = true;
+                    completedTasks.add('packages');
+                    updateTaskProgress();
+                }
+                
+                showNewPrompt();
+            }, 2000);
+            return;
+        } else {
+            addOutput('No package ' + packages[0] + ' available.', 'error');
+        }
+    } else {
+        addOutput('yum: unknown command "' + command + '"', 'error');
+    }
+}
+
+function executeFree(args) {
+    var humanReadable = args && args.includes('-h');
+    
+    if (humanReadable) {
+        addOutput('              total        used        free      shared  buff/cache   available');
+        addOutput('Mem:            16G        4.2G        8.1G        256M        3.7G         11G');
+        if (systemState.centos.swapConfigured) {
+            addOutput('Swap:          8.0G          0B        8.0G');
+        } else {
+            addOutput('Swap:            0B          0B          0B', 'warning');
+        }
+    } else {
+        addOutput('             total       used       free     shared    buffers     cached');
+        addOutput('Mem:      16777216    4194304    8388608     262144     524288    3932160');
+        if (systemState.centos.swapConfigured) {
+            addOutput('Swap:      8388608          0    8388608');
+        } else {
+            addOutput('Swap:            0          0          0', 'warning');
+        }
+    }
+}
+
+function executeDf(args) {
+    var humanReadable = args && args.includes('-h');
+    
+    if (humanReadable) {
+        addOutput('Filesystem      Size  Used Avail Use% Mounted on');
+        addOutput('/dev/sda1       500G   45G  429G  10% /');
+        addOutput('/dev/sda2       1.0G  150M  851M  15% /boot');
+        addOutput('tmpfs           8.0G     0  8.0G   0% /dev/shm');
+    } else {
+        addOutput('Filesystem     1K-blocks     Used Available Use% Mounted on');
+        addOutput('/dev/sda1      524288000 47185920 451102080  10% /');
+        addOutput('/dev/sda2        1048576   153600    870400  15% /boot');
+        addOutput('tmpfs            8388608        0   8388608   0% /dev/shm');
+    }
+}
+
+function executeDd(args) {
+    var command = args.join(' ');
+    
+    if (command.includes('if=/dev/zero') && command.includes('of=/swapfile')) {
+        addOutput('Creating 8GB swap file...', 'info');
+        addOutput('This may take a few minutes...', 'warning');
+        
+        var progress = 0;
+        var progressDiv = document.createElement('div');
+        progressDiv.className = 'output';
+        document.getElementById('terminal-output').appendChild(progressDiv);
+        
+        var interval = setInterval(function() {
+            progress += Math.random() * 10 + 5;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                progressDiv.remove();
+                addOutput('8388608+0 records in');
+                addOutput('8388608+0 records out');
+                addOutput('8589934592 bytes (8.6 GB) copied, 45.2341 s, 190 MB/s', 'success');
+                addOutput('Swap file created successfully!', 'success');
+                addOutput('Next: chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile', 'info');
+                showNewPrompt();
+            } else {
+                progressDiv.textContent = 'Progress: ' + Math.floor(progress) + '% - Writing ' + Math.floor(progress * 85.8) + ' MB...';
+                scrollToBottom();
+            }
+        }, 300);
+        return;
+    } else {
+        addOutput('dd: invalid arguments', 'error');
+        addOutput('Example: dd if=/dev/zero of=/swapfile bs=1024 count=8388608');
     }
 }
 
@@ -434,15 +665,33 @@ function switchTab(tabName) {
     var tabs = document.querySelectorAll('.tab');
     var contents = document.querySelectorAll('.tab-content');
     
-    for (var i = 0; i < tabs.length; i++) {
-        tabs[i].classList.remove('active');
-    }
-    for (var i = 0; i < contents.length; i++) {
-        contents[i].classList.remove('active');
-    }
+    // Remove active class from all tabs and contents
+    tabs.forEach(function(tab) {
+        tab.classList.remove('active');
+    });
+    contents.forEach(function(content) {
+        content.classList.remove('active');
+    });
     
-    event.target.classList.add('active');
-    document.getElementById(tabName).classList.add('active');
+    // Add active class to clicked tab and corresponding content
+    var clickedTab = document.querySelector('.tab[data-tab="' + tabName + '"]');
+    var targetContent = document.getElementById(tabName);
+    
+    if (clickedTab && targetContent) {
+        clickedTab.classList.add('active');
+        targetContent.classList.add('active');
+    }
+}
+
+// Add event listeners for tabs
+function initializeTabs() {
+    var tabs = document.querySelectorAll('.tab');
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            var tabName = this.getAttribute('data-tab');
+            switchTab(tabName);
+        });
+    });
 }
 
 // Handle key press events for main input
@@ -685,6 +934,12 @@ function showNewPrompt() {
     addOutput('');
     updatePrompt();
     scrollToBottom();
+    
+    // Focus the main input
+    var mainInput = document.getElementById('main-command-input');
+    if (mainInput) {
+        mainInput.focus();
+    }
 }
 
 function addOutput(text, className) {
@@ -1565,8 +1820,83 @@ function checkAllTasksComplete() {
     }
 }
 
+function executeMkswap(args) {
+    var file = args[0];
+    
+    if (file === '/swapfile') {
+        addOutput('Setting up swapspace version 1, size = 8388604 KiB');
+        addOutput('no label, UUID=12345678-1234-1234-1234-123456789012', 'success');
+        addOutput('Swap file initialized! Next: swapon /swapfile', 'info');
+    } else {
+        addOutput('mkswap: ' + (file || 'missing file') + ': No such file or directory', 'error');
+    }
+}
+
+function executeSwapon(args) {
+    var file = args[0];
+    
+    if (file === '/swapfile') {
+        addOutput('Swap file activated successfully!', 'success');
+        systemState.centos.swapConfigured = true;
+        completedTasks.add('swap');
+        updateTaskProgress();
+        addOutput('Don\'t forget to add to /etc/fstab for persistence:', 'warning');
+        addOutput('echo "/swapfile swap swap defaults 0 0" >> /etc/fstab', 'info');
+    } else {
+        addOutput('swapon: ' + (file || 'missing file') + ': No such file or directory', 'error');
+    }
+}
+
+function executePing(args) {
+    var host = args[0];
+    
+    if (!host) {
+        addOutput('ping: missing host argument', 'error');
+        showNewPrompt();
+        return;
+    }
+    
+    addOutput('PING ' + host + ' (192.168.1.1) 56(84) bytes of data.', 'info');
+    
+    var count = 0;
+    var interval = setInterval(function() {
+        count++;
+        var time = (Math.random() * 10 + 1).toFixed(1);
+        addOutput('64 bytes from ' + host + ' (192.168.1.1): icmp_seq=' + count + ' ttl=64 time=' + time + ' ms');
+        
+        if (count >= 4) {
+            clearInterval(interval);
+            addOutput('');
+            addOutput('--- ' + host + ' ping statistics ---');
+            addOutput('4 packets transmitted, 4 received, 0% packet loss');
+            addOutput('rtt min/avg/max/mdev = 1.2/5.4/9.8/3.2 ms', 'success');
+            showNewPrompt();
+        }
+    }, 1000);
+}
+
+function checkAllTasksComplete() {
+    if (completedTasks.size === 6) {
+        addOutput('');
+        addOutput('🎉 Congratulations! All system preparation tasks completed!', 'success');
+        addOutput('');
+        addOutput('System is now ready for platform deployment:', 'info');
+        addOutput('✓ Firewall configured with required ports');
+        addOutput('✓ Swap file created and activated');
+        addOutput('✓ NTP service configured and running');
+        addOutput('✓ YUM proxy settings configured');
+        addOutput('✓ Required packages installed');
+        addOutput('✓ Platform configuration updated');
+        addOutput('');
+        addOutput('Your CentOS system is now properly prepared!', 'success');
+    }
+}
+
 // Initialize on page load
 window.onload = function() {
+    // Initialize tab functionality
+    initializeTabs();
+    
     addOutput('Multi-Host Training Environment Ready', 'success');
     addOutput('');
     addOutput('Welcome to the enterprise infrastructure training platform.', 'info');
