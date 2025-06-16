@@ -81,6 +81,9 @@ function executeCommand(command) {
     var args = parts.slice(1);
     
     switch (cmd.toLowerCase()) {
+        case 'start':
+            startTraining();
+            break;
         case 'help':
             showHelp();
             break;
@@ -266,13 +269,48 @@ function connectToHost(args) {
     updatePrompt();
 }
 
+function startTraining() {
+    addOutput('');
+    addOutput('╔══════════════════════════════════════════════════════════════════════════════╗', 'info');
+    addOutput('║                        ACME Corporation Training Program                     ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  Welcome to the Infrastructure Security Training Environment               ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  Available Training Hosts:                                                  ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  🖥️  prod-centos-01.acme.local    - CentOS 7.9 system preparation          ║', 'info');
+    addOutput('║      • Configure firewall and network security                              ║', 'info');
+    addOutput('║      • Setup swap, NTP, and system services                                 ║', 'info');
+    addOutput('║      • Install and configure enterprise platform                           ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  ☸️  k8s-master-01.acme.local     - Kubernetes troubleshooting             ║', 'info');
+    addOutput('║      • Investigate pod crashes and service issues                          ║', 'info');
+    addOutput('║      • Debug storage and networking problems                                ║', 'info');
+    addOutput('║      • Find hidden security flags in logs (CTF challenges)                 ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  Training Objectives:                                                       ║', 'info');
+    addOutput('║  • Master Linux system administration skills                                ║', 'info');
+    addOutput('║  • Learn Kubernetes troubleshooting techniques                             ║', 'info');
+    addOutput('║  • Develop security incident investigation abilities                        ║', 'info');
+    addOutput('║  • Practice with real-world enterprise scenarios                           ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  Connection Instructions:                                                    ║', 'info');
+    addOutput('║  ssh root@prod-centos-01.acme.local    (System preparation)               ║', 'info');
+    addOutput('║  ssh root@k8s-master-01.acme.local     (Kubernetes troubleshooting)       ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('╚══════════════════════════════════════════════════════════════════════════════╝', 'info');
+    addOutput('');
+    addOutput('Training environment initialized. Choose a host to begin:', 'success');
+    addOutput('');
+}
+
 function disconnectFromHost() {
     if (currentHost === 'jumphost') {
         addOutput('You are already on the jumphost.', 'warning');
         return;
     }
     
-    addOutput('Connection to ' + getPromptHost() + '.company.local closed.', 'info');
+    addOutput('Connection to ' + getPromptHost() + '.acme.local closed.', 'info');
     currentHost = 'jumphost';
     currentDir = '/root';
     updatePrompt();
@@ -280,20 +318,21 @@ function disconnectFromHost() {
 
 function showHelp() {
     if (currentHost === 'jumphost') {
-        addOutput('Training Environment Help:', 'info');
+        addOutput('ACME Training Environment Help:', 'info');
         addOutput('');
-        addOutput('Connection Commands:', 'success');
+        addOutput('Getting Started:', 'success');
+        addOutput('  start                    - Show training overview and available hosts');
         addOutput('  ssh root@[hostname]      - Connect to remote host');
         addOutput('');
         addOutput('Available Hosts:', 'success');
-        addOutput('  prod-centos-01.company.local  - CentOS system preparation');
-        addOutput('  k8s-master-01.company.local   - Kubernetes troubleshooting');
+        addOutput('  prod-centos-01.acme.local  - CentOS system preparation');
+        addOutput('  k8s-master-01.acme.local   - Kubernetes troubleshooting');
         addOutput('');
         addOutput('Basic Commands:', 'success');
         addOutput('  help                     - Show this help');
         addOutput('  clear                    - Clear terminal');
         addOutput('');
-        addOutput('Start by connecting to a host: ssh root@prod-centos-01.company.local');
+        addOutput('Begin by typing "start" to see the full training overview.');
     } else if (currentHost === 'k8s') {
         addOutput('Kubernetes Troubleshooting Commands:', 'info');
         addOutput('');
