@@ -152,21 +152,48 @@ function executeCommand(command) {
                 if (currentHost === 'jumphost') {
                     addOutput('bash: ls: command not found on jumphost', 'error');
                 } else {
-                    listFiles(args);
+                    try {
+                        if (typeof listFiles === 'function') {
+                            listFiles(args);
+                        } else {
+                            addOutput('Error: listFiles function not found', 'error');
+                        }
+                    } catch (error) {
+                        console.error('ls command error:', error);
+                        addOutput('Error: ls command failed - ' + error.message, 'error');
+                    }
                 }
                 break;
             case 'cd':
                 if (currentHost === 'jumphost') {
                     addOutput('bash: cd: command not found on jumphost', 'error');
                 } else {
-                    changeDirectory(args[0]);
+                    try {
+                        if (typeof changeDirectory === 'function') {
+                            changeDirectory(args[0]);
+                        } else {
+                            addOutput('Error: changeDirectory function not found', 'error');
+                        }
+                    } catch (error) {
+                        console.error('cd command error:', error);
+                        addOutput('Error: cd command failed - ' + error.message, 'error');
+                    }
                 }
                 break;
             case 'cat':
                 if (currentHost === 'jumphost') {
                     addOutput('bash: cat: command not found on jumphost', 'error');
                 } else {
-                    viewFile(args[0]);
+                    try {
+                        if (typeof viewFile === 'function') {
+                            viewFile(args[0]);
+                        } else {
+                            addOutput('Error: viewFile function not found', 'error');
+                        }
+                    } catch (error) {
+                        console.error('cat command error:', error);
+                        addOutput('Error: cat command failed - ' + error.message, 'error');
+                    }
                 }
                 break;
             case 'vi':
@@ -334,7 +361,6 @@ function connectToHost(args) {
 }
 
 function startTraining() {
-    addOutput('');
     addOutput('╔══════════════════════════════════════════════════════════════════════════════╗', 'info');
     addOutput('║                        ACME Corporation Training Program                     ║', 'info');
     addOutput('║                                                                              ║', 'info');
@@ -363,9 +389,7 @@ function startTraining() {
     addOutput('║  ssh root@k8s-master-01.company.local     (Kubernetes troubleshooting)    ║', 'info');
     addOutput('║                                                                              ║', 'info');
     addOutput('╚══════════════════════════════════════════════════════════════════════════════╝', 'info');
-    addOutput('');
     addOutput('Training environment initialized. Choose a host to begin:', 'success');
-    // Don't add extra empty line here
 }
 
 function disconnectFromHost() {
