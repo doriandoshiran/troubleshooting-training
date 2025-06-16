@@ -34,19 +34,22 @@
                     <span class="cursor">_</span>
                 </div>
             </div>
+            
+            <div class="status-bar">
+                <span id="current-host">Host: jumphost (training environment)</span>
+                <span id="task-progress">Tasks: Not connected</span>
+                <span id="ctf-progress">Flags: 0/3 found</span>
+            </div>
         </div>
         
-        <!-- Moved sidebar to bottom as panel -->
-        <div class="sidebar-panel">
-            <div class="tab-container">
-                <div class="tab" data-tab="docs" onclick="switchTab('docs')">📖 Documentation</div>
-                <div class="tab" data-tab="files" onclick="switchTab('files')">📁 Files</div>
-                <div class="tab" data-tab="ctf" onclick="switchTab('ctf')">🚩 CTF Challenge</div>
-                <div class="tab" data-tab="help" onclick="switchTab('help')">❓ Help</div>
-            </div>
+        <!-- Right sidebar with tabs -->
+        <div class="sidebar">
+            <div class="tab active" data-tab="docs" onclick="switchTab('docs')">📖 Documentation</div>
+            <div class="tab" data-tab="files" onclick="switchTab('files')">📁 Files</div>
+            <div class="tab" data-tab="ctf" onclick="switchTab('ctf')">🚩 CTF Challenge</div>
+            <div class="tab" data-tab="help" onclick="switchTab('help')">❓ Help</div>
             
-            <div class="tab-content-container">
-                <div class="tab-content active" id="docs">
+            <div class="tab-content active" id="docs">
                     <h3>CentOS System Preparation Guide</h3>
                     
                     <h4>Overview</h4>
@@ -210,12 +213,6 @@
                         <li><code>ping [host]</code> - Test connectivity</li>
                     </ul>
                 </div>
-            </div>
-            
-            <div class="status-bar">
-                <span id="current-host">Host: jumphost (training environment)</span>
-                <span id="task-progress">Tasks: Not connected</span>
-                <span id="ctf-progress">Flags: 0/3 found</span>
             </div>
         </div>
     </div>

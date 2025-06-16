@@ -62,14 +62,15 @@ function switchTab(tabName) {
 
 // Initialize tab functionality with proper event delegation
 function initializeTabs() {
-    var tabContainer = document.querySelector('.tab-container');
-    if (tabContainer) {
+    var sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
         // Remove any existing listeners to prevent conflicts
-        tabContainer.replaceWith(tabContainer.cloneNode(true));
-        tabContainer = document.querySelector('.tab-container');
+        var newSidebar = sidebar.cloneNode(true);
+        sidebar.parentNode.replaceChild(newSidebar, sidebar);
+        sidebar = newSidebar;
         
         // Use event delegation for better performance and reliability
-        tabContainer.addEventListener('click', function(event) {
+        sidebar.addEventListener('click', function(event) {
             var tab = event.target.closest('.tab');
             if (tab) {
                 event.preventDefault();
