@@ -12,6 +12,7 @@ function handleMainKeyPress(event) {
                 replaceInputWithCommand(getPromptString() + ' ' + command);
                 executeCommand(command);
                 addToCommandHistory(command);
+                showNewPrompt(); // Only show ONE new prompt after command
             } else {
                 // Just show empty prompt if no command
                 replaceInputWithCommand(getPromptString());
@@ -131,7 +132,7 @@ function executeCommand(command) {
         var asyncCommands = ['dd', 'ping', 'yum'];
         if (asyncCommands.includes(cmd.toLowerCase())) {
             executeAsyncCommand(cmd.toLowerCase(), args);
-            return;
+            return; // Don't call showNewPrompt here - async commands handle their own timing
         }
         
         switch (cmd.toLowerCase()) {
@@ -214,7 +215,7 @@ function executeCommand(command) {
                 break;
             case 'clear':
                 clearTerminal();
-                return; // Don't show new prompt, clearTerminal handles it
+                return; // Don't call showNewPrompt - clearTerminal handles it
             case 'kubectl':
                 if (currentHost === 'k8s') {
                     executeKubectl(args);
@@ -271,12 +272,11 @@ function executeCommand(command) {
                 addOutput('bash: ' + cmd + ': command not found', 'error');
         }
         
-        showNewPrompt();
+        // Only show new prompt after regular commands complete
         
     } catch (error) {
         console.error('Command execution error:', error);
         addOutput('Error executing command: ' + command, 'error');
-        showNewPrompt();
     }
 }
 
