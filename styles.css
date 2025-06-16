@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Courier New', monospace;
-    background: #1a1a1a;
+    background: #0c0c0c;
     color: #00ff00;
     overflow: hidden;
 }
@@ -14,12 +14,16 @@ body {
 .container {
     display: flex;
     height: 100vh;
+    border: 2px solid #00ff00;
+    margin: 10px;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .sidebar {
     width: 320px;
-    background: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
-    border-right: 3px solid #00ff00;
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+    border-right: 2px solid #00ff00;
     overflow-y: auto;
     box-shadow: 2px 0 10px rgba(0, 255, 0, 0.1);
 }
@@ -31,7 +35,7 @@ body {
 }
 
 .terminal-header {
-    background: linear-gradient(90deg, #333 0%, #404040 100%);
+    background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 100%);
     padding: 12px 15px;
     border-bottom: 2px solid #00ff00;
     display: flex;
@@ -42,8 +46,8 @@ body {
 
 .terminal {
     flex: 1;
-    background: #000;
-    padding: 10px;
+    background: #000000;
+    padding: 15px;
     overflow-y: auto;
     font-size: 14px;
     line-height: 1.4;
@@ -93,24 +97,23 @@ body {
 
 .tab {
     padding: 12px 18px;
-    background: linear-gradient(90deg, #333 0%, #2a2a2a 100%);
+    background: linear-gradient(90deg, #1a1a1a 0%, #0d0d0d 100%);
     cursor: pointer;
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid #333;
     user-select: none;
     transition: all 0.3s ease;
-    border-left: 3px solid transparent;
+    border-left: 2px solid transparent;
 }
 
 .tab:hover {
-    background: linear-gradient(90deg, #444 0%, #383838 100%);
-    border-left: 3px solid #00ff00;
-    transform: translateX(2px);
+    background: linear-gradient(90deg, #2a2a2a 0%, #1a1a1a 100%);
+    border-left: 2px solid #00ff00;
 }
 
 .tab.active {
-    background: linear-gradient(90deg, #555 0%, #464646 100%);
-    border-left: 3px solid #00ff00;
-    box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.2);
+    background: linear-gradient(90deg, #333 0%, #1a1a1a 100%);
+    border-left: 2px solid #00ff00;
+    color: #ffffff;
 }
 
 .tab-content {
@@ -158,7 +161,7 @@ body {
 }
 
 .status-bar {
-    background: linear-gradient(90deg, #333 0%, #404040 100%);
+    background: linear-gradient(90deg, #1a1a1a 0%, #2a2a2a 100%);
     padding: 8px 15px;
     font-size: 12px;
     border-top: 2px solid #00ff00;
@@ -178,30 +181,26 @@ body {
     to { text-shadow: 0 0 20px #ffd700, 0 0 30px #ffd700; }
 }
 
-.ctf-challenge {
-    background: #1a1a2e;
-    border: 1px solid #16213e;
+.ssh-info {
+    background: #001122;
+    border: 1px solid #003366;
     border-radius: 5px;
-    padding: 10px;
+    padding: 15px;
     margin: 10px 0;
 }
 
-.ctf-title {
-    color: #ffd700;
+.ssh-host {
+    color: #66ccff;
     font-weight: bold;
     margin-bottom: 5px;
 }
 
-.log-viewer {
-    background: #0d1117;
-    border: 1px solid #30363d;
-    border-radius: 5px;
-    padding: 10px;
-    margin: 10px 0;
-    max-height: 200px;
-    overflow-y: auto;
+.ssh-command {
+    background: #000033;
+    color: #00ff00;
+    padding: 5px;
+    border-radius: 3px;
     font-family: 'Courier New', monospace;
-    font-size: 11px;
 }
 
 .cursor {

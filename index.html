@@ -181,39 +181,39 @@
         
         <div class="terminal-container">
             <div class="terminal-header">
-                <span>🖥️ CentOS Terminal - platform.company.local</span>
-                <span id="system-status">System: Online | CentOS 7.9</span>
+                <span>🖥️ Training Terminal</span>
+                <span id="system-status">Connection: Local Training Environment</span>
             </div>
             
             <div class="terminal" id="terminal-output">
                 <div class="output info">╔══════════════════════════════════════════════════════════════════════════════╗
-║                    CentOS System Preparation Environment                     ║
+║                      Multi-Host Training Environment                        ║
 ║                                                                              ║
-║  Welcome to the system preparation assessment.                              ║
-║  Your task: Prepare CentOS system for enterprise platform deployment.      ║
+║  Available hosts for SSH connection:                                        ║
 ║                                                                              ║
-║  Tasks to Complete:                                                          ║
-║  1. Configure firewall and open required ports                              ║
-║  2. Create and configure swap file (8GB)                                    ║
-║  3. Setup NTP time synchronization                                          ║
-║  4. Configure YUM proxy settings                                            ║
-║  5. Install required system packages                                        ║
-║  6. Configure platform settings for single-node deployment                 ║
+║  🖥️  prod-centos-01.company.local  - CentOS 7.9 system preparation          ║
+║  ☸️  k8s-master-01.company.local   - Kubernetes troubleshooting             ║
 ║                                                                              ║
-║  Type 'help' for available commands or 'start' to begin assessment.        ║
+║  Instructions:                                                               ║
+║  1. Use SSH to connect: ssh root@[hostname]                                 ║
+║  2. Complete system preparation tasks on CentOS host                        ║
+║  3. Investigate and solve issues on Kubernetes host                         ║
+║  4. Find 3 hidden flags in format FLAG{content} during troubleshooting     ║
+║                                                                              ║
+║  Type 'help' for commands or check sidebar for documentation.              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝</div>
             </div>
             
             <div class="input-line">
-                <span class="prompt">[root@platform ~]#</span>
+                <span class="prompt">training@jumphost:~$</span>
                 <input type="text" class="command-input" id="main-command-input" autocomplete="off" autofocus onkeydown="handleMainKeyPress(event)">
                 <span class="cursor">_</span>
             </div>
             
             <div class="status-bar">
-                <span id="current-dir-display">Current Directory: /root</span>
-                <span id="task-progress">Progress: 0/6 tasks completed</span>
-                <span id="ctf-progress">CTF: 0/3 flags found</span>
+                <span id="current-host">Host: jumphost (training environment)</span>
+                <span id="task-progress">Tasks: Not connected</span>
+                <span id="ctf-progress">Flags: 0/3 found</span>
             </div>
         </div>
     </div>
