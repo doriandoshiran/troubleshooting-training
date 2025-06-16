@@ -64,11 +64,6 @@ function switchTab(tabName) {
 function initializeTabs() {
     var sidebar = document.querySelector('.sidebar');
     if (sidebar) {
-        // Remove any existing listeners to prevent conflicts
-        var newSidebar = sidebar.cloneNode(true);
-        sidebar.parentNode.replaceChild(newSidebar, sidebar);
-        sidebar = newSidebar;
-        
         // Use event delegation for better performance and reliability
         sidebar.addEventListener('click', function(event) {
             var tab = event.target.closest('.tab');

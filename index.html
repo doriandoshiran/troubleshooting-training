@@ -11,88 +11,88 @@
     <div class="container">
         <!-- Left sidebar with tabs -->
         <div class="sidebar">
-            <div class="tab active" data-tab="docs" onclick="switchTab('docs')">📖 Documentation</div>
-            <div class="tab" data-tab="files" onclick="switchTab('files')">📁 Files</div>
-            <div class="tab" data-tab="ctf" onclick="switchTab('ctf')">🚩 CTF Challenge</div>
-            <div class="tab" data-tab="help" onclick="switchTab('help')">❓ Help</div>
+            <div class="tab active" data-tab="docs">📖 Documentation</div>
+            <div class="tab" data-tab="files">📁 Files</div>
+            <div class="tab" data-tab="ctf">🚩 CTF Challenge</div>
+            <div class="tab" data-tab="help">❓ Help</div>
             
             <div class="tab-content active" id="docs">
-                    <h3>CentOS System Preparation Guide</h3>
-                    
-                    <h4>Overview</h4>
-                    <p>Prepare a CentOS 7.9 system for enterprise platform deployment. Research and implement the required configuration changes.</p>
-                    
-                    <h4>Task 1: System Prerequisites</h4>
-                    <ul>
-                        <li>CentOS 7.9 minimal installation</li>
-                        <li>Minimum 16GB RAM, 8 CPU cores</li>
-                        <li>500GB+ storage space</li>
-                        <li>Network connectivity</li>
-                        <li>Root access</li>
-                    </ul>
-                    
-                    <h4>Task 2: Configure Network & Firewall</h4>
-                    <p>Research and open the following ports for platform communication:</p>
-                    <ul>
-                        <li>SSH access (port 22)</li>
-                        <li>HTTP traffic (port 80)</li>
-                        <li>HTTPS traffic (port 443)</li>
-                        <li>Management interface (port 8443)</li>
-                        <li>Database connections (port 5432)</li>
-                        <li>Search engine (port 9200)</li>
-                        <li>Kubernetes API (port 6443)</li>
-                    </ul>
-                    <p><strong>Hint:</strong> Use firewall-cmd to manage firewall rules permanently.</p>
-                    
-                    <h4>Task 3: Create & Configure Swap</h4>
-                    <p>Platform requires 8GB swap space. Research how to:</p>
-                    <ul>
-                        <li>Create a swap file using dd command</li>
-                        <li>Set proper permissions (600)</li>
-                        <li>Initialize the swap file</li>
-                        <li>Activate the swap</li>
-                        <li>Make it persistent across reboots</li>
-                    </ul>
-                    
-                    <h4>Task 4: Configure NTP</h4>
-                    <p>Ensure accurate time synchronization:</p>
-                    <ul>
-                        <li>Install NTP package</li>
-                        <li>Configure NTP servers in configuration file</li>
-                        <li>Enable and start the service</li>
-                    </ul>
-                    <p><strong>Servers to use:</strong> 0.centos.pool.ntp.org, 1.centos.pool.ntp.org</p>
-                    
-                    <h4>Task 5: Configure YUM Proxy</h4>
-                    <p>Setup proxy for package management in corporate environment:</p>
-                    <ul>
-                        <li>Edit YUM configuration file</li>
-                        <li>Add proxy server settings</li>
-                        <li>Include authentication if needed</li>
-                    </ul>
-                    <p><strong>Example proxy:</strong> http://proxy.company.com:8080</p>
-                    
-                    <h4>Task 6: Install Required Packages</h4>
-                    <p>Install essential system dependencies:</p>
-                    <ul>
-                        <li>Update system packages</li>
-                        <li>Install: wget, curl, unzip, tar, net-tools</li>
-                        <li>Install: device-mapper-persistent-data, lvm2</li>
-                    </ul>
-                    
-                    <h4>Task 7: Configure Platform Settings</h4>
-                    <p>Edit the platform configuration for single-node deployment with separate database host:</p>
-                    <ul>
-                        <li>Configure database connection settings</li>
-                        <li>Set appropriate hostnames and IP addresses</li>
-                        <li>Verify network port configurations</li>
-                    </ul>
-                    <p><strong>Config file:</strong> /opt/platform/config/platform-config.yaml</p>
-                </div>
+                <h3>CentOS System Preparation Guide</h3>
                 
-                <div class="tab-content" id="files">
-                    <h3>System Files</h3>
-                    <pre>
+                <h4>Overview</h4>
+                <p>Prepare a CentOS 7.9 system for enterprise platform deployment. Research and implement the required configuration changes.</p>
+                
+                <h4>Task 1: System Prerequisites</h4>
+                <ul>
+                    <li>CentOS 7.9 minimal installation</li>
+                    <li>Minimum 16GB RAM, 8 CPU cores</li>
+                    <li>500GB+ storage space</li>
+                    <li>Network connectivity</li>
+                    <li>Root access</li>
+                </ul>
+                
+                <h4>Task 2: Configure Network & Firewall</h4>
+                <p>Research and open the following ports for platform communication:</p>
+                <ul>
+                    <li>SSH access (port 22)</li>
+                    <li>HTTP traffic (port 80)</li>
+                    <li>HTTPS traffic (port 443)</li>
+                    <li>Management interface (port 8443)</li>
+                    <li>Database connections (port 5432)</li>
+                    <li>Search engine (port 9200)</li>
+                    <li>Kubernetes API (port 6443)</li>
+                </ul>
+                <p><strong>Hint:</strong> Use firewall-cmd to manage firewall rules permanently.</p>
+                
+                <h4>Task 3: Create & Configure Swap</h4>
+                <p>Platform requires 8GB swap space. Research how to:</p>
+                <ul>
+                    <li>Create a swap file using dd command</li>
+                    <li>Set proper permissions (600)</li>
+                    <li>Initialize the swap file</li>
+                    <li>Activate the swap</li>
+                    <li>Make it persistent across reboots</li>
+                </ul>
+                
+                <h4>Task 4: Configure NTP</h4>
+                <p>Ensure accurate time synchronization:</p>
+                <ul>
+                    <li>Install NTP package</li>
+                    <li>Configure NTP servers in configuration file</li>
+                    <li>Enable and start the service</li>
+                </ul>
+                <p><strong>Servers to use:</strong> 0.centos.pool.ntp.org, 1.centos.pool.ntp.org</p>
+                
+                <h4>Task 5: Configure YUM Proxy</h4>
+                <p>Setup proxy for package management in corporate environment:</p>
+                <ul>
+                    <li>Edit YUM configuration file</li>
+                    <li>Add proxy server settings</li>
+                    <li>Include authentication if needed</li>
+                </ul>
+                <p><strong>Example proxy:</strong> http://proxy.company.com:8080</p>
+                
+                <h4>Task 6: Install Required Packages</h4>
+                <p>Install essential system dependencies:</p>
+                <ul>
+                    <li>Update system packages</li>
+                    <li>Install: wget, curl, unzip, tar, net-tools</li>
+                    <li>Install: device-mapper-persistent-data, lvm2</li>
+                </ul>
+                
+                <h4>Task 7: Configure Platform Settings</h4>
+                <p>Edit the platform configuration for single-node deployment with separate database host:</p>
+                <ul>
+                    <li>Configure database connection settings</li>
+                    <li>Set appropriate hostnames and IP addresses</li>
+                    <li>Verify network port configurations</li>
+                </ul>
+                <p><strong>Config file:</strong> /opt/platform/config/platform-config.yaml</p>
+            </div>
+            
+            <div class="tab-content" id="files">
+                <h3>System Files</h3>
+                <pre>
 /opt/platform/
 ├── config/
 │   ├── platform-config.yaml
@@ -103,83 +103,82 @@
 │   └── validate-setup.sh
 └── logs/
     └── preparation.log
-                    </pre>
-                    
-                    <h4>Configuration Templates</h4>
-                    <ul>
-                        <li><strong>platform-config.yaml</strong> - Main platform configuration</li>
-                        <li><strong>database-config.yaml</strong> - Database connection settings</li>
-                        <li><strong>ntp.conf.template</strong> - NTP configuration template</li>
-                    </ul>
+                </pre>
+                
+                <h4>Configuration Templates</h4>
+                <ul>
+                    <li><strong>platform-config.yaml</strong> - Main platform configuration</li>
+                    <li><strong>database-config.yaml</strong> - Database connection settings</li>
+                    <li><strong>ntp.conf.template</strong> - NTP configuration template</li>
+                </ul>
+            </div>
+            
+            <div class="tab-content" id="ctf">
+                <h3>🚩 CTF Challenge: Cluster Troubleshooting</h3>
+                <p>You've been called to troubleshoot a production Kubernetes cluster. Find the flags hidden in the system logs to prove your debugging skills!</p>
+                
+                <div class="ctf-challenge">
+                    <div class="ctf-title">Challenge 1: Pod Crash Investigation</div>
+                    <p>A critical application pod keeps crashing. Investigate the pod logs to find what's causing the issue.</p>
+                    <p><strong>Target:</strong> webapp-deployment-7d4b8c9f4d-xyz123</p>
+                    <p><strong>Hint:</strong> Check both current and previous container logs</p>
                 </div>
                 
-                <div class="tab-content" id="ctf">
-                    <h3>🚩 CTF Challenge: Cluster Troubleshooting</h3>
-                    <p>You've been called to troubleshoot a production Kubernetes cluster. Find the flags hidden in the system logs to prove your debugging skills!</p>
-                    
-                    <div class="ctf-challenge">
-                        <div class="ctf-title">Challenge 1: Pod Crash Investigation</div>
-                        <p>A critical application pod keeps crashing. Investigate the pod logs to find what's causing the issue.</p>
-                        <p><strong>Target:</strong> webapp-deployment-7d4b8c9f4d-xyz123</p>
-                        <p><strong>Hint:</strong> Check both current and previous container logs</p>
-                    </div>
-                    
-                    <div class="ctf-challenge">
-                        <div class="ctf-title">Challenge 2: Storage Mystery</div>
-                        <p>Users report data loss issues. Something is wrong with the persistent volume configuration.</p>
-                        <p><strong>Target:</strong> database-pv-claim</p>
-                        <p><strong>Hint:</strong> Look for storage-related events and configurations</p>
-                    </div>
-                    
-                    <div class="ctf-challenge">
-                        <div class="ctf-title">Challenge 3: Network Connectivity</div>
-                        <p>Services can't communicate with each other. There's a networking misconfiguration somewhere.</p>
-                        <p><strong>Target:</strong> Load balancer and service discovery</p>
-                        <p><strong>Hint:</strong> Check service definitions and network policies</p>
-                    </div>
-                    
-                    <h4>Available Commands for Investigation:</h4>
-                    <ul>
-                        <li><code>kubectl logs [pod-name]</code> - View pod logs</li>
-                        <li><code>kubectl describe [resource]</code> - Get detailed information</li>
-                        <li><code>kubectl get events</code> - View cluster events</li>
-                        <li><code>cat /var/log/[logfile]</code> - View system logs</li>
-                    </ul>
-                    
-                    <h4>Flags Found:</h4>
-                    <div id="flags-display">
-                        <p>🔍 No flags found yet. Start investigating!</p>
-                    </div>
+                <div class="ctf-challenge">
+                    <div class="ctf-title">Challenge 2: Storage Mystery</div>
+                    <p>Users report data loss issues. Something is wrong with the persistent volume configuration.</p>
+                    <p><strong>Target:</strong> database-pv-claim</p>
+                    <p><strong>Hint:</strong> Look for storage-related events and configurations</p>
                 </div>
                 
-                <div class="tab-content" id="help">
-                    <h3>Available Commands</h3>
-                    <h4>System Commands:</h4>
-                    <ul>
-                        <li><code>ls [-la]</code> - List files</li>
-                        <li><code>cd [dir]</code> - Change directory</li>
-                        <li><code>cat [file]</code> - View file contents</li>
-                        <li><code>vi [file]</code> - Edit file</li>
-                        <li><code>pwd</code> - Show current directory</li>
-                        <li><code>clear</code> - Clear terminal</li>
-                    </ul>
-                    
-                    <h4>System Administration:</h4>
-                    <ul>
-                        <li><code>systemctl [action] [service]</code> - Manage services</li>
-                        <li><code>firewall-cmd [options]</code> - Configure firewall</li>
-                        <li><code>yum [command]</code> - Package management</li>
-                        <li><code>free -h</code> - Check memory/swap</li>
-                        <li><code>df -h</code> - Check disk space</li>
-                    </ul>
-                    
-                    <h4>Network Commands:</h4>
-                    <ul>
-                        <li><code>netstat -tuln</code> - Show listening ports</li>
-                        <li><code>ss -tuln</code> - Show socket statistics</li>
-                        <li><code>ping [host]</code> - Test connectivity</li>
-                    </ul>
+                <div class="ctf-challenge">
+                    <div class="ctf-title">Challenge 3: Network Connectivity</div>
+                    <p>Services can't communicate with each other. There's a networking misconfiguration somewhere.</p>
+                    <p><strong>Target:</strong> Load balancer and service discovery</p>
+                    <p><strong>Hint:</strong> Check service definitions and network policies</p>
                 </div>
+                
+                <h4>Available Commands for Investigation:</h4>
+                <ul>
+                    <li><code>kubectl logs [pod-name]</code> - View pod logs</li>
+                    <li><code>kubectl describe [resource]</code> - Get detailed information</li>
+                    <li><code>kubectl get events</code> - View cluster events</li>
+                    <li><code>cat /var/log/[logfile]</code> - View system logs</li>
+                </ul>
+                
+                <h4>Flags Found:</h4>
+                <div id="flags-display">
+                    <p>🔍 No flags found yet. Start investigating!</p>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="help">
+                <h3>Available Commands</h3>
+                <h4>System Commands:</h4>
+                <ul>
+                    <li><code>ls [-la]</code> - List files</li>
+                    <li><code>cd [dir]</code> - Change directory</li>
+                    <li><code>cat [file]</code> - View file contents</li>
+                    <li><code>vi [file]</code> - Edit file</li>
+                    <li><code>pwd</code> - Show current directory</li>
+                    <li><code>clear</code> - Clear terminal</li>
+                </ul>
+                
+                <h4>System Administration:</h4>
+                <ul>
+                    <li><code>systemctl [action] [service]</code> - Manage services</li>
+                    <li><code>firewall-cmd [options]</code> - Configure firewall</li>
+                    <li><code>yum [command]</code> - Package management</li>
+                    <li><code>free -h</code> - Check memory/swap</li>
+                    <li><code>df -h</code> - Check disk space</li>
+                </ul>
+                
+                <h4>Network Commands:</h4>
+                <ul>
+                    <li><code>netstat -tuln</code> - Show listening ports</li>
+                    <li><code>ss -tuln</code> - Show socket statistics</li>
+                    <li><code>ping [host]</code> - Test connectivity</li>
+                </ul>
             </div>
         </div>
         
