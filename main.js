@@ -110,7 +110,7 @@ function clearTerminal() {
 }
 
 function showNewPrompt() {
-    addOutput('');
+    // Don't add empty lines - keep it compact like real terminal
     updatePrompt();
     scrollToBottom();
     

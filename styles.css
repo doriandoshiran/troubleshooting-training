@@ -6,8 +6,8 @@
 
 body {
     font-family: 'Consolas', 'Courier New', monospace;
-    background: #000000;
-    color: #c0c0c0;
+    background: #0c0c0c;
+    color: #ffffff;
     overflow: hidden;
 }
 
@@ -18,8 +18,8 @@ body {
 
 .sidebar {
     width: 300px;
-    background: #1e1e1e;
-    border-right: 1px solid #404040;
+    background: #1a1a1a;
+    border-right: 1px solid #333333;
     overflow-y: auto;
 }
 
@@ -27,91 +27,95 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    background: #0c0c0c;
 }
 
 .terminal-header {
-    background: #2d2d30;
+    background: #1a1a1a;
     padding: 8px 12px;
-    border-bottom: 1px solid #404040;
+    border-bottom: 1px solid #333333;
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 12px;
-    color: #cccccc;
+    color: #ffffff;
 }
 
 .terminal {
     flex: 1;
-    background: #000000;
-    padding: 10px;
+    background: #0c0c0c;
+    padding: 8px 12px;
     overflow-y: auto;
-    font-size: 13px;
-    line-height: 1.2;
+    font-size: 14px;
+    line-height: 1.3;
     font-family: 'Consolas', 'Courier New', monospace;
 }
 
 .input-line {
     display: flex;
     align-items: center;
-    margin-top: 2px;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 .prompt {
-    color: #00ff00;
-    margin-right: 5px;
+    color: #ffffff;
+    margin-right: 8px;
     white-space: nowrap;
+    font-weight: normal;
 }
 
 .command-input {
     background: transparent;
     border: none;
-    color: #c0c0c0;
+    color: #ffffff;
     font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 13px;
+    font-size: 14px;
     outline: none;
     flex: 1;
-    caret-color: #c0c0c0;
+    caret-color: #ffffff;
 }
 
 .output {
-    margin: 1px 0;
+    margin: 0;
     white-space: pre-wrap;
     font-family: 'Consolas', 'Courier New', monospace;
+    line-height: 1.3;
 }
 
 .error {
-    color: #ff6b6b;
+    color: #ff5555;
 }
 
 .warning {
-    color: #ffb347;
+    color: #ffff55;
 }
 
 .success {
-    color: #90ee90;
+    color: #55ff55;
 }
 
 .info {
-    color: #87ceeb;
+    color: #55ffff;
 }
 
 .tab {
     padding: 12px 15px;
-    background: #2d2d30;
+    background: #1a1a1a;
     cursor: pointer;
-    border-bottom: 1px solid #404040;
+    border-bottom: 1px solid #333333;
     user-select: none;
     transition: background-color 0.2s;
-    color: #cccccc;
+    color: #ffffff;
 }
 
 .tab:hover {
-    background: #3e3e42;
+    background: #2a2a2a;
 }
 
 .tab.active {
-    background: #007acc;
-    color: #ffffff;
+    background: #333333;
+    color: #55ffff;
 }
 
 .tab-content {
@@ -119,7 +123,7 @@ body {
     display: none;
     font-size: 12px;
     line-height: 1.6;
-    color: #cccccc;
+    color: #ffffff;
 }
 
 .tab-content.active {
@@ -127,13 +131,13 @@ body {
 }
 
 .tab-content h3 {
-    color: #ffffff;
+    color: #55ffff;
     margin-bottom: 10px;
     font-size: 14px;
 }
 
 .tab-content h4 {
-    color: #87ceeb;
+    color: #ffff55;
     margin: 15px 0 5px 0;
     font-size: 13px;
 }
@@ -142,7 +146,7 @@ body {
     background: #333333;
     padding: 2px 4px;
     border-radius: 2px;
-    color: #ffb347;
+    color: #55ff55;
     font-family: 'Consolas', 'Courier New', monospace;
 }
 
@@ -152,7 +156,7 @@ body {
     border-radius: 3px;
     margin: 8px 0;
     overflow-x: auto;
-    border-left: 3px solid #007acc;
+    border-left: 3px solid #55ffff;
 }
 
 .tab-content ul {
@@ -164,43 +168,43 @@ body {
 }
 
 .status-bar {
-    background: #2d2d30;
+    background: #1a1a1a;
     padding: 6px 12px;
     font-size: 11px;
-    border-top: 1px solid #404040;
+    border-top: 1px solid #333333;
     display: flex;
     justify-content: space-between;
-    color: #cccccc;
+    color: #ffffff;
 }
 
 .flag-found {
-    color: #ffd700;
+    color: #ffff55;
     font-weight: bold;
     animation: glow 2s ease-in-out infinite alternate;
 }
 
 @keyframes glow {
-    from { text-shadow: 0 0 5px #ffd700; }
-    to { text-shadow: 0 0 15px #ffd700; }
+    from { text-shadow: 0 0 5px #ffff55; }
+    to { text-shadow: 0 0 15px #ffff55; }
 }
 
 .ssh-info {
     background: #1a1a1a;
-    border: 1px solid #404040;
+    border: 1px solid #333333;
     border-radius: 4px;
     padding: 12px;
     margin: 8px 0;
 }
 
 .ssh-host {
-    color: #87ceeb;
+    color: #55ffff;
     font-weight: bold;
     margin-bottom: 5px;
 }
 
 .ssh-command {
-    background: #000000;
-    color: #00ff00;
+    background: #0c0c0c;
+    color: #55ff55;
     padding: 4px 6px;
     border-radius: 2px;
     font-family: 'Consolas', 'Courier New', monospace;
@@ -209,7 +213,7 @@ body {
 
 .cursor {
     animation: blink 1s infinite;
-    color: #c0c0c0;
+    color: #ffffff;
 }
 
 @keyframes blink {
@@ -225,12 +229,12 @@ body {
 
 .sidebar::-webkit-scrollbar-track,
 .terminal::-webkit-scrollbar-track {
-    background: #1e1e1e;
+    background: #0c0c0c;
 }
 
 .sidebar::-webkit-scrollbar-thumb,
 .terminal::-webkit-scrollbar-thumb {
-    background: #404040;
+    background: #333333;
     border-radius: 4px;
 }
 
