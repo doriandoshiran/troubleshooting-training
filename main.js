@@ -328,16 +328,7 @@ window.addEventListener('DOMContentLoaded', function() {
         // Setup focus management
         maintainInputFocus();
         
-        // Initial display
-        addOutput('Multi-Host Training Environment Ready', 'success');
-        addOutput('');
-        addOutput('Available training hosts:', 'info');
-        addOutput('  🖥️  prod-centos-01.company.local  - System preparation tasks');
-        addOutput('  ☸️  k8s-master-01.company.local   - Kubernetes troubleshooting');
-        addOutput('');
-        addOutput('Connect using: ssh root@[hostname]', 'success');
-        addOutput('Type "help" for available commands.', 'info');
-        
+        // Initial display - just show prompt without extra text
         // Update progress displays
         updateCtfProgress();
         updateTaskProgress();

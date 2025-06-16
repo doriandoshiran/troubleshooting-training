@@ -109,6 +109,12 @@ body {
     caret-color: #ffffff;
 }
 
+.cursor {
+    animation: blink 1s infinite;
+    color: #ffffff;
+    margin-left: 2px;
+}
+
 .output {
     margin: 0;
     white-space: pre-wrap;
@@ -230,6 +236,7 @@ body {
 .cursor {
     animation: blink 1s infinite;
     color: #ffffff;
+    margin-left: 2px;
 }
 
 @keyframes blink {
