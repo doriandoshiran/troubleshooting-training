@@ -235,8 +235,6 @@ window.addEventListener('DOMContentLoaded', function() {
     
     addOutput('Multi-Host Training Environment Ready', 'success');
     addOutput('');
-    addOutput('Welcome to the enterprise infrastructure training platform.', 'info');
-    addOutput('');
     addOutput('Available training hosts:', 'info');
     addOutput('  🖥️  prod-centos-01.company.local  - System preparation tasks');
     addOutput('  ☸️  k8s-master-01.company.local   - Kubernetes troubleshooting');
