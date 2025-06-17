@@ -257,12 +257,12 @@ function executeAsyncCommand(cmd, args) {
     switch (cmd) {
         case 'dd':
             if (currentHost === 'centos') {
-                return executeDd(args);
-                // Don't show prompt immediately - executeDd handles timing
+                var result = executeDd(args);
+                return result; // executeDd returns 'async' for valid commands, null for invalid
             } else {
                 addOutput('dd: command not found', 'error');
                 addOutput('🔄 DD command only available on CentOS!', 'warning');
-                return null;
+                return null; // Show prompt immediately for this error case
             }
         case 'ping':
             if (currentHost !== 'jumphost') {

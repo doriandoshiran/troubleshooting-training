@@ -45,8 +45,10 @@ function handleMainKeyPress(event) {
                 var result = executeCommand(command);
                 addToCommandHistory(command);
                 // Only show new prompt if command doesn't handle it
-                if (result !== 'async' && !commandHandlesOwnPrompt(command)) {
-                    showNewPrompt();
+                if (result !== 'async') {
+                    setTimeout(function() {
+                        showNewPrompt();
+                    }, 50);
                 }
             } else {
                 // Just show empty prompt if no command

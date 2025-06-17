@@ -399,7 +399,7 @@ function executeDd(args) {
                 scrollToBottom();
             }
         }, 400);
-        // Don't return here - let the command continue without blocking
+        // Return async to prevent immediate prompt
         return 'async';
     } else if (command.includes('if=') && command.includes('of=')) {
         addOutput('dd: creating file...', 'info');
@@ -417,6 +417,8 @@ function executeDd(args) {
         addOutput('         dd if=/dev/zero of=/swapfile bs=1G count=8', 'info');
         addOutput('💡 Specify input file (if=) and output file (of=)', 'warning');
         addOutput('🧅 "Even ogres need proper syntax!" - Shrek', 'warning');
+        // Return null to show prompt immediately for invalid syntax
+        return null;
     }
 }
 
