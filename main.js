@@ -131,8 +131,17 @@ function clearTerminal() {
 }
 
 function showNewPrompt() {
-    // Create a new input line and add it to the terminal
     var terminal = document.getElementById('terminal-output');
+    
+    // Check if there's already an active input line and remove it
+    var existingInputs = terminal.querySelectorAll('.input-line');
+    existingInputs.forEach(function(inputLine) {
+        if (inputLine.parentNode) {
+            inputLine.parentNode.removeChild(inputLine);
+        }
+    });
+    
+    // Create a new input line and add it to the terminal
     var newInputLine = document.createElement('div');
     newInputLine.className = 'input-line';
     newInputLine.innerHTML = '<span class="prompt">' + getPromptString() + '</span><input type="text" class="command-input" autocomplete="off">';

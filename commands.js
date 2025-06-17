@@ -21,7 +21,10 @@ function handleMainKeyPress(event) {
                 replaceInputWithCommand(getPromptString());
                 showNewPrompt();
             }
+            // Clear the input value and prevent any further processing
             input.value = '';
+            event.preventDefault();
+            event.stopPropagation();
         } else if (event.key === 'ArrowUp') {
             event.preventDefault();
             navigateHistory('up', input);
@@ -96,10 +99,16 @@ function handleTabCompletion(input) {
 }
 
 function replaceInputWithCommand(text) {
-    // Remove the current input line
-    var inputLine = document.querySelector('.input-line:last-child');
-    if (inputLine && inputLine.parentNode) {
-        inputLine.parentNode.removeChild(inputLine);
+    // Remove the current input line more specifically
+    var terminal = document.getElementById('terminal-output');
+    var inputLines = terminal.querySelectorAll('.input-line');
+    
+    // Remove the last input line (the one the user just typed in)
+    if (inputLines.length > 0) {
+        var lastInputLine = inputLines[inputLines.length - 1];
+        if (lastInputLine && lastInputLine.parentNode) {
+            lastInputLine.parentNode.removeChild(lastInputLine);
+        }
     }
     
     // Add the command as output with original prompt styling
