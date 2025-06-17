@@ -295,7 +295,18 @@ Pro Tips:
 2025-06-16T14:30:38.456Z DEBUG FLAG{FILESYSTEM_LOG_INVESTIGATION_COMPLETE}
 2025-06-16T14:30:39.789Z DEBUG 🔍 Container logs reveal network connectivity issues`,
 
-    '/var/log/containers/webapp-7d4b8c9f4d-xyz123_default_webapp-abc123.log': '{"log":"Starting webapp container...\\n","stream":"stdout","time":"2025-06-16T14:30:15.123456789Z"}\n{"log":"Loading configuration from /etc/config/app.yaml\\n","stream":"stdout","time":"2025-06-16T14:30:16.456789012Z"}\n{"log":"Connecting to database at db.company.local:5432\\n","stream":"stdout","time":"2025-06-16T14:30:17.789012345Z"}\n{"log":"ERROR: Failed to connect to database: connection timeout after 30s\\n","stream":"stderr","time":"2025-06-16T14:30:18.012345678Z"}\n{"log":"FLAG{CONTAINER_LOG_FORMAT_DISCOVERED}\\n","stream":"stdout","time":"2025-06-16T14:30:38.456789012Z"}',
+    '/var/log/containers/webapp-7d4b8c9f4d-xyz123_default_webapp-abc123.log': `2025-06-16T14:30:15.123Z stdout F Starting webapp container...
+2025-06-16T14:30:16.456Z stdout F Loading configuration from /etc/config/app.yaml
+2025-06-16T14:30:17.789Z stdout F Connecting to database at db.company.local:5432
+2025-06-16T14:30:18.012Z stderr F ERROR: Failed to connect to database: connection timeout after 30s
+2025-06-16T14:30:19.345Z stderr F Database host db.company.local is unreachable
+2025-06-16T14:30:20.678Z stderr F Retrying database connection (attempt 1/3)
+2025-06-16T14:30:25.901Z stderr F Retrying database connection (attempt 2/3)
+2025-06-16T14:30:30.234Z stderr F Retrying database connection (attempt 3/3)
+2025-06-16T14:30:35.567Z stderr F FATAL: All database connection attempts failed, shutting down
+2025-06-16T14:30:36.890Z stdout F Container exit code: 1
+2025-06-16T14:30:38.456Z stdout F FLAG{CONTAINER_LOG_FORMAT_DISCOVERED}
+2025-06-16T14:30:39.789Z stdout F Container logs in CRI-O format complete`,
 
     '/var/log/kubernetes/kubelet.log': `I0616 14:30:10.123456       1 kubelet.go:1234] Starting kubelet
 I0616 14:30:11.234567       1 kubelet.go:1245] Kubelet version: v1.28.0
