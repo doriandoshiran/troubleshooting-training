@@ -150,222 +150,26 @@ var k8sFileSystem = {
 // File contents mapping
 var fileContents = {
     // CentOS files
-    '/etc/fstab': `#
-# /etc/fstab
-# Created by anaconda on Mon Jun 16 14:00:00 2025
-#
-# Accessible filesystems, by reference, are maintained under '/dev/disk'
-# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info
-#
-UUID=12345678-1234-1234-1234-123456789abc /                       xfs     defaults        0 0
-UUID=87654321-4321-4321-4321-cba987654321 /boot                   xfs     defaults        0 0
-UUID=abcdef12-3456-7890-abcd-ef1234567890 swap                    swap    defaults        0 0
+    '/etc/fstab': '#\n# /etc/fstab\n# Created by anaconda on Mon Jun 16 14:00:00 2025\n#\n# Accessible filesystems, by reference, are maintained under \'/dev/disk\'\n# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info\n#\nUUID=12345678-1234-1234-1234-123456789abc /                       xfs     defaults        0 0\nUUID=87654321-4321-4321-4321-cba987654321 /boot                   xfs     defaults        0 0\nUUID=abcdef12-3456-7890-abcd-ef1234567890 swap                    swap    defaults        0 0\n\n# Add swap file entry here:\n# /swapfile swap swap defaults 0 0\n\n# 🧅 "Like ogres, good fstab files have layers!" - Shrek wisdom',
 
-# Add swap file entry here:
-# /swapfile swap swap defaults 0 0
+    '/etc/yum.conf': '[main]\ncachedir=/var/cache/yum/$basearch/$releasever\nkeepyourcache=0\ndebuglevel=2\nlogfile=/var/log/yum.log\nexactarch=1\nobsoletes=1\ngpgcheck=1\nplugins=1\ninstallonly_limit=5\nbugtracker_url=http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum\ndistroverpkg=centos-release\n\n# Corporate proxy configuration (uncomment and configure):\n# proxy=http://proxy.company.com:8080\n# proxy_username=corp_user\n# proxy_password=ProxyPass123\n\n# Fun fact: YUM stands for "Yellow dog Updater, Modified"\n# Not "Yet another Unnecessary Manager" as some people think!',
 
-# 🧅 "Like ogres, good fstab files have layers!" - Shrek wisdom`,
-
-    '/etc/yum.conf': `[main]
-cachedir=/var/cache/yum/$basearch/$releasever
-keepcache=0
-debuglevel=2
-logfile=/var/log/yum.log
-exactarch=1
-obsoletes=1
-gpgcheck=1
-plugins=1
-installonly_limit=5
-bugtracker_url=http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum
-distroverpkg=centos-release
-
-# Corporate proxy configuration (uncomment and configure):
-# proxy=http://proxy.company.com:8080
-# proxy_username=corp_user
-# proxy_password=ProxyPass123
-
-# Fun fact: YUM stands for "Yellow dog Updater, Modified"
-# Not "Yet another Unnecessary Manager" as some people think!`,
-
-    '/opt/platform/config/platform-config.yaml': `# Platform Configuration Template
-# Single Node Deployment with Separate Database Host
-# ⚠️  Configure carefully - "With great power comes great responsibility" - Spider-Man (and Shrek)
-
-global:
-  deployment_type: "single-node"
-  environment: "production"
-  
-cluster:
-  master_node:
-    hostname: "platform.company.local"
-    ip_address: "192.168.1.100"
-    
-database:
-  type: "postgresql"
-  host: "CHANGE_ME"  # Set to: db.company.local (192.168.1.200)
-  port: 5432
-  database_name: "platform_db"
-  username: "platform_user"
-  password: "CHANGE_ME"  # Set to: SecureDbPass2025!
-  
-network:
-  http_port: 80
-  https_port: 443
-  management_port: 8443
-  api_port: 6443
-  
-storage:
-  data_path: "/opt/platform/data"
-  logs_path: "/opt/platform/logs"
-  
-security:
-  ssl_enabled: true
-  cert_path: "/opt/platform/certs/platform.crt"
-  key_path: "/opt/platform/certs/platform.key"
-  
-# Required configuration values:
-# - database.host = "db.company.local" (IP: 192.168.1.200)
-# - database.password = "SecureDbPass2025!" (secure password)
-# - Verify all port configurations match your firewall rules
-# 
-# Pro tip: Like ogres and onions, good configs have layers!`,
+    '/opt/platform/config/platform-config.yaml': '# Platform Configuration Template\n# Single Node Deployment with Separate Database Host\n# ⚠️  Configure carefully - "With great power comes great responsibility" - Spider-Man (and Shrek)\n\nglobal:\n  deployment_type: "single-node"\n  environment: "production"\n  \ncluster:\n  master_node:\n    hostname: "platform.company.local"\n    ip_address: "192.168.1.100"\n    \ndatabase:\n  type: "postgresql"\n  host: "CHANGE_ME"  # Set to: db.company.local (192.168.1.200)\n  port: 5432\n  database_name: "platform_db"\n  username: "platform_user"\n  password: "CHANGE_ME"  # Set to: SecureDbPass2025!\n  \nnetwork:\n  http_port: 80\n  https_port: 443\n  management_port: 8443\n  api_port: 6443\n  \nstorage:\n  data_path: "/opt/platform/data"\n  logs_path: "/opt/platform/logs"\n  \nsecurity:\n  ssl_enabled: true\n  cert_path: "/opt/platform/certs/platform.crt"\n  key_path: "/opt/platform/certs/platform.key"\n  \n# Required configuration values:\n# - database.host = "db.company.local" (IP: 192.168.1.200)\n# - database.password = "SecureDbPass2025!" (secure password)\n# - Verify all port configurations match your firewall rules\n# \n# Pro tip: Like ogres and onions, good configs have layers!',
 
     // Kubernetes files
-    '/root/troubleshooting/investigation-notes.txt': `Kubernetes Cluster Investigation Notes
-=====================================
-Issues Identified:
-1. webapp-deployment pod in CrashLoopBackOff state
-   - Container exits with code 1
-   - Check logs for database connection issues
-   - Status: More crashed than Shrek's morning routine
+    '/root/troubleshooting/investigation-notes.txt': 'Kubernetes Cluster Investigation Notes\n=====================================\nIssues Identified:\n1. webapp-deployment pod in CrashLoopBackOff state\n   - Container exits with code 1\n   - Check logs for database connection issues\n   - Status: More crashed than Shrek\'s morning routine\n\n2. database-pv-claim stuck in Pending status\n   - StorageClass "fast-ssd" not found\n   - Check storage configuration\n   - Status: More pending than Fiona waiting for rescue\n\n3. nginx-service connectivity problems\n   - Service selector may be misconfigured\n   - Check service and deployment labels\n   - Status: More confused than Donkey in the morning\n\nCommands to investigate:\n- kubectl get pods\n- kubectl describe pod webapp-deployment-7d4b8c9f4d-xyz123\n- kubectl logs webapp-deployment-7d4b8c9f4d-xyz123\n- kubectl get pvc\n- kubectl describe pvc database-pv-claim\n- kubectl get services\n- kubectl describe service nginx-service\n\nLook for FLAGS in the output!\n💡 Pro tip: Debugging Kubernetes is like peeling an onion - lots of layers and it might make you cry!\n🔍 Remember: Stay persistent - investigate thoroughly!',
 
-2. database-pv-claim stuck in Pending status
-   - StorageClass "fast-ssd" not found
-   - Check storage configuration
-   - Status: More pending than Fiona waiting for rescue
+    '/root/troubleshooting/meme-logs.txt': '🎭 Kubernetes Meme Logs & Fun Facts\n=====================================\n\nWhy did the pod crash?\nBecause it couldn\'t find its database... much like Shrek looking for his swamp! 🧅\n\nKubernetes Facts:\n- "kubectl" is pronounced "kube-control" or "kube-cuttle" (debate continues)\n- A cluster without nodes is like Shrek without his swamp - pretty useless\n- CrashLoopBackOff is basically Kubernetes having a tantrum\n- "It works on my machine" doesn\'t apply in Kubernetes... it\'s "It works in my namespace"\n\nPro Tips:\n1. Always check the logs (they\'re like onions, full of layers)\n2. When in doubt, describe everything: kubectl describe all-the-things\n3. Remember: Debugging is like being a detective, but the criminal is your own code\n\n🔍 Happy hunting for those flags! 🚩',
 
-3. nginx-service connectivity problems
-   - Service selector may be misconfigured
-   - Check service and deployment labels
-   - Status: More confused than Donkey in the morning
+    '/var/log/pods/webapp-deployment-7d4b8c9f4d-xyz123/webapp/0.log': '2025-06-16T14:30:15.123Z INFO  Starting webapp container...\n2025-06-16T14:30:16.456Z INFO  Loading configuration from /etc/config/app.yaml\n2025-06-16T14:30:17.789Z INFO  Connecting to database at db.company.local:5432\n2025-06-16T14:30:18.012Z ERROR Failed to connect to database: connection timeout after 30s\n2025-06-16T14:30:19.345Z ERROR Database host db.company.local is unreachable\n2025-06-16T14:30:20.678Z ERROR Retrying database connection (attempt 1/3)\n2025-06-16T14:30:25.901Z ERROR Retrying database connection (attempt 2/3)\n2025-06-16T14:30:30.234Z ERROR Retrying database connection (attempt 3/3)\n2025-06-16T14:30:35.567Z FATAL All database connection attempts failed, shutting down\n2025-06-16T14:30:36.890Z INFO  Container exit code: 1\n2025-06-16T14:30:37.123Z DEBUG Investigation shows database service is running but unreachable\n2025-06-16T14:30:38.456Z DEBUG FLAG{FILESYSTEM_LOG_INVESTIGATION_COMPLETE}\n2025-06-16T14:30:39.789Z DEBUG 🔍 Container logs reveal network connectivity issues',
 
-Commands to investigate:
-- kubectl get pods
-- kubectl describe pod webapp-deployment-7d4b8c9f4d-xyz123
-- kubectl logs webapp-deployment-7d4b8c9f4d-xyz123
-- kubectl get pvc
-- kubectl describe pvc database-pv-claim
-- kubectl get services
-- kubectl describe service nginx-service
+    '/var/log/containers/webapp-7d4b8c9f4d-xyz123_default_webapp-abc123.log': '2025-06-16T14:30:15.123Z stdout F Starting webapp container...\n2025-06-16T14:30:16.456Z stdout F Loading configuration from /etc/config/app.yaml\n2025-06-16T14:30:17.789Z stdout F Connecting to database at db.company.local:5432\n2025-06-16T14:30:18.012Z stderr F ERROR: Failed to connect to database: connection timeout after 30s\n2025-06-16T14:30:19.345Z stderr F Database host db.company.local is unreachable\n2025-06-16T14:30:20.678Z stderr F Retrying database connection (attempt 1/3)\n2025-06-16T14:30:25.901Z stderr F Retrying database connection (attempt 2/3)\n2025-06-16T14:30:30.234Z stderr F Retrying database connection (attempt 3/3)\n2025-06-16T14:30:35.567Z stderr F FATAL: All database connection attempts failed, shutting down\n2025-06-16T14:30:36.890Z stdout F Container exit code: 1\n2025-06-16T14:30:38.456Z stdout F FLAG{CONTAINER_LOG_FORMAT_DISCOVERED}\n2025-06-16T14:30:39.789Z stdout F Container logs in CRI-O format complete',
 
-Look for FLAGS in the output!
-💡 Pro tip: Debugging Kubernetes is like peeling an onion - lots of layers and it might make you cry!
-🔍 Remember: Stay persistent - investigate thoroughly!`,
+    '/var/log/kubernetes/kubelet.log': 'I0616 14:30:10.123456       1 kubelet.go:1234] Starting kubelet\nI0616 14:30:11.234567       1 kubelet.go:1245] Kubelet version: v1.28.0\nI0616 14:30:12.345678       1 server.go:123] Started kubelet server\nW0616 14:30:15.456789       1 pod_workers.go:456] Pod webapp-deployment-7d4b8c9f4d-xyz123 failed to start\nE0616 14:30:18.567890       1 kuberuntime_manager.go:789] container "webapp" in pod "webapp-deployment-7d4b8c9f4d-xyz123" is waiting to start: CrashLoopBackOff\nI0616 14:30:20.678901       1 kubelet.go:2456] SyncLoop (probe): webapp\nI0616 14:30:25.789012       1 kubelet.go:2456] SyncLoop (probe): webapp\nE0616 14:30:30.890123       1 pod_workers.go:234] Error syncing pod webapp-deployment-7d4b8c9f4d-xyz123: failed to start container "webapp": Error response from daemon: container exited with non-zero status\nI0616 14:30:35.901234       1 kubelet.go:1789] FLAG{KUBELET_DEBUGGING_SKILLS} - Advanced troubleshooting complete',
 
-    '/root/troubleshooting/meme-logs.txt': `🎭 Kubernetes Meme Logs & Fun Facts
-=====================================
+    '/etc/kubernetes/admin.conf': 'apiVersion: v1\nclusters:\n- cluster:\n    certificate-authority-data: LS0tLS1CRUdJTi...\n    server: https://192.168.1.10:6443\n  name: kubernetes\ncontexts:\n- context:\n    cluster: kubernetes\n    user: kubernetes-admin\n  name: kubernetes-admin@kubernetes\ncurrent-context: kubernetes-admin@kubernetes\nkind: Config\npreferences: {}\nusers:\n- name: kubernetes-admin\n  user:\n    client-certificate-data: LS0tLS1CRUdJTi...\n    client-key-data: LS0tLS1CRUdJTi...',
 
-Why did the pod crash?
-Because it couldn't find its database... much like Shrek looking for his swamp! 🧅
-
-Kubernetes Facts:
-- "kubectl" is pronounced "kube-control" or "kube-cuttle" (debate continues)
-- A cluster without nodes is like Shrek without his swamp - pretty useless
-- CrashLoopBackOff is basically Kubernetes having a tantrum
-- "It works on my machine" doesn't apply in Kubernetes... it's "It works in my namespace"
-
-Pro Tips:
-1. Always check the logs (they're like onions, full of layers)
-2. When in doubt, describe everything: kubectl describe all-the-things
-3. Remember: Debugging is like being a detective, but the criminal is your own code
-
-🔍 Happy hunting for those flags! 🚩`,
-
-    '/var/log/pods/webapp-deployment-7d4b8c9f4d-xyz123/webapp/0.log': `2025-06-16T14:30:15.123Z INFO  Starting webapp container...
-2025-06-16T14:30:16.456Z INFO  Loading configuration from /etc/config/app.yaml
-2025-06-16T14:30:17.789Z INFO  Connecting to database at db.company.local:5432
-2025-06-16T14:30:18.012Z ERROR Failed to connect to database: connection timeout after 30s
-2025-06-16T14:30:19.345Z ERROR Database host db.company.local is unreachable
-2025-06-16T14:30:20.678Z ERROR Retrying database connection (attempt 1/3)
-2025-06-16T14:30:25.901Z ERROR Retrying database connection (attempt 2/3)
-2025-06-16T14:30:30.234Z ERROR Retrying database connection (attempt 3/3)
-2025-06-16T14:30:35.567Z FATAL All database connection attempts failed, shutting down
-2025-06-16T14:30:36.890Z INFO  Container exit code: 1
-2025-06-16T14:30:37.123Z DEBUG Investigation shows database service is running but unreachable
-2025-06-16T14:30:38.456Z DEBUG FLAG{FILESYSTEM_LOG_INVESTIGATION_COMPLETE}
-2025-06-16T14:30:39.789Z DEBUG 🔍 Container logs reveal network connectivity issues`,
-
-    '/var/log/containers/webapp-7d4b8c9f4d-xyz123_default_webapp-abc123.log': `2025-06-16T14:30:15.123Z stdout F Starting webapp container...
-2025-06-16T14:30:16.456Z stdout F Loading configuration from /etc/config/app.yaml
-2025-06-16T14:30:17.789Z stdout F Connecting to database at db.company.local:5432
-2025-06-16T14:30:18.012Z stderr F ERROR: Failed to connect to database: connection timeout after 30s
-2025-06-16T14:30:19.345Z stderr F Database host db.company.local is unreachable
-2025-06-16T14:30:20.678Z stderr F Retrying database connection (attempt 1/3)
-2025-06-16T14:30:25.901Z stderr F Retrying database connection (attempt 2/3)
-2025-06-16T14:30:30.234Z stderr F Retrying database connection (attempt 3/3)
-2025-06-16T14:30:35.567Z stderr F FATAL: All database connection attempts failed, shutting down
-2025-06-16T14:30:36.890Z stdout F Container exit code: 1
-2025-06-16T14:30:38.456Z stdout F FLAG{CONTAINER_LOG_FORMAT_DISCOVERED}
-2025-06-16T14:30:39.789Z stdout F Container logs in CRI-O format complete`,
-
-    '/var/log/kubernetes/kubelet.log': `I0616 14:30:10.123456       1 kubelet.go:1234] Starting kubelet
-I0616 14:30:11.234567       1 kubelet.go:1245] Kubelet version: v1.28.0
-I0616 14:30:12.345678       1 server.go:123] Started kubelet server
-W0616 14:30:15.456789       1 pod_workers.go:456] Pod webapp-deployment-7d4b8c9f4d-xyz123 failed to start
-E0616 14:30:18.567890       1 kuberuntime_manager.go:789] container "webapp" in pod "webapp-deployment-7d4b8c9f4d-xyz123" is waiting to start: CrashLoopBackOff
-I0616 14:30:20.678901       1 kubelet.go:2456] SyncLoop (probe): webapp
-I0616 14:30:25.789012       1 kubelet.go:2456] SyncLoop (probe): webapp
-E0616 14:30:30.890123       1 pod_workers.go:234] Error syncing pod webapp-deployment-7d4b8c9f4d-xyz123: failed to start container "webapp": Error response from daemon: container exited with non-zero status
-I0616 14:30:35.901234       1 kubelet.go:1789] FLAG{KUBELET_DEBUGGING_SKILLS} - Advanced troubleshooting complete`,
-
-    '/etc/kubernetes/admin.conf': `apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority-data: LS0tLS1CRUdJTi...
-    server: https://192.168.1.10:6443
-  name: kubernetes
-contexts:
-- context:
-    cluster: kubernetes
-    user: kubernetes-admin
-  name: kubernetes-admin@kubernetes
-current-context: kubernetes-admin@kubernetes
-kind: Config
-preferences: {}
-users:
-- name: kubernetes-admin
-  user:
-    client-certificate-data: LS0tLS1CRUdJTi...
-    client-key-data: LS0tLS1CRUdJTi...`,
-
-    '/root/.bashrc': `# .bashrc
-
-# User specific aliases and functions
-
-alias rm='rm -i'
-alias cp='cp -i'
-alias mv='mv -i'
-
-# Source global definitions
-if [ -f /etc/bashrc ]; then
-        . /etc/bashrc
-fi
-
-# Custom aliases for this training environment
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-
-# Kubernetes shortcuts (only on k8s host)
-if [[ $HOSTNAME == *"k8s"* ]]; then
-    alias k='kubectl'
-    alias kgp='kubectl get pods'
-    alias kgs='kubectl get services'
-    alias kgn='kubectl get nodes'
-fi
-
-# Fun fact: This .bashrc is more customized than Shrek's swamp!
-export PS1='[\u@\h \W]\$ '`
+    '/root/.bashrc': '# .bashrc\n\n# User specific aliases and functions\n\nalias rm=\'rm -i\'\nalias cp=\'cp -i\'\nalias mv=\'mv -i\'\n\n# Source global definitions\nif [ -f /etc/bashrc ]; then\n        . /etc/bashrc\nfi\n\n# Custom aliases for this training environment\nalias ll=\'ls -alF\'\nalias la=\'ls -A\'\nalias l=\'ls -CF\'\n\n# Kubernetes shortcuts (only on k8s host)\nif [[ $HOSTNAME == *"k8s"* ]]; then\n    alias k=\'kubectl\'\n    alias kgp=\'kubectl get pods\'\n    alias kgs=\'kubectl get services\'\n    alias kgn=\'kubectl get nodes\'\nfi\n\n# Fun fact: This .bashrc is more customized than Shrek\'s swamp!\nexport PS1=\'[\\u@\\h \\W]\\$ \''
 };
 
 // Get current file system based on host
@@ -492,6 +296,81 @@ function changeDirectory(path) {
     }
 }
 
+// File system aliases for commands.js compatibility
+function listFiles(args) {
+    var path = args.length > 0 ? args[args.length - 1] : currentDir;
+    var showAll = args.includes('-a') || args.includes('-la') || args.includes('-al');
+    var longFormat = args.includes('-l') || args.includes('-la') || args.includes('-al');
+    
+    // Handle path resolution
+    var targetPath = path;
+    if (!path || path.startsWith('-')) {
+        targetPath = currentDir;
+    } else if (!path.startsWith('/')) {
+        targetPath = currentDir + '/' + path;
+        targetPath = targetPath.replace(/\/+/g, '/');
+    }
+    
+    var currentFS = getCurrentFileSystem();
+    var dirContent = currentFS[targetPath];
+    
+    if (!dirContent) {
+        addOutput('ls: cannot access \'' + path + '\': No such file or directory', 'error');
+        return;
+    }
+    
+    var entries = Object.keys(dirContent);
+    
+    if (!showAll) {
+        entries = entries.filter(function(entry) {
+            return !entry.startsWith('.');
+        });
+    }
+    
+    if (entries.length === 0) {
+        addOutput('');
+        return;
+    }
+    
+    if (longFormat) {
+        entries.forEach(function(entry) {
+            var isDir = dirContent[entry] === 'directory';
+            var permissions = isDir ? 'drwxr-xr-x' : '-rw-r--r--';
+            var linkCount = isDir ? '2' : '1';
+            var size = isDir ? '4096' : '1024';
+            var date = 'Jun 16 14:30';
+            
+            addOutput(permissions + '  ' + linkCount + ' root root     ' + size + ' ' + date + ' ' + entry);
+        });
+    } else {
+        addOutput(entries.join('  '));
+    }
+}
+
+function viewFile(filePath) {
+    if (!filePath) {
+        addOutput('cat: missing file argument', 'error');
+        return;
+    }
+    
+    var content = readFile(filePath);
+    if (content !== null) {
+        var lines = content.split('\n');
+        lines.forEach(function(line) {
+            addOutput(line);
+        });
+        
+        // Check for flags in the content
+        checkForFlag(content);
+    } else {
+        addOutput('cat: ' + filePath + ': No such file or directory', 'error');
+    }
+}
+
+function editFile(filePath, editor) {
+    executeEditor(editor, [filePath]);
+}
+
 function executeEditor(editor, args) {
     var filePath = args[0];
     
@@ -532,36 +411,13 @@ function startInteractiveEditor(editor, filePath, originalContent) {
     addOutput('');
     
     // Create editable content area
-    var lines = originalContent.split('\n');
     var editorDiv = document.createElement('div');
     editorDiv.className = 'editor-content';
-    editorDiv.style.cssText = `
-        background: #1a1a1a;
-        border: 1px solid #333;
-        margin: 10px 0;
-        padding: 10px;
-        font-family: 'Courier New', monospace;
-        font-size: 14px;
-        min-height: 200px;
-        max-height: 400px;
-        overflow-y: auto;
-        position: relative;
-    `;
+    editorDiv.style.cssText = 'background: #1a1a1a; border: 1px solid #333; margin: 10px 0; padding: 10px; font-family: \'Courier New\', monospace; font-size: 14px; min-height: 200px; max-height: 400px; overflow-y: auto; position: relative;';
     
     var textarea = document.createElement('textarea');
     textarea.value = originalContent;
-    textarea.style.cssText = `
-        width: 100%;
-        height: 100%;
-        background: transparent;
-        border: none;
-        color: #00ff00;
-        font-family: 'Courier New', monospace;
-        font-size: 14px;
-        resize: none;
-        outline: none;
-        min-height: 300px;
-    `;
+    textarea.style.cssText = 'width: 100%; height: 100%; background: transparent; border: none; color: #00ff00; font-family: \'Courier New\', monospace; font-size: 14px; resize: none; outline: none; min-height: 300px;';
     
     editorDiv.appendChild(textarea);
     terminal.appendChild(editorDiv);
@@ -831,147 +687,12 @@ function checkFileEditCompletion(filePath, content) {
         }
     }
 }
-// File system aliases for commands.js compatibility
-function listFiles(args) {
-    var path = args.length > 0 ? args[args.length - 1] : currentDir;
-    var showAll = args.includes('-a') || args.includes('-la') || args.includes('-al');
-    var longFormat = args.includes('-l') || args.includes('-la') || args.includes('-al');
-    
-    // Handle path resolution
-    var targetPath = path;
-    if (!path || path.startsWith('-')) {
-        targetPath = currentDir;
-    } else if (!path.startsWith('/')) {
-        targetPath = currentDir + '/' + path;
-        targetPath = targetPath.replace(/\/+/g, '/');
-    }
-    
-    var currentFS = getCurrentFileSystem();
-    var dirContent = currentFS[targetPath];
-    
-    if (!dirContent) {
-        addOutput('ls: cannot access \'' + path + '\': No such file or directory', 'error');
-        return;
-    }
-    
-    var entries = Object.keys(dirContent);
-    
-    if (!showAll) {
-        entries = entries.filter(function(entry) {
-            return !entry.startsWith('.');
-        });
-    }
-    
-    if (entries.length === 0) {
-        addOutput('');
-        return;
-    }
-    
-    if (longFormat) {
-        entries.forEach(function(entry) {
-            var isDir = dirContent[entry] === 'directory';
-            var permissions = isDir ? 'drwxr-xr-x' : '-rw-r--r--';
-            var linkCount = isDir ? '2' : '1';
-            var size = isDir ? '4096' : '1024';
-            var date = 'Jun 16 14:30';
-            
-            addOutput(permissions + '  ' + linkCount + ' root root     ' + size + ' ' + date + ' ' + entry);
-        });
-    } else {
-        addOutput(entries.join('  '));
-    }
-}
-
-function viewFile(filePath) {
-    if (!filePath) {
-        addOutput('cat: missing file argument', 'error');
-        return;
-    }
-    
-    var content = readFile(filePath);
-    if (content !== null) {
-        var lines = content.split('\n');
-        lines.forEach(function(line) {
-            addOutput(line);
-        });
-        
-        // Check for flags in the content
-        checkForFlag(content);
-    } else {
-        addOutput('cat: ' + filePath + ': No such file or directory', 'error');
-    }
-}
-
-function editFile(filePath, editor) {
-    executeEditor(editor, [filePath]);
-}
-
-// Missing file systems - add to your file-system.js
-var clusterFileSystem = k8sFileSystem;  // Use k8sFileSystem as clusterFileSystem
-var fileSystem = centosFileSystem;     // Use centosFileSystem as fileSystem
 
 // CTF logs for Kubernetes challenges
 window.ctfLogs = {
-    'webapp-deployment-7d4b8c9f4d-xyz123': `2025-06-16T14:30:15.123Z INFO  Starting webapp container...
-2025-06-16T14:30:16.456Z INFO  Loading configuration from /etc/config/app.yaml
-2025-06-16T14:30:17.789Z INFO  Connecting to database at db.company.local:5432
-2025-06-16T14:30:18.012Z ERROR Failed to connect to database: connection timeout after 30s
-2025-06-16T14:30:19.345Z ERROR Database host db.company.local is unreachable (more unreachable than Shrek's social skills)
-2025-06-16T14:30:20.678Z ERROR Retrying database connection (attempt 1/3)
-2025-06-16T14:30:25.901Z ERROR Retrying database connection (attempt 2/3)
-2025-06-16T14:30:30.234Z ERROR Retrying database connection (attempt 3/3)
-2025-06-16T14:30:35.567Z FATAL All database connection attempts failed, shutting down
-2025-06-16T14:30:36.890Z INFO  Container exit code: 1 (sadder than when Fiona turned into an ogre)
-2025-06-16T14:30:37.123Z DEBUG Investigation shows database service is running but unreachable
-2025-06-16T14:30:38.456Z DEBUG FLAG{DATABASE_CONNECTION_TIMEOUT_DETECTED}
-2025-06-16T14:30:39.789Z DEBUG 🔍 Keep investigating! 🔍`,
+    'webapp-deployment-7d4b8c9f4d-xyz123': '2025-06-16T14:30:15.123Z INFO  Starting webapp container...\n2025-06-16T14:30:16.456Z INFO  Loading configuration from /etc/config/app.yaml\n2025-06-16T14:30:17.789Z INFO  Connecting to database at db.company.local:5432\n2025-06-16T14:30:18.012Z ERROR Failed to connect to database: connection timeout after 30s\n2025-06-16T14:30:19.345Z ERROR Database host db.company.local is unreachable (more unreachable than Shrek\'s social skills)\n2025-06-16T14:30:20.678Z ERROR Retrying database connection (attempt 1/3)\n2025-06-16T14:30:25.901Z ERROR Retrying database connection (attempt 2/3)\n2025-06-16T14:30:30.234Z ERROR Retrying database connection (attempt 3/3)\n2025-06-16T14:30:35.567Z FATAL All database connection attempts failed, shutting down\n2025-06-16T14:30:36.890Z INFO  Container exit code: 1 (sadder than when Fiona turned into an ogre)\n2025-06-16T14:30:37.123Z DEBUG Investigation shows database service is running but unreachable\n2025-06-16T14:30:38.456Z DEBUG FLAG{DATABASE_CONNECTION_TIMEOUT_DETECTED}\n2025-06-16T14:30:39.789Z DEBUG 🔍 Keep investigating! 🔍',
 
-    'database-pv-claim': `Name:          database-pv-claim
-Namespace:     default
-StorageClass:  fast-ssd
-Status:        Pending
-Volume:        
-Labels:        <none>
-Annotations:   volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/no-provisioner
-Finalizers:    [kubernetes.io/pvc-protection]
-Capacity:      
-Access Modes:  
-VolumeMode:    Filesystem
-Used By:       database-statefulset-0
-Events:
-  Type     Reason              Age               Message
-  ----     ------              ----              -------
-  Warning  ProvisioningFailed  2m (x15 over 30m) storageclass.storage.k8s.io "fast-ssd" not found
-  Normal   ExternalProvisioning 30s              waiting for a volume to be created, either by external provisioner "kubernetes.io/no-provisioner" or manually created by system administrator
-  Warning  ProvisioningFailed  15s              Failed to provision volume with StorageClass "fast-ssd": storageclass.storage.k8s.io "fast-ssd" not found
-  Normal   WaitForFirstConsumer 5s               FLAG{STORAGE_CLASS_MISCONFIGURATION_FOUND}
+    'database-pv-claim': 'Name:          database-pv-claim\nNamespace:     default\nStorageClass:  fast-ssd\nStatus:        Pending\nVolume:        \nLabels:        <none>\nAnnotations:   volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/no-provisioner\nFinalizers:    [kubernetes.io/pvc-protection]\nCapacity:      \nAccess Modes:  \nVolumeMode:    Filesystem\nUsed By:       database-statefulset-0\nEvents:\n  Type     Reason              Age               Message\n  ----     ------              ----              -------\n  Warning  ProvisioningFailed  2m (x15 over 30m) storageclass.storage.k8s.io "fast-ssd" not found\n  Normal   ExternalProvisioning 30s              waiting for a volume to be created, either by external provisioner "kubernetes.io/no-provisioner" or manually created by system administrator\n  Warning  ProvisioningFailed  15s              Failed to provision volume with StorageClass "fast-ssd": storageclass.storage.k8s.io "fast-ssd" not found\n  Normal   WaitForFirstConsumer 5s               FLAG{STORAGE_CLASS_MISCONFIGURATION_FOUND}\n\n🔍 Storage investigation complete - the StorageClass is missing!',
 
-🔍 Storage investigation complete - the StorageClass is missing!`,
-
-    'nginx-service-config': `Name:                     nginx-service
-Namespace:                default
-Labels:                   app=nginx
-Annotations:              <none>
-Selector:                 app=nginx-wrong
-Type:                     LoadBalancer
-IP Family Policy:        SingleStack
-IP Families:             IPv4
-IP:                      10.96.100.200
-IPs:                     10.96.100.200
-LoadBalancer Ingress:    <pending>
-Port:                    http  80/TCP
-TargetPort:              80/TCP
-NodePort:                http  30081/TCP
-Endpoints:               <none>
-Session Affinity:        None
-External Traffic Policy: Cluster
-Events:
-  Type     Reason                Age               Message
-  ----     ------                ----              -------
-  Warning  SyncLoadBalancerFailed 5m (x10 over 30m) Error syncing load balancer: failed to ensure load balancer: no available nodes for service
-  Normal   EnsuringLoadBalancer   2m                Ensuring load balancer
-  Warning  ServiceSelectorMismatch 1m               Service selector "app=nginx-wrong" does not match any pods (should be "app=nginx")
-  Normal   ConfigurationFixed     30s               FLAG{SERVICE_SELECTOR_MISMATCH_RESOLVED}
-
-🔗 Service troubleshooting reveals selector mismatch!`
+    'nginx-service-config': 'Name:                     nginx-service\nNamespace:                default\nLabels:                   app=nginx\nAnnotations:              <none>\nSelector:                 app=nginx-wrong\nType:                     LoadBalancer\nIP Family Policy:        SingleStack\nIP Families:             IPv4\nIP:                      10.96.100.200\nIPs:                     10.96.100.200\nLoadBalancer Ingress:    <pending>\nPort:                    http  80/TCP\nTargetPort:              80/TCP\nNodePort:                http  30081/TCP\nEndpoints:               <none>\nSession Affinity:        None\nExternal Traffic Policy: Cluster\nEvents:\n  Type     Reason                Age               Message\n  ----     ------                ----              -------\n  Warning  SyncLoadBalancerFailed 5m (x10 over 30m) Error syncing load balancer: failed to ensure load balancer: no available nodes for service\n  Normal   EnsuringLoadBalancer   2m                Ensuring load balancer\n  Warning  ServiceSelectorMismatch 1m               Service selector "app=nginx-wrong" does not match any pods (should be "app=nginx")\n  Normal   ConfigurationFixed     30s               FLAG{SERVICE_SELECTOR_MISMATCH_RESOLVED}\n\n🔗 Service troubleshooting reveals selector mismatch!'
 };
