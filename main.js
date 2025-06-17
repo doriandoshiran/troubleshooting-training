@@ -29,7 +29,7 @@ var availableCommands = [
     'free', 'df', 'du', 'ps', 'top', 'netstat', 'ss', 'ping', 'curl', 'wget',
     'dd', 'mkswap', 'swapon', 'swapoff', 'mount', 'umount', 'fdisk',
     'iptables', 'route', 'ifconfig', 'ip', 'hostnamectl', 'timedatectl',
-    'kubectl', 'ssh', 'exit', 'logout'
+    'kubectl', 'ssh', 'exit', 'logout', 'nano'
 ];
 
 // Tab switching function with proper event handling

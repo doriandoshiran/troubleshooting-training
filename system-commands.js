@@ -56,7 +56,7 @@ function executeSystemctl(args) {
             addOutput('   Loaded: loaded (/usr/lib/systemd/system/firewalld.service; enabled)', 'success');
             addOutput('   Active: active (running) since Mon 2025-06-16 14:00:00 UTC', 'success');
             addOutput('   Main PID: 987 (firewalld)');
-                            addOutput('🔥 Firewall protecting your system!', 'success');
+            addOutput('🔥 Firewall protecting your system!', 'success');
         } else if (action === 'restart') {
             addOutput('Restarting firewalld service...', 'info');
             setTimeout(function() {

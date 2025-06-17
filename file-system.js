@@ -623,11 +623,16 @@ function viewFile(filename) {
     }
 }
 
-function editFile(filename) {
+function editFile(filename, editorName) {
     if (!filename) {
-        addOutput('vi: missing file argument', 'error');
-        addOutput('Usage: vi [file]');
-        addOutput('💡 Fun fact: vi stands for "visual" - just like how Shrek is "visually striking"! 😂', 'info');
+        var cmd = editorName || 'vi';
+        addOutput(cmd + ': missing file argument', 'error');
+        addOutput('Usage: ' + cmd + ' [file]');
+        if (cmd === 'vi') {
+            addOutput('💡 Fun fact: vi stands for "visual" - just like how Shrek is "visually striking"! 😂', 'info');
+        } else if (cmd === 'nano') {
+            addOutput('💡 Fun fact: nano is named after the editor "pico" - tiny like Shrek\'s patience!', 'info');
+        }
         return;
     }
     
@@ -639,11 +644,18 @@ function editFile(filename) {
         filePath = filePath.replace(/\/+/g, '/');
     }
     
-    addOutput('Opening file in vi editor: ' + filePath, 'info');
+    var cmd = editorName || 'vi';
+    addOutput('Opening file in ' + cmd + ' editor: ' + filePath, 'info');
     addOutput('');
-    addOutput('--- Simulated vi editor ---', 'warning');
-    addOutput('In a real environment, this would open the vi text editor.');
-    addOutput('💡 Remember: In vi, everything is possible but nothing is easy!', 'info');
+    addOutput('--- Simulated ' + cmd + ' editor ---', 'warning');
+    addOutput('In a real environment, this would open the ' + cmd + ' text editor.');
+    
+    if (cmd === 'vi') {
+        addOutput('💡 Remember: In vi, everything is possible but nothing is easy!', 'info');
+    } else if (cmd === 'nano') {
+        addOutput('💡 Remember: In nano, Ctrl+X to exit, Ctrl+O to save!', 'info');
+    }
+    
     addOutput('');
     
     // Check if configFiles exists
@@ -712,7 +724,7 @@ function editFile(filename) {
         }
         
     } else {
-        addOutput('File does not exist. In vi, you could create a new file here.', 'info');
+        addOutput('File does not exist. In ' + cmd + ', you could create a new file here.', 'info');
         
         // Fun responses for non-existent files
         if (filename.toLowerCase().includes('recipe')) {
@@ -723,6 +735,10 @@ function editFile(filename) {
     }
     
     addOutput('');
-    addOutput('--- End of vi simulation ---', 'warning');
-    addOutput('💡 Pro tip: In real vi, press ESC then :q! to quit without saving!', 'info');
+    addOutput('--- End of ' + cmd + ' simulation ---', 'warning');
+    if (cmd === 'vi') {
+        addOutput('💡 Pro tip: In real vi, press ESC then :q! to quit without saving!', 'info');
+    } else if (cmd === 'nano') {
+        addOutput('💡 Pro tip: In real nano, press Ctrl+X to exit, Ctrl+O to save!', 'info');
+    }
 }

@@ -49,7 +49,7 @@ function handleMainKeyPress(event) {
 // Check if command handles its own prompt display
 function commandHandlesOwnPrompt(command) {
     var cmd = command.split(' ')[0].toLowerCase();
-    var asyncCommands = ['dd', 'ping', 'yum', 'clear'];
+    var asyncCommands = ['dd', 'ping', 'yum', 'clear', 'ssh'];
     return asyncCommands.includes(cmd);
 }
 
@@ -200,7 +200,7 @@ function executeCommand(command) {
         }
         
         // Handle async commands that need special timing
-        var asyncCommands = ['dd', 'ping', 'yum'];
+        var asyncCommands = ['dd', 'ping', 'yum', 'ssh'];
         if (asyncCommands.includes(cmd.toLowerCase())) {
             executeAsyncCommand(cmd.toLowerCase(), args);
             return; // Don't call showNewPrompt here - async commands handle their own timing
@@ -212,9 +212,6 @@ function executeCommand(command) {
                 break;
             case 'help':
                 showHelp();
-                break;
-            case 'ssh':
-                connectToHost(args);
                 break;
             case 'exit':
             case 'logout':
@@ -279,7 +276,7 @@ function executeCommand(command) {
                     addOutput('bash: ' + cmd + ': command not found on jumphost', 'error');
                     addOutput('📝 No text editors here - this jumphost is more basic than Shrek\'s cooking!', 'warning');
                 } else {
-                    editFile(args[0]);
+                    editFile(args[0], cmd);
                 }
                 break;
             case 'pwd':
@@ -430,6 +427,9 @@ function executeAsyncCommand(cmd, args) {
                 showNewPrompt();
             }
             break;
+        case 'ssh':
+            connectToHost(args);
+            break;
     }
 }
 
@@ -448,7 +448,7 @@ function showCommandHistory() {
     addOutput('📜 Your command history - a tale of triumph and occasional typos!', 'info');
 }
 
-// Connection commands
+// Connection commands with delays
 function connectToHost(args) {
     if (args.length === 0) {
         addOutput('Usage: ssh root@[hostname]', 'error');
@@ -458,6 +458,7 @@ function connectToHost(args) {
         addOutput('  root@k8s-master-01.company.local   - Kubernetes cluster troubleshooting');
         addOutput('');
         addOutput('🧅 Choose your swamp... I mean, server!', 'success');
+        showNewPrompt();
         return;
     }
     
@@ -466,20 +467,40 @@ function connectToHost(args) {
     
     if (hostname === 'prod-centos-01.company.local' || hostname === 'prod-centos-01') {
         addOutput('Connecting to prod-centos-01.company.local...', 'info');
-        addOutput('🔐 Authenticating with SSH keys...', 'info');
-        addOutput('Welcome to CentOS Linux 7.9.2009 (Core)', 'success');
-        addOutput('🧅 "Welcome to my swamp!" - Shrek (probably)', 'success');
-        addOutput('');
-        currentHost = 'centos';
-        currentDir = '/root';
+        
+        setTimeout(function() {
+            addOutput('🔐 Authenticating with SSH keys...', 'info');
+            
+            setTimeout(function() {
+                addOutput('Welcome to CentOS Linux 7.9.2009 (Core)', 'success');
+                addOutput('🧅 "Welcome to my swamp!" - Shrek (probably)', 'success');
+                addOutput('');
+                currentHost = 'centos';
+                currentDir = '/root';
+                updatePrompt();
+                showNewPrompt();
+            }, 1500);
+        }, 1000);
+        return;
+        
     } else if (hostname === 'k8s-master-01.company.local' || hostname === 'k8s-master-01') {
         addOutput('Connecting to k8s-master-01.company.local...', 'info');
-        addOutput('🔐 Authenticating with SSH keys...', 'info');
-        addOutput('⚠️  Warning: Production Kubernetes cluster!', 'warning');
-        addOutput('');
-        currentHost = 'k8s';
-        currentDir = '/root';
-        systemState.k8s.connected = true;
+        
+        setTimeout(function() {
+            addOutput('🔐 Authenticating with SSH keys...', 'info');
+            
+            setTimeout(function() {
+                addOutput('⚠️  Warning: Production Kubernetes cluster!', 'warning');
+                addOutput('');
+                currentHost = 'k8s';
+                currentDir = '/root';
+                systemState.k8s.connected = true;
+                updatePrompt();
+                showNewPrompt();
+            }, 1500);
+        }, 1000);
+        return;
+        
     } else {
         addOutput('ssh: Could not resolve hostname ' + hostname, 'error');
         
@@ -489,10 +510,9 @@ function connectToHost(args) {
         } else {
             addOutput('💡 Double-check the hostname - available hosts are listed above!', 'info');
         }
+        showNewPrompt();
         return;
     }
-    
-    updatePrompt();
 }
 
 function startTraining() {
@@ -606,7 +626,7 @@ function showHelp() {
         addOutput('  ls [-la]                 - List files and directories');
         addOutput('  cd [directory]           - Change directory');
         addOutput('  cat [file]               - Display file contents');
-        addOutput('  vi [file]                - Edit file');
+        addOutput('  vi/nano [file]           - Edit file');
         addOutput('  pwd                      - Show current directory');
         addOutput('  whoami                   - Show current user');
         addOutput('  clear                    - Clear terminal');
