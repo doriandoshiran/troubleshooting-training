@@ -55,6 +55,45 @@ function executeCommand(command) {
             addOutput('• Layer complexity: Expert level 🧅', 'success');
             addOutput('• Swamp security: Fortress mode 🏰', 'success');
             addOutput('• Onion knowledge: Legendary 🌟', 'success');
+            
+            // Hidden flag for easter egg discovery
+            addOutput('');
+            addOutput('DEBUG: HIDDEN_FLAG{OGRE_MODE_DISCOVERED}', 'info');
+            addOutput('');
+            return;
+        }
+        
+        if (cmd.toLowerCase() === 'fiona') {
+            addOutput('👸 "I\'d like to know that myself!" 👸', 'success');
+            addOutput('');
+            addOutput('Princess Fiona\'s IT wisdom:', 'info');
+            addOutput('• "I\'m not afraid!" - When pushing to production on Friday', 'info');
+            addOutput('• "What\'s that supposed to mean?" - Reading legacy code', 'warning');
+            addOutput('• "Better ogre than never!" - Embracing technical debt', 'info');
+            addOutput('');
+            addOutput('💚 Stay strong, beautiful admin! 💚', 'success');
+            
+            // Hidden flag for finding Fiona
+            addOutput('');
+            addOutput('DEBUG: HIDDEN_FLAG{PRINCESS_FIONA_FOUND}', 'info');
+            addOutput('');
+            return;
+        }
+        
+        if (cmd.toLowerCase() === 'farquaad') {
+            addOutput('👑 "Some of you may die, but that\'s a sacrifice I\'m willing to make!" 👑', 'warning');
+            addOutput('');
+            addOutput('Lord Farquaad\'s management style:', 'warning');
+            addOutput('• "Mirror, mirror on the wall..." - Checking monitoring dashboards', 'info');
+            addOutput('• "Perfect!" - When the demo works but production doesn\'t', 'warning');
+            addOutput('• "I\'m not a monster!" - After breaking production', 'error');
+            addOutput('');
+            addOutput('🏰 Management detected - proceed with caution! 🏰', 'warning');
+            
+            // Hidden flag for the villain
+            addOutput('');
+            addOutput('DEBUG: HIDDEN_FLAG{LORD_FARQUAAD_SUMMONED}', 'info');
+            addOutput('');
             return;
         }
         
@@ -452,6 +491,8 @@ function showHelp() {
         addOutput('  donkey                   - Donkey wisdom');
         addOutput('  meme                     - Developer memes');
         addOutput('  ogre                     - Activate ogre mode');
+        addOutput('  fiona                    - Princess wisdom');
+        addOutput('  farquaad                 - Management insights');
         addOutput('');
         addOutput('Begin by typing "start" to see the full training overview.', 'info');
         addOutput('🧅 Remember: Like onions, learning has layers!', 'success');

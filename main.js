@@ -4,6 +4,7 @@ var commandHistory = [];
 var historyIndex = -1;
 var completedTasks = new Set();
 var foundFlags = new Set();
+var hiddenFlags = new Set(); // New variable for hidden flags
 var currentHost = 'jumphost'; // 'jumphost', 'centos', or 'k8s'
 var connectedHosts = new Set();
 var systemState = {
@@ -378,6 +379,19 @@ function updateCtfProgress() {
     }
 }
 
+// New function to update hidden flag progress
+function updateHiddenFlagProgress() {
+    var hiddenProgressElement = document.getElementById('hidden-flag-progress');
+    if (!hiddenProgressElement) return;
+    
+    if (hiddenFlags.size > 0) {
+        hiddenProgressElement.style.display = 'inline';
+        hiddenProgressElement.textContent = 'Hidden: ' + hiddenFlags.size + '/? found';
+    } else {
+        hiddenProgressElement.style.display = 'none';
+    }
+}
+
 function updateFlagsDisplay() {
     var flagsDiv = document.getElementById('flags-display');
     if (!flagsDiv) return;
@@ -402,15 +416,36 @@ function updateFlagsDisplay() {
 
 function checkForFlag(text) {
     var flagRegex = /FLAG\{([^}]+)\}/g;
+    var hiddenFlagRegex = /HIDDEN_FLAG\{([^}]+)\}/g;
     var match;
     
+    // Check for regular CTF flags
     while ((match = flagRegex.exec(text)) !== null) {
         var flagContent = match[1];
         
         if (!foundFlags.has(flagContent)) {
             foundFlags.add(flagContent);
-            // Removed the duplicate green flag message - flag is already visible in logs
             updateCtfProgress();
+        }
+    }
+    
+    // Check for hidden easter egg flags
+    while ((match = hiddenFlagRegex.exec(text)) !== null) {
+        var hiddenFlagContent = match[1];
+        
+        if (!hiddenFlags.has(hiddenFlagContent)) {
+            hiddenFlags.add(hiddenFlagContent);
+            addOutput('🎉 Hidden flag discovered: ' + hiddenFlagContent, 'success');
+            updateHiddenFlagProgress();
+            
+            // Special messages for different hidden flags
+            if (hiddenFlagContent === 'OGRE_MODE_DISCOVERED') {
+                addOutput('🧅 You found the ogre easter egg! Keep exploring for more hidden surprises!', 'success');
+            } else if (hiddenFlagContent === 'PRINCESS_FIONA_FOUND') {
+                addOutput('👸 Princess Fiona approves of your exploration skills!', 'success');
+            } else if (hiddenFlagContent === 'LORD_FARQUAAD_SUMMONED') {
+                addOutput('👑 You summoned the villain! Management has been notified...', 'warning');
+            }
         }
     }
 }
@@ -447,6 +482,7 @@ function updatePrompt() {
     }
     
     updateTaskProgress();
+    updateHiddenFlagProgress(); // Update hidden flag counter
 }
 
 function checkAllTasksComplete() {
@@ -508,6 +544,7 @@ window.addEventListener('DOMContentLoaded', function() {
         // Update progress displays
         updateCtfProgress();
         updateTaskProgress();
+        updateHiddenFlagProgress(); // Initialize hidden flag counter
         updatePrompt();
         
         // DON'T call showNewPrompt() here - use the existing prompt from HTML
