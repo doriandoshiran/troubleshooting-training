@@ -475,7 +475,7 @@ function connectToHost(args) {
     } else if (hostname === 'k8s-master-01.company.local' || hostname === 'k8s-master-01') {
         addOutput('Connecting to k8s-master-01.company.local...', 'info');
         addOutput('🔐 Authenticating with SSH keys...', 'info');
-        addOutput('⚠️  Warning: Production Kubernetes cluster!', 'warning');
+        addOutput('⚠️ Warning: Production Kubernetes cluster!', 'warning');
         addOutput('');
         currentHost = 'k8s';
         currentDir = '/root';
