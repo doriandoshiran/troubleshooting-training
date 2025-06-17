@@ -389,22 +389,27 @@ function executeDd(args) {
                 addOutput('4. Add to /etc/fstab          # Make persistent');
                 addOutput('');
                 addOutput('🎉 Swap creation completed successfully!', 'success');
-                // Ensure new prompt is shown after dd completes
-                showNewPrompt();
+                // Force show new prompt after completion
+                setTimeout(function() {
+                    showNewPrompt();
+                }, 100);
             } else {
                 progressDiv.textContent = '📊 Progress: ' + Math.floor(progress) + '% - Writing ' + Math.floor(progress * 85.8) + ' MB...';
                 scrollToBottom();
             }
         }, 400);
-        return;
+        // Don't return here - let the command continue without blocking
+        return 'async';
     } else if (command.includes('if=') && command.includes('of=')) {
         addOutput('dd: creating file...', 'info');
         setTimeout(function() {
             addOutput('File created successfully', 'success');
             addOutput('💾 DD command completed!', 'success');
-            showNewPrompt();
+            setTimeout(function() {
+                showNewPrompt();
+            }, 100);
         }, 1000);
-        return;
+        return 'async';
     } else {
         addOutput('dd: invalid arguments', 'error');
         addOutput('Example: dd if=/dev/zero of=/swapfile bs=1024 count=8388608', 'info');

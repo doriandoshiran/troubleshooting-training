@@ -1,4 +1,32 @@
-// File system simulation and file operations
+    '/var/log/pods/webapp-deployment-7d4b8c9f4d-xyz123/webapp/0.log': `2025-06-16T14:30:15.123Z INFO  Starting webapp container...
+2025-06-16T14:30:16.456Z INFO  Loading configuration from /etc/config/app.yaml
+2025-06-16T14:30:17.789Z INFO  Connecting to database at db.company.local:5432
+2025-06-16T14:30:18.012Z ERROR Failed to connect to database: connection timeout after 30s
+2025-06-16T14:30:19.345Z ERROR Database host db.company.local is unreachable
+2025-06-16T14:30:20.678Z ERROR Retrying database connection (attempt 1/3)
+2025-06-16T14:30:25.901Z ERROR Retrying database connection (attempt 2/3)
+2025-06-16T14:30:30.234Z ERROR Retrying database connection (attempt 3/3)
+2025-06-16T14:30:35.567Z FATAL All database connection attempts failed, shutting down
+2025-06-16T14:30:36.890Z INFO  Container exit code: 1
+2025-06-16T14:30:37.123Z DEBUG Investigation shows database service is running but unreachable
+2025-06-16T14:30:38.456Z DEBUG FLAG{FILESYSTEM_LOG_INVESTIGATION_COMPLETE}
+2025-06-16T14:30:39.789Z DEBUG 🔍 Container logs reveal network connectivity issues`,
+
+    '/var/log/containers/webapp-7d4b8c9f4d-xyz123_default_webapp-abc123.log': `{"log":"Starting webapp container...\\n","stream":"stdout","time":"2025-06-16T14:30:15.123456789Z"}
+{"log":"Loading configuration from /etc/config/app.yaml\\n","stream":"stdout","time":"2025-06-16T14:30:16.456789012Z"}
+{"log":"Connecting to database at db.company.local:5432\\n","stream":"stdout","time":"2025-06-16T14:30:17.789012345Z"}
+{"log":"ERROR: Failed to connect to database: connection timeout after 30s\\n","stream":"stderr","time":"2025-06-16T14:30:18.012345678Z"}
+{"log":"FLAG{CONTAINER_LOG_FORMAT_DISCOVERED}\\n","stream":"stdout","time":"2025-06-16T14:30:38.456789012Z"}`,
+
+    '/var/log/kubernetes/kubelet.log': `I0616 14:30:10.123456       1 kubelet.go:1234] Starting kubelet
+I0616 14:30:11.234567       1 kubelet.go:1245] Kubelet version: v1.28.0
+I0616 14:30:12.345678       1 server.go:123] Started kubelet server
+W0616 14:30:15.456789       1 pod_workers.go:456] Pod webapp-deployment-7d4b8c9f4d-xyz123 failed to start
+E0616 14:30:18.567890       1 kuberuntime_manager.go:789] container "webapp" in pod "webapp-deployment-7d4b8c9f4d-xyz123" is waiting to start: CrashLoopBackOff
+I0616 14:30:20.678901       1 kubelet.go:2456] SyncLoop (probe): webapp
+I0616 14:30:25.789012       1 kubelet.go:2456] SyncLoop (probe): webapp
+E0616 14:30:30.890123       1 pod_workers.go:234] Error syncing pod webapp-deployment-7d4b8c9f4d-xyz123: failed to start container "webapp": Error response from daemon: container exited with non-zero status
+I0616 14:30:35.901234       1 kubelet.go:1789] FLAG{KUBELET_DEBUGGING_SKILLS} - Advanced troubleshooting complete`,// File system simulation and file operations
 
 // Ensure global scope
 window.fileSystem = window.fileSystem || {};
