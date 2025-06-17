@@ -18,6 +18,7 @@ function executeSystemctl(args) {
             setTimeout(function() {
                 addOutput('ntpd service started successfully', 'success');
                 addOutput('✅ Network Time Protocol daemon is now running', 'success');
+                addOutput('✅ Task 3: NTP Configuration - COMPLETED', 'success');
                 systemState.centos.ntpConfigured = true;
                 completedTasks.add('ntp');
                 updateTaskProgress();
@@ -107,6 +108,14 @@ function executeFirewallCmd(args) {
                 systemState.centos.openPorts.push(port);
             }
             
+            if (command.includes('--permanent')) {
+                addOutput('✅ Port ' + port + ' added permanently to firewall', 'success');
+                addOutput('🔒 This rule will survive reboots!', 'info');
+            } else {
+                addOutput('⚠️  Port ' + port + ' added to firewall (temporary)', 'warning');
+                addOutput('💡 Use --permanent flag to make changes persistent', 'info');
+            }
+            
             // Check if all required ports are opened
             var requiredPorts = ['22/tcp', '80/tcp', '443/tcp', '8443/tcp', '5432/tcp', '9200/tcp', '6443/tcp'];
             var allOpened = requiredPorts.every(function(p) {
@@ -114,22 +123,16 @@ function executeFirewallCmd(args) {
             });
             
             if (allOpened && !completedTasks.has('firewall')) {
+                addOutput('');
                 addOutput('🎉 All required ports have been opened!', 'success');
-                addOutput('🔥 Your firewall is now configured like a fortress!', 'success');
+                addOutput('🔥 Your firewall is now configured properly!', 'success');
+                addOutput('✅ Task 1: Firewall Configuration - COMPLETED', 'success');
                 systemState.centos.firewallConfigured = true;
                 completedTasks.add('firewall');
                 updateTaskProgress();
                 checkAllTasksComplete();
             }
             
-            if (command.includes('--permanent')) {
-                addOutput('✅ Port ' + port + ' added permanently to firewall', 'success');
-                addOutput('🔒 This rule will survive reboots!', 'info');
-            } else {
-                addOutput('⚠️  Port ' + port + ' added to firewall (temporary)', 'warning');
-                addOutput('💡 Use --permanent flag to make changes persistent', 'info');
-                addOutput('🧅 "Better permanent than sorry!" - Shrek probably', 'warning');
-            }
         } else {
             addOutput('firewall-cmd: invalid port format', 'error');
             addOutput('Use format: --add-port=PORT/PROTOCOL (e.g., --add-port=80/tcp)', 'info');
@@ -166,7 +169,6 @@ function executeFirewallCmd(args) {
     } else {
         addOutput('firewall-cmd: invalid option', 'error');
         addOutput('Try: firewall-cmd --help for available options', 'info');
-        addOutput('🧅 "Even ogres read the manual sometimes!"', 'warning');
     }
 }
 
@@ -250,7 +252,7 @@ function executeYum(args) {
                         completedTasks.add('packages');
                         updateTaskProgress();
                         addOutput('🎉 Required system packages installed successfully!', 'success');
-                        addOutput('🧅 "Better to have and not need!" - Shrek wisdom', 'success');
+                        addOutput('✅ Task 5: Package Installation - COMPLETED', 'success');
                         checkAllTasksComplete();
                     }
                     
@@ -387,6 +389,7 @@ function executeDd(args) {
                 addOutput('4. Add to /etc/fstab          # Make persistent');
                 addOutput('');
                 addOutput('🎉 Swap creation completed successfully!', 'success');
+                // Ensure new prompt is shown after dd completes
                 showNewPrompt();
             } else {
                 progressDiv.textContent = '📊 Progress: ' + Math.floor(progress) + '% - Writing ' + Math.floor(progress * 85.8) + ' MB...';
@@ -458,7 +461,7 @@ function executeSwapon(args) {
         addOutput('/swapfile swap swap defaults 0 0', 'info');
         addOutput('');
         addOutput('💡 You can edit fstab with: vi /etc/fstab', 'info');
-        addOutput('🔄 Swap configured successfully!', 'success');
+        addOutput('✅ Task 2: Swap Configuration - COMPLETED', 'success');
         checkAllTasksComplete();
     } else {
         addOutput('swapon: ' + file + ': No such file or directory', 'error');

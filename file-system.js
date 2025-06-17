@@ -512,17 +512,34 @@ function changeDirectory(path) {
         targetPath = targetPath.replace(/\/+/g, '/');
     }
     
+    // Check if the target path exists in the file system
     if (currentFS[targetPath]) {
         currentDir = targetPath;
-    } else {
-        addOutput('cd: ' + path + ': No such file or directory', 'error');
-        
-        // Easter egg responses
-        if (path.toLowerCase().includes('swamp')) {
-            addOutput('🧅 "What are you doing in my swamp?!" - Directory not found, but Shrek approves of the attempt!', 'warning');
-        } else {
-            addOutput('💡 Hint: Use "ls" to see available directories, like peeling an onion layer by layer!', 'info');
+        return;
+    }
+    
+    // Also check if it's a directory in the current directory
+    var dirContent = currentFS[currentDir];
+    if (dirContent) {
+        // Check for exact match or with trailing slash
+        if (dirContent[cleanPath] === 'directory' || dirContent[cleanPath + '/'] === 'directory') {
+            currentDir = targetPath;
+            return;
         }
+        // Check if the path with trailing slash exists in current dir content
+        if (dirContent[cleanPath + '/']) {
+            currentDir = targetPath;
+            return;
+        }
+    }
+    
+    addOutput('cd: ' + path + ': No such file or directory', 'error');
+    
+    // Easter egg responses
+    if (path.toLowerCase().includes('swamp')) {
+        addOutput('🧅 "What are you doing in my swamp?!" - Directory not found, but Shrek approves of the attempt!', 'warning');
+    } else {
+        addOutput('💡 Hint: Use "ls" to see available directories, like peeling an onion layer by layer!', 'info');
     }
 }
 
@@ -690,7 +707,7 @@ function editFile(filename, editorName) {
                     updateTaskProgress();
                 }
                 addOutput('');
-                addOutput('✓ Platform configuration reviewed!', 'success');
+                addOutput('✅ Task 6: Platform Configuration - COMPLETED', 'success');
             }
         }
         
@@ -713,7 +730,7 @@ function editFile(filename, editorName) {
                     updateTaskProgress();
                 }
                 addOutput('');
-                addOutput('✓ YUM proxy configuration completed!', 'success');
+                addOutput('✅ Task 4: YUM Proxy Configuration - COMPLETED', 'success');
             }
         }
         
