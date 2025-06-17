@@ -516,6 +516,13 @@ function connectToHost(args) {
 }
 
 function startTraining() {
+    // Prevent duplicate execution by checking if we recently showed this
+    var now = Date.now();
+    if (window.lastStartTime && (now - window.lastStartTime) < 2000) {
+        return; // Don't show again if called within 2 seconds
+    }
+    window.lastStartTime = now;
+    
     addOutput('╔══════════════════════════════════════════════════════════════════════════════╗', 'info');
     addOutput('║                        ACME Corporation Training Program                     ║', 'info');
     addOutput('║                                                                              ║', 'info');

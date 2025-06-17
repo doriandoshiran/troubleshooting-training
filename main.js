@@ -141,22 +141,33 @@ function showNewPrompt() {
         }
     });
     
-    // Create a new input line and add it to the terminal
-    var newInputLine = document.createElement('div');
-    newInputLine.className = 'input-line';
-    newInputLine.innerHTML = '<span class="prompt">' + getPromptString() + '</span><input type="text" class="command-input" autocomplete="off">';
-    
-    terminal.appendChild(newInputLine);
-    
-    // Focus the new input and set up event handler
-    var newInput = newInputLine.querySelector('.command-input');
-    if (newInput) {
-        newInput.focus();
-        newInput.addEventListener('keydown', handleMainKeyPress);
-    }
-    
-    scrollToBottom();
-    updatePrompt();
+    // Small delay to prevent race conditions
+    setTimeout(function() {
+        // Double-check no input lines exist
+        var remainingInputs = terminal.querySelectorAll('.input-line');
+        remainingInputs.forEach(function(inputLine) {
+            if (inputLine.parentNode) {
+                inputLine.parentNode.removeChild(inputLine);
+            }
+        });
+        
+        // Create a new input line and add it to the terminal
+        var newInputLine = document.createElement('div');
+        newInputLine.className = 'input-line';
+        newInputLine.innerHTML = '<span class="prompt">' + getPromptString() + '</span><input type="text" class="command-input" autocomplete="off">';
+        
+        terminal.appendChild(newInputLine);
+        
+        // Focus the new input and set up event handler
+        var newInput = newInputLine.querySelector('.command-input');
+        if (newInput) {
+            newInput.focus();
+            newInput.addEventListener('keydown', handleMainKeyPress);
+        }
+        
+        scrollToBottom();
+        updatePrompt();
+    }, 10);
 }
 
 // Enhanced input focus management
@@ -322,6 +333,9 @@ function setupCommandInput() {
         
         // Ensure focus
         mainInput.focus();
+        
+        // Clear any initial value that might cause duplicate execution
+        mainInput.value = '';
     }
 }
 
