@@ -32,6 +32,147 @@ var availableCommands = [
     'kubectl', 'ssh', 'exit', 'logout', 'nano'
 ];
 
+// Enhanced key press handler with better error handling
+function handleMainKeyPress(event) {
+    try {
+        var input = event.target;
+        
+        if (event.key === 'Enter') {
+            var command = input.value.trim();
+            if (command) {
+                // Show the command on the current line by replacing the input
+                replaceInputWithCommand(getPromptString() + ' ' + command);
+                var result = executeCommand(command);
+                addToCommandHistory(command);
+                // Only show new prompt if command doesn't handle it
+                if (result !== 'async' && !commandHandlesOwnPrompt(command)) {
+                    showNewPrompt();
+                }
+            } else {
+                // Just show empty prompt if no command
+                replaceInputWithCommand(getPromptString());
+                showNewPrompt();
+            }
+            // Clear the input value and prevent any further processing
+            input.value = '';
+            event.preventDefault();
+            event.stopPropagation();
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            navigateHistory('up', input);
+        } else if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            navigateHistory('down', input);
+        } else if (event.key === 'Tab') {
+            event.preventDefault();
+            handleTabCompletion(input);
+        } else if (event.key === 'l' && event.ctrlKey) {
+            event.preventDefault();
+            clearTerminal();
+        }
+    } catch (error) {
+        console.error('Key press handling error:', error);
+        addOutput('Error processing command input', 'error');
+        addOutput('🧅 Even ogres make mistakes sometimes!', 'warning');
+        showNewPrompt();
+    }
+}
+
+// Check if command handles its own prompt display
+function commandHandlesOwnPrompt(command) {
+    var cmd = command.split(' ')[0].toLowerCase();
+    var asyncCommands = ['dd', 'ping', 'yum', 'clear', 'ssh'];
+    return asyncCommands.includes(cmd);
+}
+
+// Improved command history management
+function addToCommandHistory(command) {
+    commandHistory.push(command);
+    historyIndex = commandHistory.length;
+    
+    // Limit history size to prevent memory issues
+    if (commandHistory.length > 1000) {
+        commandHistory = commandHistory.slice(-500);
+        historyIndex = commandHistory.length;
+    }
+}
+
+function navigateHistory(direction, input) {
+    if (direction === 'up' && historyIndex > 0) {
+        historyIndex--;
+        input.value = commandHistory[historyIndex];
+    } else if (direction === 'down') {
+        if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+            input.value = commandHistory[historyIndex];
+        } else {
+            historyIndex = commandHistory.length;
+            input.value = '';
+        }
+    }
+}
+
+function handleTabCompletion(input) {
+    var partial = input.value;
+    var completions = getTabCompletions(partial);
+    
+    if (completions.length === 1) {
+        input.value = completions[0];
+    } else if (completions.length > 1) {
+        replaceInputWithCommand(getPromptString() + ' ' + partial);
+        var output = '';
+        for (var i = 0; i < completions.length; i++) {
+            output += completions[i].split(' ').pop() + '  ';
+        }
+        addOutput(output.trim());
+        showNewPrompt();
+        input.value = partial;
+    }
+}
+
+function replaceInputWithCommand(text) {
+    // Remove the current input line more specifically
+    var terminal = document.getElementById('terminal-output');
+    var inputLines = terminal.querySelectorAll('.input-line');
+    
+    // Remove the last input line (the one the user just typed in)
+    if (inputLines.length > 0) {
+        var lastInputLine = inputLines[inputLines.length - 1];
+        if (lastInputLine && lastInputLine.parentNode) {
+            lastInputLine.parentNode.removeChild(lastInputLine);
+        }
+    }
+    
+    // Add the command as output with original prompt styling
+    addOutput(text);
+}
+
+function getTabCompletions(partial) {
+    var completions = [];
+    
+    if (!partial.includes(' ')) {
+        completions = availableCommands.filter(function(cmd) {
+            return cmd.startsWith(partial);
+        });
+    } else {
+        var parts = partial.split(' ');
+        var lastPart = parts[parts.length - 1];
+        var currentFS = getCurrentFileSystem();
+        var dirContent = currentFS[currentDir];
+        
+        if (dirContent) {
+            var files = Object.keys(dirContent);
+            completions = files.filter(function(file) {
+                return file.startsWith(lastPart);
+            }).map(function(file) {
+                return parts.slice(0, -1).join(' ') + ' ' + file;
+            });
+        }
+    }
+    
+    return completions;
+}
+
 // Tab switching function with proper event handling
 function switchTab(tabName) {
     // Remove active class from all tabs and contents
@@ -103,8 +244,8 @@ function getPromptString() {
 
 function getCurrentFileSystem() {
     switch(currentHost) {
-        case 'k8s': return clusterFileSystem;
-        case 'centos': return fileSystem;
+        case 'k8s': return k8sFileSystem;
+        case 'centos': return centosFileSystem;
         default: return { '/root': {} };
     }
 }

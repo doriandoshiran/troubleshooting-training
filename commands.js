@@ -1,146 +1,5 @@
 // Command execution and handling
 
-// Enhanced key press handler with better error handling
-function handleMainKeyPress(event) {
-    try {
-        var input = event.target;
-        
-        if (event.key === 'Enter') {
-            var command = input.value.trim();
-            if (command) {
-                // Show the command on the current line by replacing the input
-                replaceInputWithCommand(getPromptString() + ' ' + command);
-                executeCommand(command);
-                addToCommandHistory(command);
-                // Only show new prompt if command doesn't handle it
-                if (!commandHandlesOwnPrompt(command)) {
-                    showNewPrompt();
-                }
-            } else {
-                // Just show empty prompt if no command
-                replaceInputWithCommand(getPromptString());
-                showNewPrompt();
-            }
-            // Clear the input value and prevent any further processing
-            input.value = '';
-            event.preventDefault();
-            event.stopPropagation();
-        } else if (event.key === 'ArrowUp') {
-            event.preventDefault();
-            navigateHistory('up', input);
-        } else if (event.key === 'ArrowDown') {
-            event.preventDefault();
-            navigateHistory('down', input);
-        } else if (event.key === 'Tab') {
-            event.preventDefault();
-            handleTabCompletion(input);
-        } else if (event.key === 'l' && event.ctrlKey) {
-            event.preventDefault();
-            clearTerminal();
-        }
-    } catch (error) {
-        console.error('Key press handling error:', error);
-        addOutput('Error processing command input', 'error');
-        addOutput('🧅 Even ogres make mistakes sometimes!', 'warning');
-        showNewPrompt();
-    }
-}
-
-// Check if command handles its own prompt display
-function commandHandlesOwnPrompt(command) {
-    var cmd = command.split(' ')[0].toLowerCase();
-    var asyncCommands = ['dd', 'ping', 'yum', 'clear', 'ssh'];
-    return asyncCommands.includes(cmd);
-}
-
-// Improved command history management
-function addToCommandHistory(command) {
-    commandHistory.push(command);
-    historyIndex = commandHistory.length;
-    
-    // Limit history size to prevent memory issues
-    if (commandHistory.length > 1000) {
-        commandHistory = commandHistory.slice(-500);
-        historyIndex = commandHistory.length;
-    }
-}
-
-function navigateHistory(direction, input) {
-    if (direction === 'up' && historyIndex > 0) {
-        historyIndex--;
-        input.value = commandHistory[historyIndex];
-    } else if (direction === 'down') {
-        if (historyIndex < commandHistory.length - 1) {
-            historyIndex++;
-            input.value = commandHistory[historyIndex];
-        } else {
-            historyIndex = commandHistory.length;
-            input.value = '';
-        }
-    }
-}
-
-function handleTabCompletion(input) {
-    var partial = input.value;
-    var completions = getTabCompletions(partial);
-    
-    if (completions.length === 1) {
-        input.value = completions[0];
-    } else if (completions.length > 1) {
-        replaceInputWithCommand(getPromptString() + ' ' + partial);
-        var output = '';
-        for (var i = 0; i < completions.length; i++) {
-            output += completions[i].split(' ').pop() + '  ';
-        }
-        addOutput(output.trim());
-        showNewPrompt();
-        input.value = partial;
-    }
-}
-
-function replaceInputWithCommand(text) {
-    // Remove the current input line more specifically
-    var terminal = document.getElementById('terminal-output');
-    var inputLines = terminal.querySelectorAll('.input-line');
-    
-    // Remove the last input line (the one the user just typed in)
-    if (inputLines.length > 0) {
-        var lastInputLine = inputLines[inputLines.length - 1];
-        if (lastInputLine && lastInputLine.parentNode) {
-            lastInputLine.parentNode.removeChild(lastInputLine);
-        }
-    }
-    
-    // Add the command as output with original prompt styling
-    addOutput(text);
-}
-
-function getTabCompletions(partial) {
-    var completions = [];
-    
-    if (!partial.includes(' ')) {
-        completions = availableCommands.filter(function(cmd) {
-            return cmd.startsWith(partial);
-        });
-    } else {
-        var parts = partial.split(' ');
-        var lastPart = parts[parts.length - 1];
-        var currentFS = getCurrentFileSystem();
-        var dirContent = currentFS[currentDir];
-        
-        if (dirContent) {
-            var files = Object.keys(dirContent);
-            completions = files.filter(function(file) {
-                return file.startsWith(lastPart);
-            }).map(function(file) {
-                return parts.slice(0, -1).join(' ') + ' ' + file;
-            });
-        }
-    }
-    
-    return completions;
-}
-
 // Enhanced command execution with better error handling and easter eggs
 function executeCommand(command) {
     try {
@@ -202,8 +61,7 @@ function executeCommand(command) {
         // Handle async commands that need special timing
         var asyncCommands = ['dd', 'ping', 'yum', 'ssh'];
         if (asyncCommands.includes(cmd.toLowerCase())) {
-            executeAsyncCommand(cmd.toLowerCase(), args);
-            return; // Don't call showNewPrompt here - async commands handle their own timing
+            return executeAsyncCommand(cmd.toLowerCase(), args);
         }
         
         switch (cmd.toLowerCase()) {
@@ -296,7 +154,7 @@ function executeCommand(command) {
                 break;
             case 'clear':
                 clearTerminal();
-                return; // Don't call showNewPrompt - clearTerminal handles it
+                return 'no_prompt'; // Don't call showNewPrompt - clearTerminal handles it
             case 'kubectl':
                 if (currentHost === 'k8s') {
                     executeKubectl(args);
@@ -399,38 +257,35 @@ function executeAsyncCommand(cmd, args) {
     switch (cmd) {
         case 'dd':
             if (currentHost === 'centos') {
-                executeDd(args);
+                return executeDd(args);
                 // Don't show prompt immediately - executeDd handles timing
             } else {
                 addOutput('dd: command not found', 'error');
                 addOutput('🔄 DD command only available on CentOS!', 'warning');
-                showNewPrompt();
+                return null;
             }
-            break;
         case 'ping':
             if (currentHost !== 'jumphost') {
-                executePing(args);
+                return executePing(args);
                 // Don't show prompt immediately - executePing handles timing
             } else {
                 addOutput('ping: command not found on jumphost', 'error');
                 addOutput('🏓 No ping-pong on this jumphost!', 'warning');
-                showNewPrompt();
+                return null;
             }
-            break;
         case 'yum':
             if (currentHost === 'centos') {
-                executeYum(args);
+                return executeYum(args);
                 // executeYum handles its own timing
             } else {
                 addOutput('yum: command not found', 'error');
                 addOutput('🍰 No yum-yum here, only on CentOS!', 'warning');
-                showNewPrompt();
+                return null;
             }
-            break;
         case 'ssh':
-            connectToHost(args);
-            break;
+            return connectToHost(args);
     }
+    return null;
 }
 
 function showCommandHistory() {
@@ -458,8 +313,7 @@ function connectToHost(args) {
         addOutput('  root@k8s-master-01.company.local   - Kubernetes cluster troubleshooting');
         addOutput('');
         addOutput('🧅 Choose your swamp... I mean, server!', 'success');
-        showNewPrompt();
-        return;
+        return 'async';
     }
     
     var target = args[0];
@@ -481,7 +335,7 @@ function connectToHost(args) {
                 showNewPrompt();
             }, 1500);
         }, 1000);
-        return;
+        return 'async';
         
     } else if (hostname === 'k8s-master-01.company.local' || hostname === 'k8s-master-01') {
         addOutput('Connecting to k8s-master-01.company.local...', 'info');
@@ -499,7 +353,7 @@ function connectToHost(args) {
                 showNewPrompt();
             }, 1500);
         }, 1000);
-        return;
+        return 'async';
         
     } else {
         addOutput('ssh: Could not resolve hostname ' + hostname, 'error');
@@ -510,8 +364,7 @@ function connectToHost(args) {
         } else {
             addOutput('💡 Double-check the hostname - available hosts are listed above!', 'info');
         }
-        showNewPrompt();
-        return;
+        return 'async';
     }
 }
 
