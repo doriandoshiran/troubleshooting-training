@@ -831,3 +831,147 @@ function checkFileEditCompletion(filePath, content) {
         }
     }
 }
+// File system aliases for commands.js compatibility
+function listFiles(args) {
+    var path = args.length > 0 ? args[args.length - 1] : currentDir;
+    var showAll = args.includes('-a') || args.includes('-la') || args.includes('-al');
+    var longFormat = args.includes('-l') || args.includes('-la') || args.includes('-al');
+    
+    // Handle path resolution
+    var targetPath = path;
+    if (!path || path.startsWith('-')) {
+        targetPath = currentDir;
+    } else if (!path.startsWith('/')) {
+        targetPath = currentDir + '/' + path;
+        targetPath = targetPath.replace(/\/+/g, '/');
+    }
+    
+    var currentFS = getCurrentFileSystem();
+    var dirContent = currentFS[targetPath];
+    
+    if (!dirContent) {
+        addOutput('ls: cannot access \'' + path + '\': No such file or directory', 'error');
+        return;
+    }
+    
+    var entries = Object.keys(dirContent);
+    
+    if (!showAll) {
+        entries = entries.filter(function(entry) {
+            return !entry.startsWith('.');
+        });
+    }
+    
+    if (entries.length === 0) {
+        addOutput('');
+        return;
+    }
+    
+    if (longFormat) {
+        entries.forEach(function(entry) {
+            var isDir = dirContent[entry] === 'directory';
+            var permissions = isDir ? 'drwxr-xr-x' : '-rw-r--r--';
+            var linkCount = isDir ? '2' : '1';
+            var size = isDir ? '4096' : '1024';
+            var date = 'Jun 16 14:30';
+            
+            addOutput(permissions + '  ' + linkCount + ' root root     ' + size + ' ' + date + ' ' + entry);
+        });
+    } else {
+        addOutput(entries.join('  '));
+    }
+}
+
+function viewFile(filePath) {
+    if (!filePath) {
+        addOutput('cat: missing file argument', 'error');
+        return;
+    }
+    
+    var content = readFile(filePath);
+    if (content !== null) {
+        var lines = content.split('\n');
+        lines.forEach(function(line) {
+            addOutput(line);
+        });
+        
+        // Check for flags in the content
+        checkForFlag(content);
+    } else {
+        addOutput('cat: ' + filePath + ': No such file or directory', 'error');
+    }
+}
+
+function editFile(filePath, editor) {
+    executeEditor(editor, [filePath]);
+}
+
+// Missing file systems - add to your file-system.js
+var clusterFileSystem = k8sFileSystem;  // Use k8sFileSystem as clusterFileSystem
+var fileSystem = centosFileSystem;     // Use centosFileSystem as fileSystem
+
+// CTF logs for Kubernetes challenges
+window.ctfLogs = {
+    'webapp-deployment-7d4b8c9f4d-xyz123': `2025-06-16T14:30:15.123Z INFO  Starting webapp container...
+2025-06-16T14:30:16.456Z INFO  Loading configuration from /etc/config/app.yaml
+2025-06-16T14:30:17.789Z INFO  Connecting to database at db.company.local:5432
+2025-06-16T14:30:18.012Z ERROR Failed to connect to database: connection timeout after 30s
+2025-06-16T14:30:19.345Z ERROR Database host db.company.local is unreachable (more unreachable than Shrek's social skills)
+2025-06-16T14:30:20.678Z ERROR Retrying database connection (attempt 1/3)
+2025-06-16T14:30:25.901Z ERROR Retrying database connection (attempt 2/3)
+2025-06-16T14:30:30.234Z ERROR Retrying database connection (attempt 3/3)
+2025-06-16T14:30:35.567Z FATAL All database connection attempts failed, shutting down
+2025-06-16T14:30:36.890Z INFO  Container exit code: 1 (sadder than when Fiona turned into an ogre)
+2025-06-16T14:30:37.123Z DEBUG Investigation shows database service is running but unreachable
+2025-06-16T14:30:38.456Z DEBUG FLAG{DATABASE_CONNECTION_TIMEOUT_DETECTED}
+2025-06-16T14:30:39.789Z DEBUG 🔍 Keep investigating! 🔍`,
+
+    'database-pv-claim': `Name:          database-pv-claim
+Namespace:     default
+StorageClass:  fast-ssd
+Status:        Pending
+Volume:        
+Labels:        <none>
+Annotations:   volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/no-provisioner
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      
+Access Modes:  
+VolumeMode:    Filesystem
+Used By:       database-statefulset-0
+Events:
+  Type     Reason              Age               Message
+  ----     ------              ----              -------
+  Warning  ProvisioningFailed  2m (x15 over 30m) storageclass.storage.k8s.io "fast-ssd" not found
+  Normal   ExternalProvisioning 30s              waiting for a volume to be created, either by external provisioner "kubernetes.io/no-provisioner" or manually created by system administrator
+  Warning  ProvisioningFailed  15s              Failed to provision volume with StorageClass "fast-ssd": storageclass.storage.k8s.io "fast-ssd" not found
+  Normal   WaitForFirstConsumer 5s               FLAG{STORAGE_CLASS_MISCONFIGURATION_FOUND}
+
+🔍 Storage investigation complete - the StorageClass is missing!`,
+
+    'nginx-service-config': `Name:                     nginx-service
+Namespace:                default
+Labels:                   app=nginx
+Annotations:              <none>
+Selector:                 app=nginx-wrong
+Type:                     LoadBalancer
+IP Family Policy:        SingleStack
+IP Families:             IPv4
+IP:                      10.96.100.200
+IPs:                     10.96.100.200
+LoadBalancer Ingress:    <pending>
+Port:                    http  80/TCP
+TargetPort:              80/TCP
+NodePort:                http  30081/TCP
+Endpoints:               <none>
+Session Affinity:        None
+External Traffic Policy: Cluster
+Events:
+  Type     Reason                Age               Message
+  ----     ------                ----              -------
+  Warning  SyncLoadBalancerFailed 5m (x10 over 30m) Error syncing load balancer: failed to ensure load balancer: no available nodes for service
+  Normal   EnsuringLoadBalancer   2m                Ensuring load balancer
+  Warning  ServiceSelectorMismatch 1m               Service selector "app=nginx-wrong" does not match any pods (should be "app=nginx")
+  Normal   ConfigurationFixed     30s               FLAG{SERVICE_SELECTOR_MISMATCH_RESOLVED}
+
+🔗 Service troubleshooting reveals selector mismatch!`
+};
