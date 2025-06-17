@@ -486,14 +486,6 @@ function showHelp() {
         addOutput('  date                     - Show current date/time');
         addOutput('  uptime                   - Show system uptime');
         addOutput('');
-        addOutput('🎭 Fun Commands:', 'warning');
-        addOutput('  shrek                    - Meet the ogre!');
-        addOutput('  donkey                   - Donkey wisdom');
-        addOutput('  meme                     - Developer memes');
-        addOutput('  ogre                     - Activate ogre mode');
-        addOutput('  fiona                    - Princess wisdom');
-        addOutput('  farquaad                 - Management insights');
-        addOutput('');
         addOutput('Begin by typing "start" to see the full training overview.', 'info');
         addOutput('🧅 Remember: Like onions, learning has layers!', 'success');
     } else if (currentHost === 'k8s') {
