@@ -518,7 +518,8 @@ function viewFile(filename) {
         filePath = filePath.replace(/\/+/g, '/');
     }
     
-    if (configFiles[filePath]) {
+    // Check if configFiles exists
+    if (typeof configFiles !== 'undefined' && configFiles[filePath]) {
         var content = configFiles[filePath];
         
         // Handle dynamic content (like swap status)
@@ -538,7 +539,9 @@ function viewFile(filename) {
         }
         
         // Check for flags in the content
-        checkForFlag(content);
+        if (typeof checkForFlag === 'function') {
+            checkForFlag(content);
+        }
         
         // Easter egg responses for special files
         if (filePath.includes('shrek')) {
@@ -596,7 +599,8 @@ function editFile(filename) {
     addOutput('💡 Remember: In vi, everything is possible but nothing is easy!', 'info');
     addOutput('');
     
-    if (configFiles[filePath]) {
+    // Check if configFiles exists
+    if (typeof configFiles !== 'undefined' && configFiles[filePath]) {
         addOutput('Current file contents:', 'info');
         var lines = configFiles[filePath].split('\n');
         for (var i = 0; i < lines.length; i++) {
@@ -615,10 +619,14 @@ function editFile(filename) {
             addOutput('4. Verify all port configurations match your firewall rules');
             addOutput('🧅 Remember: Good configs are like ogres - they have layers!', 'success');
             
-            if (!systemState.centos.platformConfigured) {
+            if (typeof systemState !== 'undefined' && !systemState.centos.platformConfigured) {
                 systemState.centos.platformConfigured = true;
-                completedTasks.add('platform');
-                updateTaskProgress();
+                if (typeof completedTasks !== 'undefined') {
+                    completedTasks.add('platform');
+                }
+                if (typeof updateTaskProgress === 'function') {
+                    updateTaskProgress();
+                }
                 addOutput('');
                 addOutput('✓ Platform configuration reviewed!', 'success');
             }
@@ -634,10 +642,14 @@ function editFile(filename) {
             addOutput('proxy_password=your_password');
             addOutput('Configuration completed!', 'success');
             
-            if (!systemState.centos.yumProxyConfigured) {
+            if (typeof systemState !== 'undefined' && !systemState.centos.yumProxyConfigured) {
                 systemState.centos.yumProxyConfigured = true;
-                completedTasks.add('yum-proxy');
-                updateTaskProgress();
+                if (typeof completedTasks !== 'undefined') {
+                    completedTasks.add('yum-proxy');
+                }
+                if (typeof updateTaskProgress === 'function') {
+                    updateTaskProgress();
+                }
                 addOutput('');
                 addOutput('✓ YUM proxy configuration completed!', 'success');
             }

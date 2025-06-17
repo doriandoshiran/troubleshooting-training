@@ -580,13 +580,23 @@ function executeKubectl(args) {
             addOutput('');
             addOutput('🔍 Pod details revealed - check logs next!', 'info');
         } else if (resource === 'pvc' && name === 'database-pv-claim') {
+            var ctfLogs = window.ctfLogs || {};
             var pvcDesc = ctfLogs['database-pv-claim'];
-            addOutput(pvcDesc);
-            checkForFlag(pvcDesc);
+            if (pvcDesc) {
+                addOutput(pvcDesc);
+                checkForFlag(pvcDesc);
+            } else {
+                addOutput('No description available for this resource', 'warning');
+            }
         } else if (resource === 'service' && name === 'nginx-service') {
+            var ctfLogs = window.ctfLogs || {};
             var serviceDesc = ctfLogs['nginx-service-config'];
-            addOutput(serviceDesc);
-            checkForFlag(serviceDesc);
+            if (serviceDesc) {
+                addOutput(serviceDesc);
+                checkForFlag(serviceDesc);
+            } else {
+                addOutput('No description available for this resource', 'warning');
+            }
         } else {
             addOutput('kubectl describe: resource "' + (resource || 'unknown') + '" "' + (name || 'unknown') + '" not found', 'error');
             addOutput('💡 Check resource name and try again', 'info');
@@ -595,16 +605,21 @@ function executeKubectl(args) {
     } else if (subcommand === 'logs') {
         var podName = resource || name;
         if (podName === 'webapp-deployment-7d4b8c9f4d-xyz123' || podName === 'webapp-deployment') {
+            var ctfLogs = window.ctfLogs || {};
             var logs = ctfLogs['webapp-deployment-7d4b8c9f4d-xyz123'];
-            var lines = logs.split('\n');
-            for (var i = 0; i < lines.length; i++) {
-                if (lines[i].trim()) {
-                    addOutput(lines[i]);
+            if (logs) {
+                var lines = logs.split('\n');
+                for (var i = 0; i < lines.length; i++) {
+                    if (lines[i].trim()) {
+                        addOutput(lines[i]);
+                    }
                 }
+                checkForFlag(logs);
+                addOutput('');
+                addOutput('📜 Pod logs retrieved - look for clues!', 'info');
+            } else {
+                addOutput('No logs available for this pod', 'warning');
             }
-            checkForFlag(logs);
-            addOutput('');
-            addOutput('📜 Pod logs retrieved - look for clues!', 'info');
         } else if (podName === 'database-statefulset-0') {
             addOutput('2025-06-16T14:25:00.123Z INFO  Starting PostgreSQL database...');
             addOutput('2025-06-16T14:25:01.456Z INFO  Database initialized successfully');
