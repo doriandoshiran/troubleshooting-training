@@ -46,7 +46,7 @@ function handleMainKeyPress(event) {
 // Check if command handles its own prompt display
 function commandHandlesOwnPrompt(command) {
     var cmd = command.split(' ')[0].toLowerCase();
-    var asyncCommands = ['dd', 'ping', 'yum', 'clear', 'start'];
+    var asyncCommands = ['dd', 'ping', 'yum', 'clear'];
     return asyncCommands.includes(cmd);
 }
 
