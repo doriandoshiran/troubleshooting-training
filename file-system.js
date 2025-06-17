@@ -245,7 +245,10 @@ security:
 # 
 # Pro tip: Like ogres and onions, good configs have layers!`,
 
-    '/proc/meminfo': `MemTotal:       16777216 kB
+    '/proc/meminfo': function() {
+        var swapTotal = (typeof window !== 'undefined' && window.systemState && window.systemState.centos && window.systemState.centos.swapConfigured) ? '8388608' : '0';
+        var swapFree = swapTotal;
+        return `MemTotal:       16777216 kB
 MemFree:         8388608 kB
 MemAvailable:   12582912 kB
 Buffers:          524288 kB
@@ -253,16 +256,20 @@ Cached:          2097152 kB
 SwapCached:            0 kB
 Active:          4194304 kB
 Inactive:        2097152 kB
-SwapTotal:       ${systemState.centos.swapConfigured ? '8388608' : '0'} kB
-SwapFree:        ${systemState.centos.swapConfigured ? '8388608' : '0'} kB
-# Fun fact: This server has more RAM than Shrek's swamp has water!`,
+SwapTotal:       ${swapTotal} kB
+SwapFree:        ${swapFree} kB
+# Fun fact: This server has more RAM than Shrek's swamp has water!`;
+    },
 
-    '/proc/swaps': systemState.centos.swapConfigured ? 
-        `Filename				Type		Size	Used	Priority
+    '/proc/swaps': function() {
+        var isSwapConfigured = (typeof window !== 'undefined' && window.systemState && window.systemState.centos && window.systemState.centos.swapConfigured);
+        return isSwapConfigured ? 
+            `Filename				Type		Size	Used	Priority
 /swapfile                               file		8388608	0	-2
 # Swap is like Shrek - not pretty, but essential!` :
-        `Filename				Type		Size	Used	Priority
-# No swap configured - even Shrek needs backup space!`,
+            `Filename				Type		Size	Used	Priority
+# No swap configured - even Shrek needs backup space!`;
+    },
 
     '/proc/version': `Linux version 4.18.0-348.el8.x86_64 (mockbuild@centos.org) (gcc version 8.5.0) #1 SMP Tue Oct 19 15:14:05 UTC 2021
 Built with love, layers, and a little bit of ogre magic! 🧅`,
@@ -590,18 +597,12 @@ function viewFile(filename) {
         }
     }
     
+    // Handle function-based content
+    if (typeof content === 'function') {
+        content = content();
+    }
+    
     if (content) {
-        // Handle dynamic content (like swap status)
-        if (filePath === '/proc/meminfo' || filePath === '/proc/swaps') {
-            content = content.replace(/\$\{([^}]+)\}/g, function(match, expr) {
-                try {
-                    return eval(expr);
-                } catch (e) {
-                    return match;
-                }
-            });
-        }
-        
         var lines = content.split('\n');
         for (var i = 0; i < lines.length; i++) {
             addOutput(lines[i]);
@@ -613,7 +614,7 @@ function viewFile(filename) {
         }
         
         // Easter egg responses for special files
-        if (foundPath.includes('shrek') || filename.includes('shrek')) {
+        if (foundPath && (foundPath.includes('shrek') || filename.includes('shrek'))) {
             addOutput('', 'success');
             addOutput('🧅 Shrek wisdom has been revealed! Remember: Like onions, good sysadmins have layers! 🧅', 'success');
         }
@@ -680,9 +681,16 @@ function editFile(filename) {
     
     // Check if configFiles exists
     var configFiles = window.configFiles || {};
-    if (configFiles[filePath]) {
+    var content = configFiles[filePath];
+    
+    // Handle function-based content
+    if (typeof content === 'function') {
+        content = content();
+    }
+    
+    if (content) {
         addOutput('Current file contents:', 'info');
-        var lines = configFiles[filePath].split('\n');
+        var lines = content.split('\n');
         for (var i = 0; i < lines.length; i++) {
             addOutput((i + 1) + ': ' + lines[i]);
         }
