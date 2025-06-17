@@ -405,48 +405,29 @@ function startInteractiveEditor(editor, filePath, originalContent) {
     var terminal = document.getElementById('terminal-output');
     terminal.innerHTML = '';
     
-    addOutput('📝 ' + editor.toUpperCase() + ' - Interactive Editor', 'success');
-    addOutput('File: ' + filePath, 'info');
-    addOutput('═'.repeat(80), 'info');
+    // Create nano-style header
+    addOutput('  GNU nano 2.1.2-svn                File: ' + filePath, 'info');
     addOutput('');
     
-    // Create editable content area
+    // Create editable content area that looks like real nano
     var editorDiv = document.createElement('div');
     editorDiv.className = 'editor-content';
-    editorDiv.style.cssText = 'background: #1a1a1a; border: 1px solid #333; margin: 10px 0; padding: 10px; font-family: \'Courier New\', monospace; font-size: 14px; min-height: 200px; max-height: 400px; overflow-y: auto; position: relative;';
+    editorDiv.style.cssText = 'background: #0c0c0c; border: none; margin: 0; padding: 0; font-family: \'Courier New\', monospace; font-size: 14px; min-height: 300px; max-height: 400px; overflow-y: auto; position: relative;';
     
     var textarea = document.createElement('textarea');
     textarea.value = originalContent;
-    textarea.style.cssText = 'width: 100%; height: 100%; background: transparent; border: none; color: #00ff00; font-family: \'Courier New\', monospace; font-size: 14px; resize: none; outline: none; min-height: 300px;';
+    textarea.style.cssText = 'width: 100%; height: 300px; background: transparent; border: none; color: #ffffff; font-family: \'Courier New\', monospace; font-size: 14px; resize: none; outline: none; padding: 5px; margin: 0;';
     
     editorDiv.appendChild(textarea);
     terminal.appendChild(editorDiv);
     
-    // Add editor commands
+    // Add nano-style bottom commands (like real nano)
     addOutput('');
-    addOutput('Editor Commands:', 'warning');
-    if (editor === 'nano') {
-        addOutput('  Ctrl+X : Exit and save changes', 'info');
-        addOutput('  Ctrl+O : Save file (Write Out)', 'info');
-        addOutput('  Ctrl+G : Get help', 'info');
-    } else {
-        addOutput('  :w     : Save file', 'info');
-        addOutput('  :q     : Quit', 'info');
-        addOutput('  :wq    : Save and quit', 'info');
-        addOutput('  :q!    : Quit without saving', 'info');
-    }
-    addOutput('');
-    addOutput('💡 Type commands below or edit directly in the text area above', 'warning');
-    addOutput('');
+    addOutput('^G Get Help  ^O Write Out ^W Where Is  ^K Cut Text  ^J Justify   ^C Cur Pos', 'info');
+    addOutput('^X Exit      ^R Read File ^\\ Replace   ^U Uncut Text^T To Spell  ^_ Go To Line', 'info');
     
-    // Create special input for editor commands
-    var editorInputDiv = document.createElement('div');
-    editorInputDiv.className = 'input-line editor-input';
-    editorInputDiv.innerHTML = '<span class="prompt">' + (editor === 'nano' ? 'nano> ' : ':') + '</span><input type="text" class="command-input editor-command" autocomplete="off">';
-    terminal.appendChild(editorInputDiv);
-    
-    var editorInput = editorInputDiv.querySelector('.editor-command');
-    editorInput.focus();
+    // Focus the textarea immediately
+    textarea.focus();
     
     // Store editor state
     window.editorState = {
@@ -457,52 +438,98 @@ function startInteractiveEditor(editor, filePath, originalContent) {
         modified: false
     };
     
-    // Handle editor commands
-    editorInput.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            var command = event.target.value.trim();
-            
-            if (command) {
-                addOutput((editor === 'nano' ? 'nano> ' : ':') + command);
-                handleEditorCommand(command);
-            }
-            
-            event.target.value = '';
-            event.preventDefault();
-        }
-    });
-    
     // Handle text changes
     textarea.addEventListener('input', function() {
         window.editorState.modified = (textarea.value !== originalContent);
     });
     
-    // Handle keyboard shortcuts for nano
-    if (editor === 'nano') {
-        textarea.addEventListener('keydown', function(event) {
-            if (event.ctrlKey) {
-                switch(event.key.toLowerCase()) {
-                    case 'x':
-                        event.preventDefault();
-                        handleEditorCommand('exit');
-                        break;
-                    case 'o':
-                        event.preventDefault();
-                        handleEditorCommand('save');
-                        break;
-                    case 'g':
-                        event.preventDefault();
-                        handleEditorCommand('help');
-                        break;
-                }
+    // Handle keyboard shortcuts (like real nano)
+    textarea.addEventListener('keydown', function(event) {
+        if (event.ctrlKey) {
+            switch(event.key.toLowerCase()) {
+                case 'x':
+                    event.preventDefault();
+                    handleNanoExit();
+                    break;
+                case 'o':
+                    event.preventDefault();
+                    handleNanoSave();
+                    break;
+                case 'g':
+                    event.preventDefault();
+                    showNanoHelp();
+                    break;
             }
-        });
-    }
+        }
+    });
     
     scrollToBottom();
 }
 
+function handleNanoExit() {
+    var state = window.editorState;
+    if (!state) return;
+    
+    if (state.modified) {
+        // Show save prompt like real nano
+        var terminal = document.getElementById('terminal-output');
+        
+        // Add save prompt at bottom
+        var promptDiv = document.createElement('div');
+        promptDiv.style.cssText = 'position: fixed; bottom: 0; left: 0; right: 0; background: #0c0c0c; color: #ffffff; padding: 5px; border-top: 1px solid #333;';
+        promptDiv.innerHTML = 'Save modified buffer? (Answering "No" will DESTROY changes!) <span style="background: #333; padding: 2px;">Y</span>es <span style="background: #333; padding: 2px;">N</span>o <span style="background: #333; padding: 2px;">C</span>ancel';
+        document.body.appendChild(promptDiv);
+        
+        // Handle save prompt response
+        function handleSaveResponse(event) {
+            var key = event.key.toLowerCase();
+            if (key === 'y') {
+                document.body.removeChild(promptDiv);
+                document.removeEventListener('keydown', handleSaveResponse);
+                saveFile();
+                exitEditor();
+            } else if (key === 'n') {
+                document.body.removeChild(promptDiv);
+                document.removeEventListener('keydown', handleSaveResponse);
+                exitEditor();
+            } else if (key === 'c') {
+                document.body.removeChild(promptDiv);
+                document.removeEventListener('keydown', handleSaveResponse);
+                // Cancel - go back to editing
+                window.editorState.textarea.focus();
+            }
+        }
+        
+        document.addEventListener('keydown', handleSaveResponse);
+    } else {
+        exitEditor();
+    }
+}
+
+function handleNanoSave() {
+    var state = window.editorState;
+    if (!state) return;
+    
+    saveFile();
+    
+    // Show save confirmation like real nano
+    var terminal = document.getElementById('terminal-output');
+    var saveMsg = document.createElement('div');
+    saveMsg.style.cssText = 'position: fixed; bottom: 50px; left: 0; right: 0; background: #0c0c0c; color: #00ff00; padding: 5px; text-align: center;';
+    saveMsg.textContent = '[ Wrote ' + state.textarea.value.split('\n').length + ' lines ]';
+    document.body.appendChild(saveMsg);
+    
+    setTimeout(function() {
+        if (document.body.contains(saveMsg)) {
+            document.body.removeChild(saveMsg);
+        }
+        state.textarea.focus();
+    }, 2000);
+}
+
 function handleEditorCommand(command) {
+    // This function is kept for vi/vim compatibility
+    // Nano now uses direct keyboard shortcuts
     var state = window.editorState;
     
     if (!state) {
@@ -512,38 +539,8 @@ function handleEditorCommand(command) {
     
     var cmd = command.toLowerCase();
     
-    if (state.editor === 'nano') {
-        switch(cmd) {
-            case 'exit':
-            case 'x':
-                if (state.modified) {
-                    addOutput('Save modified buffer? (Y/N)', 'warning');
-                    addOutput('💾 Changes detected! Type "y" to save, "n" to discard', 'info');
-                } else {
-                    exitEditor();
-                }
-                break;
-            case 'save':
-            case 'o':
-                saveFile();
-                break;
-            case 'y':
-                saveFile();
-                exitEditor();
-                break;
-            case 'n':
-                exitEditor();
-                break;
-            case 'help':
-            case 'g':
-                showNanoHelp();
-                break;
-            default:
-                addOutput('Unknown command: ' + command, 'error');
-                addOutput('Type Ctrl+G for help', 'info');
-        }
-    } else {
-        // Vi/Vim commands
+    // Vi/Vim commands only
+    if (state.editor === 'vi' || state.editor === 'vim') {
         switch(cmd) {
             case 'w':
                 saveFile();
@@ -574,13 +571,12 @@ function handleEditorCommand(command) {
 
 function saveFile() {
     var state = window.editorState;
+    if (!state) return;
+    
     var newContent = state.textarea.value;
     
     // Update file content in memory
     fileContents[state.filePath] = newContent;
-    
-    addOutput('File saved: ' + state.filePath, 'success');
-    addOutput('💾 ' + newContent.split('\n').length + ' lines written', 'success');
     
     state.modified = false;
     state.originalContent = newContent;
@@ -592,9 +588,13 @@ function saveFile() {
 function exitEditor() {
     var state = window.editorState;
     
-    addOutput('');
-    addOutput('📝 Editor closed', 'success');
-    addOutput('Returning to terminal...', 'info');
+    // Clean up any fixed position elements
+    var fixedElements = document.querySelectorAll('[style*="position: fixed"]');
+    fixedElements.forEach(function(el) {
+        if (el.parentNode) {
+            el.parentNode.removeChild(el);
+        }
+    });
     
     // Clear editor state
     window.editorState = null;
@@ -602,9 +602,11 @@ function exitEditor() {
     // Return to normal terminal
     setTimeout(function() {
         document.getElementById('terminal-output').innerHTML = '';
-        addOutput('Terminal restored', 'success');
+        addOutput('');
+        addOutput('📝 Editor closed - returning to terminal', 'success');
+        addOutput('File: ' + state.filePath, 'info');
         showNewPrompt();
-    }, 1000);
+    }, 100);
 }
 
 function showNanoHelp() {
