@@ -1,714 +1,630 @@
-// File system simulation and file operations
+// Command execution and handling
 
-// Ensure global scope
-window.fileSystem = window.fileSystem || {};
-window.clusterFileSystem = window.clusterFileSystem || {};
-window.configFiles = window.configFiles || {};
-window.ctfLogs = window.ctfLogs || {};
-
-// File system simulation for CentOS host
-var fileSystem = {
-    '/': {
-        'root/': 'directory',
-        'etc/': 'directory',
-        'opt/': 'directory',
-        'proc/': 'directory',
-        'var/': 'directory',
-        'home/': 'directory',
-        'usr/': 'directory',
-        'bin/': 'directory',
-        'sbin/': 'directory'
-    },
-    '/root': {
-        '.bash_history': 'Command history file',
-        '.bashrc': 'Bash configuration',
-        '.vimrc': 'Vim configuration',
-        'shrek.txt': 'Secret Shrek quotes file'
-    },
-    '/etc': {
-        'fstab': 'File system table',
-        'ntp.conf': 'NTP configuration',
-        'yum.conf': 'YUM configuration',
-        'hosts': 'Host file',
-        'passwd': 'User account information',
-        'shadow': 'User password hashes',
-        'firewalld/': 'directory',
-        'systemd/': 'directory'
-    },
-    '/etc/firewalld': {
-        'zones/': 'directory',
-        'firewalld.conf': 'Firewall configuration'
-    },
-    '/opt': {
-        'platform/': 'directory'
-    },
-    '/opt/platform': {
-        'config/': 'directory',
-        'scripts/': 'directory',
-        'logs/': 'directory'
-    },
-    '/opt/platform/config': {
-        'platform-config.yaml': 'Platform configuration template',
-        'database-config.yaml': 'Database configuration template',
-        'ntp.conf.template': 'NTP configuration template'
-    },
-    '/opt/platform/scripts': {
-        'prepare-system.sh': 'System preparation script',
-        'validate-setup.sh': 'Setup validation script'
-    },
-    '/opt/platform/logs': {
-        'preparation.log': 'Preparation log file',
-        'error.log': 'Error log file'
-    },
-    '/proc': {
-        'meminfo': 'Memory information',
-        'swaps': 'Swap information',
-        'cpuinfo': 'CPU information',
-        'version': 'Kernel version'
-    },
-    '/var/log': {
-        'messages': 'System messages log',
-        'secure': 'Security log',
-        'kubernetes/': 'directory'
-    },
-    '/var/log/kubernetes': {
-        'scheduler.log': 'Kubernetes scheduler log',
-        'controller-manager.log': 'Controller manager log',
-        'kubelet.log': 'Kubelet log'
-    },
-    '/home': {
-        'training/': 'directory'
-    },
-    '/home/training': {
-        'README.txt': 'Training instructions',
-        'memes/': 'directory'
-    },
-    '/home/training/memes': {
-        'shrek-quotes.txt': 'Shrek wisdom'
-    }
-};
-
-// Cluster file system (when connected to k8s host)
-var clusterFileSystem = {
-    '/': {
-        'root/': 'directory',
-        'var/': 'directory',
-        'etc/': 'directory',
-        'home/': 'directory'
-    },
-    '/root': {
-        '.kube/': 'directory',
-        'troubleshooting/': 'directory',
-        '.bashrc': 'Bash configuration'
-    },
-    '/root/.kube': {
-        'config': 'Kubernetes configuration'
-    },
-    '/root/troubleshooting': {
-        'investigation-notes.txt': 'Investigation notes',
-        'meme-logs.txt': 'Funny log analysis'
-    },
-    '/var/log': {
-        'pods/': 'directory',
-        'containers/': 'directory',
-        'kubernetes/': 'directory'
-    },
-    '/var/log/pods': {
-        'webapp-deployment-7d4b8c9f4d-xyz123/': 'directory',
-        'database-statefulset-0/': 'directory',
-        'nginx-ingress-controller-abc123/': 'directory',
-        'shrek-pod-123/': 'directory'
-    },
-    '/var/log/containers': {
-        'webapp-container.log': 'Application container logs',
-        'database-container.log': 'Database container logs',
-        'sidecar-proxy.log': 'Sidecar proxy logs'
-    }
-};
-
-// Configuration file contents with easter eggs
-var configFiles = {
-    '/etc/fstab': `# /etc/fstab
-# Created by anaconda
-# Fun fact: This file is older than Shrek movies
-UUID=12345678-1234-1234-1234-123456789012 /                       xfs     defaults        0 0
-UUID=87654321-4321-4321-4321-210987654321 /boot                   xfs     defaults        0 0
-UUID=abcdefgh-ijkl-mnop-qrst-uvwxyz123456 swap                    swap    defaults        0 0
-# /swapfile swap swap defaults 0 0`,
-
-    '/etc/ntp.conf': `# NTP configuration file
-# Time sync is important - even Shrek needs to be on time!
-driftfile /var/lib/ntp/drift
-restrict default nomodify notrap nopeer noquery
-restrict 127.0.0.1 
-restrict ::1
-
-# Default NTP servers
-server 0.centos.pool.ntp.org iburst
-server 1.centos.pool.ntp.org iburst
-server 2.centos.pool.ntp.org iburst
-server 3.centos.pool.ntp.org iburst
-
-# Additional time servers can be added here
-# server ntp.example.com iburst`,
-
-    '/etc/yum.conf': `[main]
-cachedir=/var/cache/yum/$basearch/$releasever
-keepcache=0
-debuglevel=2
-logfile=/var/log/yum.log
-exactarch=1
-obsoletes=1
-gpgcheck=1
-plugins=1
-installonly_limit=5
-bugtracker_url=http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum
-distroverpkg=centos-release
-
-# Add proxy configuration here:
-# proxy=http://proxy.company.com:8080
-# proxy_username=your_username
-# proxy_password=your_password
-
-# Fun fact: YUM stands for "Yellow dog Updater, Modified"
-# Not "Yet another Unnecessary Manager" as some people think!`,
-
-    '/etc/hosts': `127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
-::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-192.168.1.100 prod-centos-01.company.local prod-centos-01
-192.168.1.200 db.company.local db-server
-# 192.168.1.42 shrek.swamp.local shrek
-# 🎯 Ready for enterprise configuration!`,
-
-    '/root/shrek.txt': `🟢 SHREK WISDOM FOR SYSADMINS 🟢
-
-"Better out than in!" - Always check your logs
-"I'm not a monster, I'm just ahead of the curve" - When deploying on Friday
-"What are you doing in my swamp?!" - When users complain about server maintenance
-"Layers! Onions have layers!" - Just like network architecture
-"Some of you may die, but that is a sacrifice I am willing to make" - Load balancing strategy
-
-Remember: Even ogres need proper system monitoring!
-🧅 Ogres are like servers - they have layers! 🧅`,
-
-    '/home/training/memes/shrek-quotes.txt': `🧅 SHREK TECH QUOTES 🧅
-
-"This is the part where you run away" - When seeing the server bill
-"I like that boulder. That is a nice boulder." - Appreciating stable infrastructure  
-"Are we there yet?" - Every deployment ever
-"Do you know the muffin man?" - Asking about the on-call engineer
-"Donkey!" - When the backup fails
-"I'm looking down!" - Checking server metrics
-
-Pro tip: Be like Shrek - embrace the layers (of your application stack)!`,
-
-    '/opt/platform/config/platform-config.yaml': `# Platform Configuration Template
-# Single Node Deployment with Separate Database Host
-# ⚠️  Configure carefully - "With great power comes great responsibility" - Spider-Man (and Shrek)
-
-global:
-  deployment_type: "single-node"
-  environment: "production"
-  
-cluster:
-  master_node:
-    hostname: "platform.company.local"
-    ip_address: "192.168.1.100"
-    
-database:
-  type: "postgresql"
-  host: "CHANGE_ME"  # Database server hostname/IP
-  port: 5432
-  database_name: "platform_db"
-  username: "platform_user"
-  password: "CHANGE_ME"  # Database password - make it strong!
-  
-network:
-  http_port: 80
-  https_port: 443
-  management_port: 8443
-  api_port: 6443
-  
-storage:
-  data_path: "/opt/platform/data"
-  logs_path: "/opt/platform/logs"
-  
-security:
-  ssl_enabled: true
-  cert_path: "/opt/platform/certs/platform.crt"
-  key_path: "/opt/platform/certs/platform.key"
-  
-# Edit these values for your environment:
-# - Set database.host to your database server IP
-# - Set database.password to a secure password (not "password123" or "shrek")
-# - Verify all port configurations match your firewall rules
-# 
-# Pro tip: Like ogres and onions, good configs have layers!`,
-
-    '/proc/meminfo': `MemTotal:       16777216 kB
-MemFree:         8388608 kB
-MemAvailable:   12582912 kB
-Buffers:          524288 kB
-Cached:          2097152 kB
-SwapCached:            0 kB
-Active:          4194304 kB
-Inactive:        2097152 kB
-SwapTotal:       ${systemState.centos.swapConfigured ? '8388608' : '0'} kB
-SwapFree:        ${systemState.centos.swapConfigured ? '8388608' : '0'} kB
-# Fun fact: This server has more RAM than Shrek's swamp has water!`,
-
-    '/proc/swaps': systemState.centos.swapConfigured ? 
-        `Filename				Type		Size	Used	Priority
-/swapfile                               file		8388608	0	-2
-# Swap is like Shrek - not pretty, but essential!` :
-        `Filename				Type		Size	Used	Priority
-# No swap configured - even Shrek needs backup space!`,
-
-    '/proc/version': `Linux version 4.18.0-348.el8.x86_64 (mockbuild@centos.org) (gcc version 8.5.0) #1 SMP Tue Oct 19 15:14:05 UTC 2021
-Built with love, layers, and a little bit of ogre magic! 🧅`,
-
-    '/root/.kube/config': `apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority-data: LS0tLS1CRUdJTi...
-    server: https://192.168.1.10:6443
-  name: kubernetes
-contexts:
-- context:
-    cluster: kubernetes
-    user: kubernetes-admin
-  name: kubernetes-admin@kubernetes
-current-context: kubernetes-admin@kubernetes
-kind: Config
-preferences: {}
-users:
-- name: kubernetes-admin
-  user:
-    client-certificate-data: LS0tLS1CRUdJTi...
-    client-key-data: LS0tLS1CRUdJTi...
-# Remember: With great kubectl comes great responsibility!`,
-
-    '/root/troubleshooting/investigation-notes.txt': `Kubernetes Cluster Investigation Notes
-=====================================
-
-Issues Identified:
-1. webapp-deployment pod in CrashLoopBackOff state
-   - Container exits with code 1
-   - Check logs for database connection issues
-   - Status: More crashed than Shrek's morning routine
-
-2. database-pv-claim stuck in Pending status
-   - StorageClass "fast-ssd" not found
-   - Check storage configuration
-   - Status: More pending than Fiona waiting for rescue
-
-3. nginx-service connectivity problems
-   - Service selector may be misconfigured
-   - Check service and deployment labels
-   - Status: More confused than Donkey in the morning
-
-Commands to investigate:
-- kubectl get pods
-- kubectl describe pod webapp-deployment-7d4b8c9f4d-xyz123
-- kubectl logs webapp-deployment-7d4b8c9f4d-xyz123
-- kubectl get pvc
-- kubectl describe pvc database-pv-claim
-- kubectl get services
-- kubectl describe service nginx-service
-
-Look for FLAGS in the output!
-
-💡 Pro tip: Debugging Kubernetes is like peeling an onion - lots of layers and it might make you cry!
-🔍 Remember: Stay persistent - investigate thoroughly!`,
-
-    '/root/troubleshooting/meme-logs.txt': `🎭 KUBERNETES MEME TROUBLESHOOTING LOG 🎭
-
-[ERROR] Pod crashed harder than my hopes and dreams
-[WARN] Storage class not found - it's like looking for Shrek in a beauty contest
-[INFO] Service selector wrong - more lost than Donkey without Shrek
-[DEBUG] 🔍 Debugging mode: ACTIVATED 🔍
-[ERROR] Database connection timeout - even Shrek waits for no one!
-[SUCCESS] Finally fixed! 🎉 Victory tastes better than onions!
-
-Moral of the story: 
-- Persistence pays off (never give up)
-- Read the logs (they're like ogres - have layers)
-- Never give up (Shrek didn't give up on Fiona)
-
-🧅 "Better out than in!" - Always check your error logs! 🧅`
-};
-
-// CTF-related logs and files with easter eggs
-var ctfLogs = {
-    'webapp-deployment-7d4b8c9f4d-xyz123': `2025-06-16T14:30:15.123Z INFO  Starting webapp container...
-2025-06-16T14:30:16.456Z INFO  Loading configuration from /etc/config/app.yaml
-2025-06-16T14:30:17.789Z INFO  Connecting to database at db.company.local:5432
-2025-06-16T14:30:18.012Z ERROR Failed to connect to database: connection timeout after 30s
-2025-06-16T14:30:19.345Z ERROR Database host db.company.local is unreachable (more unreachable than Shrek's social skills)
-2025-06-16T14:30:20.678Z ERROR Retrying database connection (attempt 1/3)
-2025-06-16T14:30:25.901Z ERROR Retrying database connection (attempt 2/3)
-2025-06-16T14:30:30.234Z ERROR Retrying database connection (attempt 3/3)
-2025-06-16T14:30:35.567Z FATAL All database connection attempts failed, shutting down
-2025-06-16T14:30:36.890Z INFO  Container exit code: 1 (sadder than when Fiona turned into an ogre)
-2025-06-16T14:30:37.123Z DEBUG Investigation shows database service is running but unreachable
-2025-06-16T14:30:38.456Z DEBUG FLAG{DATABASE_CONNECTION_TIMEOUT_DETECTED}
-2025-06-16T14:30:39.789Z DEBUG 🔍 Keep investigating! 🔍`,
-
-    'database-pv-claim': `Name:          database-pv-claim
-Namespace:     default
-StorageClass:  fast-ssd
-Status:        Pending (more pending than Donkey waiting for attention)
-Volume:        
-Labels:        <none>
-Annotations:   volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/no-provisioner
-Finalizers:    [kubernetes.io/pvc-protection]
-Capacity:      
-Access Modes:  
-VolumeMode:    Filesystem
-Events:
-  Type     Reason              Age                From                         Message
-  ----     ------              ----               ----                         -------
-  Warning  ProvisioningFailed  2m (x15 over 30m)  persistentvolume-controller  storageclass "fast-ssd" not found
-  Normal   ExternalProvisioning 2m (x4 over 30m)  persistentvolume-controller  waiting for a volume to be created
-  Warning  ProvisioningFailed  1m                  persistentvolume-controller  Failed to provision volume with StorageClass "fast-ssd": storageclass.storage.k8s.io "fast-ssd" not found
-  Warning  StorageClassNotFound 30s               persistentvolume-controller  FLAG{STORAGE_CLASS_MISCONFIGURATION_ERROR}
-  Info     OgreWisdom          10s                persistent-volume-controller  "Better out than in!" - Check your storage classes! 🧅`,
-
-    'nginx-service-config': `apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-service
-  namespace: default
-  labels:
-    app: nginx
-    # 🔧 Deployed with care and precision 🔧
-spec:
-  selector:
-    app: nginx-app-WRONG  # This selector is as wrong as calling Shrek handsome!
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
-  type: LoadBalancer
----
-# SERVICE CONFIGURATION ANALYSIS:
-# The service selector 'nginx-app-WRONG' doesn't match any pods
-# Actual nginx deployment uses label 'app: nginx-deployment'
-# This mismatch prevents the service from routing traffic to pods
-# 
-# It's like Donkey trying to connect to Dragon but calling her "Pretty Pony"
-# 
-# Network connectivity issue root cause:
-# Service selector label mismatch causes zero endpoints
-# FLAG{SERVICE_SELECTOR_LABEL_MISMATCH_FOUND}
-# 
-# 🧅 Remember: Labels are like ogres - they have to match exactly! 🧅
-# 🔍 Debug carefully - investigate thoroughly! 🔍`
-};
-
-// Assign to window object for global access
-window.fileSystem = fileSystem;
-window.clusterFileSystem = clusterFileSystem;
-window.configFiles = configFiles;
-window.ctfLogs = ctfLogs;
-
-// File operation functions with improved error handling
-function listFiles(args) {
-    var currentFS = getCurrentFileSystem();
-    var dirContent = currentFS[currentDir];
-    if (!dirContent) {
-        addOutput('ls: cannot access \'' + currentDir + '\': No such file or directory', 'error');
-        addOutput('💡 Pro tip: Like Shrek finding his way out of the swamp, double-check your path!', 'warning');
-        return;
-    }
-    
-    var longFormat = args && (args.includes('-l') || args.includes('-la') || args.includes('-al'));
-    var showHidden = args && (args.includes('-a') || args.includes('-la') || args.includes('-al'));
-    
-    var items = Object.keys(dirContent);
-    
-    if (showHidden) {
-        items.unshift('.', '..');
-    }
-    
-    if (longFormat) {
-        if (showHidden) {
-            addOutput('total ' + (items.length * 4));
-        }
+// Enhanced key press handler with better error handling
+function handleMainKeyPress(event) {
+    try {
+        var input = event.target;
         
-        for (var i = 0; i < items.length; i++) {
-            var name = items[i];
-            var isDir = name.endsWith('/') || name === '.' || name === '..';
-            var permissions = isDir ? 'drwxr-xr-x' : '-rw-r--r--';
-            var size = isDir ? '4096' : Math.floor(Math.random() * 10000 + 1000).toString();
-            var date = 'Jun 16 14:30';
-            
-            var displayName = name;
-            if (name.endsWith('/')) {
-                displayName = name.slice(0, -1);
+        if (event.key === 'Enter') {
+            var command = input.value.trim();
+            if (command) {
+                // Show the command on the current line by replacing the input
+                replaceInputWithCommand(getPromptString() + ' ' + command);
+                executeCommand(command);
+                addToCommandHistory(command);
+                // Only show new prompt if command doesn't handle it
+                if (!commandHandlesOwnPrompt(command)) {
+                    showNewPrompt();
+                }
+            } else {
+                // Just show empty prompt if no command
+                replaceInputWithCommand(getPromptString());
+                showNewPrompt();
             }
-            
-            addOutput(permissions + '  1 root root ' + size.padStart(8) + ' ' + date + ' ' + displayName);
+            // Clear the input value and prevent any further processing
+            input.value = '';
+            event.preventDefault();
+            event.stopPropagation();
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            navigateHistory('up', input);
+        } else if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            navigateHistory('down', input);
+        } else if (event.key === 'Tab') {
+            event.preventDefault();
+            handleTabCompletion(input);
+        } else if (event.key === 'l' && event.ctrlKey) {
+            event.preventDefault();
+            clearTerminal();
         }
-    } else {
+    } catch (error) {
+        console.error('Key press handling error:', error);
+        addOutput('Error processing command input', 'error');
+        addOutput('🧅 Even ogres make mistakes sometimes!', 'warning');
+        showNewPrompt();
+    }
+}
+
+// Check if command handles its own prompt display
+function commandHandlesOwnPrompt(command) {
+    var cmd = command.split(' ')[0].toLowerCase();
+    var asyncCommands = ['dd', 'ping', 'yum', 'clear'];
+    return asyncCommands.includes(cmd);
+}
+
+// Improved command history management
+function addToCommandHistory(command) {
+    commandHistory.push(command);
+    historyIndex = commandHistory.length;
+    
+    // Limit history size to prevent memory issues
+    if (commandHistory.length > 1000) {
+        commandHistory = commandHistory.slice(-500);
+        historyIndex = commandHistory.length;
+    }
+}
+
+function navigateHistory(direction, input) {
+    if (direction === 'up' && historyIndex > 0) {
+        historyIndex--;
+        input.value = commandHistory[historyIndex];
+    } else if (direction === 'down') {
+        if (historyIndex < commandHistory.length - 1) {
+            historyIndex++;
+            input.value = commandHistory[historyIndex];
+        } else {
+            historyIndex = commandHistory.length;
+            input.value = '';
+        }
+    }
+}
+
+function handleTabCompletion(input) {
+    var partial = input.value;
+    var completions = getTabCompletions(partial);
+    
+    if (completions.length === 1) {
+        input.value = completions[0];
+    } else if (completions.length > 1) {
+        replaceInputWithCommand(getPromptString() + ' ' + partial);
         var output = '';
-        for (var i = 0; i < items.length; i++) {
-            var name = items[i];
-            var displayName = name;
-            if (name.endsWith('/')) {
-                displayName = name.slice(0, -1);
-            }
-            output += displayName + '  ';
+        for (var i = 0; i < completions.length; i++) {
+            output += completions[i].split(' ').pop() + '  ';
         }
         addOutput(output.trim());
+        showNewPrompt();
+        input.value = partial;
     }
 }
 
-function changeDirectory(path) {
-    var currentFS = getCurrentFileSystem();
+function replaceInputWithCommand(text) {
+    // Remove the current input line more specifically
+    var terminal = document.getElementById('terminal-output');
+    var inputLines = terminal.querySelectorAll('.input-line');
     
-    if (!path || path === '~') {
-        currentDir = '/root';
-        return;
-    }
-    
-    if (path === '..') {
-        if (currentDir !== '/') {
-            var parts = currentDir.split('/');
-            parts.pop();
-            currentDir = parts.join('/') || '/';
-        }
-        return;
-    }
-    
-    if (path === '/') {
-        currentDir = '/';
-        return;
-    }
-    
-    // Remove trailing slash from path for consistency
-    var cleanPath = path;
-    if (cleanPath.endsWith('/') && cleanPath !== '/') {
-        cleanPath = cleanPath.slice(0, -1);
-    }
-    
-    var targetPath;
-    if (cleanPath.startsWith('/')) {
-        targetPath = cleanPath;
-    } else {
-        targetPath = currentDir + '/' + cleanPath;
-        targetPath = targetPath.replace(/\/+/g, '/');
-    }
-    
-    if (currentFS[targetPath]) {
-        currentDir = targetPath;
-    } else {
-        addOutput('cd: ' + path + ': No such file or directory', 'error');
-        
-        // Easter egg responses
-        if (path.toLowerCase().includes('swamp')) {
-            addOutput('🧅 "What are you doing in my swamp?!" - Directory not found, but Shrek approves of the attempt!', 'warning');
-        } else {
-            addOutput('💡 Hint: Use "ls" to see available directories, like peeling an onion layer by layer!', 'info');
+    // Remove the last input line (the one the user just typed in)
+    if (inputLines.length > 0) {
+        var lastInputLine = inputLines[inputLines.length - 1];
+        if (lastInputLine && lastInputLine.parentNode) {
+            lastInputLine.parentNode.removeChild(lastInputLine);
         }
     }
+    
+    // Add the command as output with original prompt styling
+    addOutput(text);
 }
 
-function viewFile(filename) {
-    if (!filename) {
-        addOutput('cat: missing file argument', 'error');
-        addOutput('Usage: cat [file]');
-        addOutput('💡 Remember: "Better out than in!" - Shrek (also applies to file contents)', 'info');
-        return;
-    }
+function getTabCompletions(partial) {
+    var completions = [];
     
-    var filePath;
-    if (filename.startsWith('/')) {
-        filePath = filename;
+    if (!partial.includes(' ')) {
+        completions = availableCommands.filter(function(cmd) {
+            return cmd.startsWith(partial);
+        });
     } else {
-        filePath = currentDir + '/' + filename;
-        filePath = filePath.replace(/\/+/g, '/');
-    }
-    
-    // Check if configFiles exists
-    var configFiles = window.configFiles || {};
-    
-    // For troubleshooting files, also check direct filename
-    var found = false;
-    var content = '';
-    
-    if (configFiles[filePath]) {
-        content = configFiles[filePath];
-        found = true;
-    } else if (configFiles[filename]) {
-        content = configFiles[filename];
-        found = true;
-    } else if (filename === 'investigation-notes.txt' && configFiles['/root/troubleshooting/investigation-notes.txt']) {
-        content = configFiles['/root/troubleshooting/investigation-notes.txt'];
-        found = true;
-    } else if (filename === 'meme-logs.txt' && configFiles['/root/troubleshooting/meme-logs.txt']) {
-        content = configFiles['/root/troubleshooting/meme-logs.txt'];
-        found = true;
-    }
-    
-    if (found) {
-        // Handle dynamic content (like swap status)
-        if (filePath === '/proc/meminfo' || filePath === '/proc/swaps') {
-            content = content.replace(/\$\{([^}]+)\}/g, function(match, expr) {
-                try {
-                    return eval(expr);
-                } catch (e) {
-                    return match;
-                }
-            });
-        }
-        
-        var lines = content.split('\n');
-        for (var i = 0; i < lines.length; i++) {
-            addOutput(lines[i]);
-        }
-        
-        // Check for flags in the content
-        if (typeof checkForFlag === 'function') {
-            checkForFlag(content);
-        }
-        
-        // Easter egg responses for special files
-        if (filePath.includes('shrek') || filename.includes('shrek')) {
-            addOutput('', 'success');
-            addOutput('🧅 Shrek wisdom has been revealed! Remember: Like onions, good sysadmins have layers! 🧅', 'success');
-        }
-        
-        if (filename === 'meme-logs.txt') {
-            addOutput('', 'success');
-            addOutput('🎭 "Some people think they can outsmart me... maybe, maybe. I have yet to meet one that can outsmart log files!" 🎭', 'success');
-        }
-        
-    } else {
+        var parts = partial.split(' ');
+        var lastPart = parts[parts.length - 1];
         var currentFS = getCurrentFileSystem();
         var dirContent = currentFS[currentDir];
         
-        if (dirContent && dirContent[filename]) {
-            if (dirContent[filename] === 'directory') {
-                addOutput('cat: ' + filename + ': Is a directory', 'error');
-                addOutput('💡 Hint: Use "cd ' + filename + '" to enter the directory, or "ls ' + filename + '" to list its contents!', 'info');
-            } else {
-                addOutput('cat: ' + filename + ': File content simulation');
-                addOutput('Use the actual file paths for real content.');
-            }
-        } else {
-            addOutput('cat: ' + filename + ': No such file or directory', 'error');
-            
-            // Fun error messages
-            if (filename.toLowerCase().includes('meme')) {
-                addOutput('🎭 No memes found, but the real meme is the friends we made along the way!', 'warning');
-            } else if (filename.toLowerCase().includes('donkey')) {
-                addOutput('🐴 "I\'m a believer!" - Donkey, but this file doesn\'t exist!', 'warning');
-            } else {
-                addOutput('💡 Pro tip: Check if the file exists with "ls" first!', 'info');
-            }
+        if (dirContent) {
+            var files = Object.keys(dirContent);
+            completions = files.filter(function(file) {
+                return file.startsWith(lastPart);
+            }).map(function(file) {
+                return parts.slice(0, -1).join(' ') + ' ' + file;
+            });
         }
+    }
+    
+    return completions;
+}
+
+// Enhanced command execution with better error handling and easter eggs
+function executeCommand(command) {
+    try {
+        var parts = command.split(' ');
+        var cmd = parts[0];
+        var args = parts.slice(1);
+        
+        // Easter egg commands first!
+        if (cmd.toLowerCase() === 'shrek') {
+            addOutput('🧅 "WHAT ARE YOU DOING IN MY SWAMP?!" 🧅', 'success');
+            addOutput('');
+            addOutput('Shrek says: "Better out than in!" - Always check your logs!', 'info');
+            addOutput('"Ogres are like onions... they have layers!" - Just like your network stack!', 'info');
+            addOutput('"This is the part where you run away!" - When you see the production deployment!', 'warning');
+            addOutput('');
+            addOutput('🟢 Now get back to work, you beautiful ogre! 🟢', 'success');
+            return;
+        }
+        
+        if (cmd.toLowerCase() === 'donkey') {
+            addOutput('🐴 "I\'m a believer! I couldn\'t leave her if I tried!" 🐴', 'success');
+            addOutput('');
+            addOutput('Donkey wisdom for sysadmins:', 'info');
+            addOutput('• "Are we there yet?" - Every deployment status check', 'info');
+            addOutput('• "Pick me! Pick me!" - When volunteering for on-call duty', 'info');
+            addOutput('• "That\'ll do, Shrek!" - After a successful rollback', 'info');
+            addOutput('');
+            addOutput('🎵 Now get back to work, you beautiful, loyal sidekick! 🎵', 'success');
+            return;
+        }
+        
+        if (cmd.toLowerCase() === 'meme' || cmd.toLowerCase() === 'memes') {
+            addOutput('🎭 MEME COMMAND ACTIVATED! 🎭', 'success');
+            addOutput('');
+            addOutput('Popular dev memes:', 'info');
+            addOutput('• "It works on my machine!" 🖥️', 'warning');
+            addOutput('• "Just one more commit..." 🔄', 'warning');
+            addOutput('• "I\'ll fix it in production" 🔥', 'error');
+            addOutput('• "Why did it break? I didn\'t change anything!" 🤔', 'warning');
+            addOutput('');
+            addOutput('Shrek dev meme: "Debugging is like onions - it has layers!" 🧅', 'success');
+            return;
+        }
+        
+        if (cmd.toLowerCase() === 'ogre') {
+            addOutput('🧅 OGRE MODE ACTIVATED! 🧅', 'success');
+            addOutput('');
+            addOutput('You are now thinking like an ogre!', 'info');
+            addOutput('Remember: Ogres have layers, just like good architecture!', 'warning');
+            addOutput('');
+            addOutput('Current ogre stats:', 'info');
+            addOutput('• Grumpiness: Maximum 😤', 'warning');
+            addOutput('• Layer complexity: Expert level 🧅', 'success');
+            addOutput('• Swamp security: Fortress mode 🏰', 'success');
+            addOutput('• Onion knowledge: Legendary 🌟', 'success');
+            return;
+        }
+        
+        // Handle async commands that need special timing
+        var asyncCommands = ['dd', 'ping', 'yum'];
+        if (asyncCommands.includes(cmd.toLowerCase())) {
+            executeAsyncCommand(cmd.toLowerCase(), args);
+            return; // Don't call showNewPrompt here - async commands handle their own timing
+        }
+        
+        switch (cmd.toLowerCase()) {
+            case 'start':
+                startTraining();
+                break;
+            case 'help':
+                showHelp();
+                break;
+            case 'ssh':
+                connectToHost(args);
+                break;
+            case 'exit':
+            case 'logout':
+                disconnectFromHost();
+                break;
+            case 'ls':
+                if (currentHost === 'jumphost') {
+                    addOutput('bash: ls: command not found on jumphost', 'error');
+                    addOutput('🦘 This jumphost is more limited than Shrek\'s social circle!', 'warning');
+                } else {
+                    try {
+                        if (typeof listFiles === 'function') {
+                            listFiles(args);
+                        } else {
+                            addOutput('Error: listFiles function not found', 'error');
+                            addOutput('🧅 This is more broken than Shrek\'s morning routine!', 'warning');
+                        }
+                    } catch (error) {
+                        console.error('ls command error:', error);
+                        addOutput('Error: ls command failed - ' + error.message, 'error');
+                    }
+                }
+                break;
+            case 'cd':
+                if (currentHost === 'jumphost') {
+                    addOutput('bash: cd: command not found on jumphost', 'error');
+                    addOutput('🦘 You\'re stuck here like Fiona in her tower!', 'warning');
+                } else {
+                    try {
+                        if (typeof changeDirectory === 'function') {
+                            changeDirectory(args[0]);
+                        } else {
+                            addOutput('Error: changeDirectory function not found', 'error');
+                        }
+                    } catch (error) {
+                        console.error('cd command error:', error);
+                        addOutput('Error: cd command failed - ' + error.message, 'error');
+                    }
+                }
+                break;
+            case 'cat':
+                if (currentHost === 'jumphost') {
+                    addOutput('bash: cat: command not found on jumphost', 'error');
+                    addOutput('🐱 No cats on this jumphost, only jumping!', 'warning');
+                } else {
+                    try {
+                        if (typeof viewFile === 'function') {
+                            viewFile(args[0]);
+                        } else {
+                            addOutput('Error: viewFile function not found', 'error');
+                        }
+                    } catch (error) {
+                        console.error('cat command error:', error);
+                        addOutput('Error: cat command failed - ' + error.message, 'error');
+                    }
+                }
+                break;
+            case 'vi':
+            case 'vim':
+            case 'nano':
+                if (currentHost === 'jumphost') {
+                    addOutput('bash: ' + cmd + ': command not found on jumphost', 'error');
+                    addOutput('📝 No text editors here - this jumphost is more basic than Shrek\'s cooking!', 'warning');
+                } else {
+                    editFile(args[0]);
+                }
+                break;
+            case 'pwd':
+                if (currentHost === 'jumphost') {
+                    addOutput('/home/acme-training');
+                } else {
+                    addOutput(currentDir);
+                }
+                break;
+            case 'whoami':
+                if (currentHost === 'jumphost') {
+                    addOutput('training');
+                } else {
+                    addOutput('root');
+                }
+                addOutput('🧅 You are an ogre... I mean, a sysadmin with layers!', 'success');
+                break;
+            case 'clear':
+                clearTerminal();
+                return; // Don't call showNewPrompt - clearTerminal handles it
+            case 'kubectl':
+                if (currentHost === 'k8s') {
+                    executeKubectl(args);
+                } else {
+                    addOutput('kubectl: command not found', 'error');
+                    addOutput('⚓ No kubectl here - you\'re not in Kubernetes land!', 'warning');
+                }
+                break;
+            case 'systemctl':
+                if (currentHost === 'centos') {
+                    executeSystemctl(args);
+                } else {
+                    addOutput('systemctl: command not found', 'error');
+                    addOutput('⚙️ systemctl is only available on the CentOS host!', 'info');
+                }
+                break;
+            case 'firewall-cmd':
+                if (currentHost === 'centos') {
+                    executeFirewallCmd(args);
+                } else {
+                    addOutput('firewall-cmd: command not found', 'error');
+                    addOutput('🔥 No firewall commands here - connect to CentOS first!', 'warning');
+                }
+                break;
+            case 'free':
+                if (currentHost !== 'jumphost') {
+                    executeFree(args);
+                } else {
+                    addOutput('free: command not found on jumphost', 'error');
+                    addOutput('💰 Nothing is free on the jumphost!', 'warning');
+                }
+                break;
+            case 'df':
+                if (currentHost !== 'jumphost') {
+                    executeDf(args);
+                } else {
+                    addOutput('df: command not found on jumphost', 'error');
+                    addOutput('💾 No disk info on this simple jumphost!', 'warning');
+                }
+                break;
+            case 'mkswap':
+                if (currentHost === 'centos') {
+                    executeMkswap(args);
+                } else {
+                    addOutput('mkswap: command not found', 'error');
+                    addOutput('🔄 Swap creation only available on CentOS!', 'info');
+                }
+                break;
+            case 'swapon':
+                if (currentHost === 'centos') {
+                    executeSwapon(args);
+                } else {
+                    addOutput('swapon: command not found', 'error');
+                    addOutput('🔄 Swap management only on CentOS!', 'info');
+                }
+                break;
+            case 'history':
+                showCommandHistory();
+                break;
+            case 'date':
+                var now = new Date();
+                addOutput(now.toString());
+                addOutput('⏰ Time flies when you\'re having fun with Linux!', 'info');
+                break;
+            case 'uptime':
+                var uptime = Math.floor(Math.random() * 100) + 1;
+                addOutput('up ' + uptime + ' days, load average: 0.5, 0.3, 0.1');
+                break;
+            default:
+                addOutput('bash: ' + cmd + ': command not found', 'error');
+                
+                // Fun responses for common typos
+                if (cmd.toLowerCase().includes('shek') || cmd.toLowerCase().includes('shre')) {
+                    addOutput('🧅 Did you mean "shrek"? Type it correctly to meet the ogre!', 'warning');
+                } else if (cmd.toLowerCase().includes('help') || cmd.toLowerCase() === '?') {
+                    addOutput('💡 Try typing "help" for available commands!', 'info');
+                } else if (cmd.toLowerCase().includes('sudo')) {
+                    addOutput('🔒 You\'re already root - no sudo needed! "With great power comes great responsibility!"', 'warning');
+                } else {
+                    // Random fun responses
+                    var funResponses = [
+                        '🧅 "That command is as real as Shrek\'s beauty routine!"',
+                        '💡 "Like layers of an onion, try peeling back to basic commands!"',
+                        '🐴 "Even Donkey knows that command doesn\'t exist!"'
+                    ];
+                    var randomResponse = funResponses[Math.floor(Math.random() * funResponses.length)];
+                    addOutput(randomResponse, 'warning');
+                }
+        }
+        
+    } catch (error) {
+        console.error('Command execution error:', error);
+        addOutput('Error executing command: ' + command, 'error');
+        addOutput('🧅 Something went wrong - even ogres have bad days!', 'warning');
     }
 }
 
-function editFile(filename) {
-    if (!filename) {
-        addOutput('vi: missing file argument', 'error');
-        addOutput('Usage: vi [file]');
-        addOutput('💡 Fun fact: vi stands for "visual" - just like how Shrek is "visually striking"! 😂', 'info');
+// Handle async commands that need special timing control
+function executeAsyncCommand(cmd, args) {
+    switch (cmd) {
+        case 'dd':
+            if (currentHost === 'centos') {
+                executeDd(args);
+                // Don't show prompt immediately - executeDd handles timing
+            } else {
+                addOutput('dd: command not found', 'error');
+                addOutput('🔄 DD command only available on CentOS!', 'warning');
+                showNewPrompt();
+            }
+            break;
+        case 'ping':
+            if (currentHost !== 'jumphost') {
+                executePing(args);
+                // Don't show prompt immediately - executePing handles timing
+            } else {
+                addOutput('ping: command not found on jumphost', 'error');
+                addOutput('🏓 No ping-pong on this jumphost!', 'warning');
+                showNewPrompt();
+            }
+            break;
+        case 'yum':
+            if (currentHost === 'centos') {
+                executeYum(args);
+                // executeYum handles its own timing
+            } else {
+                addOutput('yum: command not found', 'error');
+                addOutput('🍰 No yum-yum here, only on CentOS!', 'warning');
+                showNewPrompt();
+            }
+            break;
+    }
+}
+
+function showCommandHistory() {
+    if (commandHistory.length === 0) {
+        addOutput('No commands in history');
+        addOutput('🧅 Your history is as empty as Shrek\'s social calendar!', 'warning');
         return;
     }
     
-    var filePath;
-    if (filename.startsWith('/')) {
-        filePath = filename;
-    } else {
-        filePath = currentDir + '/' + filename;
-        filePath = filePath.replace(/\/+/g, '/');
+    var start = Math.max(0, commandHistory.length - 50); // Show last 50 commands
+    for (var i = start; i < commandHistory.length; i++) {
+        addOutput((i + 1) + '  ' + commandHistory[i]);
     }
-    
-    addOutput('Opening file in vi editor: ' + filePath, 'info');
     addOutput('');
-    addOutput('--- Simulated vi editor ---', 'warning');
-    addOutput('In a real environment, this would open the vi text editor.');
-    addOutput('💡 Remember: In vi, everything is possible but nothing is easy!', 'info');
-    addOutput('');
-    
-    // Check if configFiles exists
-    var configFiles = window.configFiles || {};
-    if (configFiles[filePath]) {
-        addOutput('Current file contents:', 'info');
-        var lines = configFiles[filePath].split('\n');
-        for (var i = 0; i < lines.length; i++) {
-            addOutput((i + 1) + ': ' + lines[i]);
-        }
+    addOutput('📜 Your command history - a tale of triumph and occasional typos!', 'info');
+}
+
+// Connection commands
+function connectToHost(args) {
+    if (args.length === 0) {
+        addOutput('Usage: ssh root@[hostname]', 'error');
         addOutput('');
-        addOutput('Use this information to understand the file structure.', 'success');
-        
-        // Special handling for platform configuration
-        if (filePath === '/opt/platform/config/platform-config.yaml') {
-            addOutput('');
-            addOutput('💡 CONFIGURATION TIPS:', 'warning');
-            addOutput('1. Change "CHANGE_ME" values to appropriate settings');
-            addOutput('2. Set database.host to your database server IP');
-            addOutput('3. Set a secure database password (not "password123" or "shrek")');
-            addOutput('4. Verify all port configurations match your firewall rules');
-            addOutput('🧅 Remember: Good configs are like ogres - they have layers!', 'success');
-            
-            if (typeof systemState !== 'undefined' && !systemState.centos.platformConfigured) {
-                systemState.centos.platformConfigured = true;
-                if (typeof completedTasks !== 'undefined') {
-                    completedTasks.add('platform');
-                }
-                if (typeof updateTaskProgress === 'function') {
-                    updateTaskProgress();
-                }
-                addOutput('');
-                addOutput('✓ Platform configuration reviewed!', 'success');
-            }
-        }
-        
-        // Special handling for YUM configuration
-        if (filePath === '/etc/yum.conf') {
-            addOutput('');
-            addOutput('💡 YUM PROXY CONFIGURATION:', 'warning');
-            addOutput('Uncomment and modify these lines:');
-            addOutput('proxy=http://proxy.company.com:8080');
-            addOutput('proxy_username=your_username');
-            addOutput('proxy_password=your_password');
-            addOutput('Configuration completed!', 'success');
-            
-            if (typeof systemState !== 'undefined' && !systemState.centos.yumProxyConfigured) {
-                systemState.centos.yumProxyConfigured = true;
-                if (typeof completedTasks !== 'undefined') {
-                    completedTasks.add('yum-proxy');
-                }
-                if (typeof updateTaskProgress === 'function') {
-                    updateTaskProgress();
-                }
-                addOutput('');
-                addOutput('✓ YUM proxy configuration completed!', 'success');
-            }
-        }
-        
-        // Easter egg for special files
-        if (filePath.includes('shrek')) {
-            addOutput('');
-            addOutput('🧅 Editing Shrek wisdom! "This is the part where you run away... from bad configs!"', 'success');
-        }
-        
-    } else {
-        addOutput('File does not exist. In vi, you could create a new file here.', 'info');
-        
-        // Fun responses for non-existent files
-        if (filename.toLowerCase().includes('recipe')) {
-            addOutput('🧅 Shrek says: "Onions are the only recipe you need!"', 'warning');
-        } else if (filename.toLowerCase().includes('love')) {
-            addOutput('💕 "Love is like an onion - you peel away layer after layer and sometimes you cry!" - Shrek', 'warning');
-        }
+        addOutput('Available hosts:', 'info');
+        addOutput('  root@prod-centos-01.company.local  - CentOS 7.9 system preparation');
+        addOutput('  root@k8s-master-01.company.local   - Kubernetes cluster troubleshooting');
+        addOutput('');
+        addOutput('🧅 Choose your swamp... I mean, server!', 'success');
+        return;
     }
     
-    addOutput('');
-    addOutput('--- End of vi simulation ---', 'warning');
-    addOutput('💡 Pro tip: In real vi, press ESC then :q! to quit without saving!', 'info');
+    var target = args[0];
+    var hostname = target.includes('@') ? target.split('@')[1] : target;
+    
+    if (hostname === 'prod-centos-01.company.local' || hostname === 'prod-centos-01') {
+        addOutput('Connecting to prod-centos-01.company.local...', 'info');
+        addOutput('🔐 Authenticating with SSH keys...', 'info');
+        addOutput('Welcome to CentOS Linux 7.9.2009 (Core)', 'success');
+        addOutput('🧅 "Welcome to my swamp!" - Shrek (probably)', 'success');
+        addOutput('');
+        currentHost = 'centos';
+        currentDir = '/root';
+    } else if (hostname === 'k8s-master-01.company.local' || hostname === 'k8s-master-01') {
+        addOutput('Connecting to k8s-master-01.company.local...', 'info');
+        addOutput('🔐 Authenticating with SSH keys...', 'info');
+        addOutput('⚠️  Warning: Production Kubernetes cluster!', 'warning');
+        addOutput('');
+        currentHost = 'k8s';
+        currentDir = '/root';
+        systemState.k8s.connected = true;
+    } else {
+        addOutput('ssh: Could not resolve hostname ' + hostname, 'error');
+        
+        // Fun responses for wrong hostnames
+        if (hostname.toLowerCase().includes('swamp')) {
+            addOutput('🧅 Nice try, but Shrek\'s swamp is not a valid hostname!', 'warning');
+        } else {
+            addOutput('💡 Double-check the hostname - available hosts are listed above!', 'info');
+        }
+        return;
+    }
+    
+    updatePrompt();
+}
+
+function startTraining() {
+    addOutput('╔══════════════════════════════════════════════════════════════════════════════╗', 'info');
+    addOutput('║                        ACME Corporation Training Program                     ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  Welcome to the Infrastructure Security Training Environment               ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  Available Training Hosts:                                                  ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  🖥️  prod-centos-01.company.local    - CentOS 7.9 system preparation       ║', 'info');
+    addOutput('║      • Configure firewall and network security                              ║', 'info');
+    addOutput('║      • Setup swap, NTP, and system services                                 ║', 'info');
+    addOutput('║      • Install and configure enterprise platform                           ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  ☸️  k8s-master-01.company.local     - Kubernetes troubleshooting          ║', 'info');
+    addOutput('║      • Investigate pod crashes and service issues                          ║', 'info');
+    addOutput('║      • Debug storage and networking problems                                ║', 'info');
+    addOutput('║      • Find hidden security flags in logs (CTF challenges)                 ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  Training Objectives:                                                       ║', 'info');
+    addOutput('║  • Master Linux system administration skills                                ║', 'info');
+    addOutput('║  • Learn Kubernetes troubleshooting techniques                             ║', 'info');
+    addOutput('║  • Develop security incident investigation abilities                        ║', 'info');
+    addOutput('║  • Practice with real-world enterprise scenarios                           ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('║  Connection Instructions:                                                    ║', 'info');
+    addOutput('║  ssh root@prod-centos-01.company.local    (System preparation)            ║', 'info');
+    addOutput('║  ssh root@k8s-master-01.company.local     (Kubernetes troubleshooting)    ║', 'info');
+    addOutput('║                                                                              ║', 'info');
+    addOutput('╚══════════════════════════════════════════════════════════════════════════════╝', 'info');
+    addOutput('Training environment initialized. Choose a host to begin:', 'success');
+}
+
+function disconnectFromHost() {
+    if (currentHost === 'jumphost') {
+        addOutput('You are already on the jumphost.', 'warning');
+        addOutput('🦘 You\'re already here - nowhere to disconnect from!', 'info');
+        return;
+    }
+    
+    var hostName = getPromptHost();
+    addOutput('Connection to ' + hostName + '.company.local closed.', 'info');
+    
+    if (hostName === 'prod-centos-01') {
+        addOutput('🧅 "Farewell! Come back to my swamp anytime!" - Shrek', 'success');
+    } else if (hostName === 'k8s-master-01') {
+        addOutput('Connection closed.', 'info');
+    }
+    
+    currentHost = 'jumphost';
+    currentDir = '/root';
+    updatePrompt();
+}
+
+function showHelp() {
+    if (currentHost === 'jumphost') {
+        addOutput('🦘 ACME Training Environment Help:', 'info');
+        addOutput('');
+        addOutput('Getting Started:', 'success');
+        addOutput('  start                    - Show training overview and available hosts');
+        addOutput('  ssh root@[hostname]      - Connect to remote host');
+        addOutput('');
+        addOutput('Available Hosts:', 'success');
+        addOutput('  prod-centos-01.company.local  - CentOS system preparation');
+        addOutput('  k8s-master-01.company.local   - Kubernetes troubleshooting');
+        addOutput('');
+        addOutput('Basic Commands:', 'success');
+        addOutput('  help                     - Show this help');
+        addOutput('  clear                    - Clear terminal');
+        addOutput('  history                  - Show command history');
+        addOutput('  date                     - Show current date/time');
+        addOutput('  uptime                   - Show system uptime');
+        addOutput('');
+        addOutput('🎭 Fun Commands:', 'warning');
+        addOutput('  shrek                    - Meet the ogre!');
+        addOutput('  donkey                   - Donkey wisdom');
+        addOutput('  meme                     - Developer memes');
+        addOutput('  ogre                     - Activate ogre mode');
+        addOutput('');
+        addOutput('Begin by typing "start" to see the full training overview.', 'info');
+        addOutput('🧅 Remember: Like onions, learning has layers!', 'success');
+    } else if (currentHost === 'k8s') {
+        addOutput('☸️  Kubernetes Troubleshooting Commands:', 'info');
+        addOutput('');
+        addOutput('Connection Commands:', 'success');
+        addOutput('  exit/logout              - Return to jumphost');
+        addOutput('');
+        addOutput('Kubernetes Commands:', 'success');
+        addOutput('  kubectl get [resource]   - List resources (pods, services, pvc, events)');
+        addOutput('  kubectl describe [type] [name] - Get detailed info');
+        addOutput('  kubectl logs [pod-name]  - View pod logs');
+        addOutput('');
+        addOutput('System Commands:', 'success');
+        addOutput('  ls [-la]                 - List files');
+        addOutput('  cat [file]               - View file contents');
+        addOutput('  cd [directory]           - Change directory');
+        addOutput('  pwd                      - Show current directory');
+        addOutput('  whoami                   - Show current user');
+        addOutput('  clear                    - Clear terminal');
+        addOutput('  history                  - Show command history');
+        addOutput('');
+        addOutput('🚩 Find 3 flags hidden in logs and configurations!', 'warning');
+    } else if (currentHost === 'centos') {
+        addOutput('🐧 CentOS System Administration Commands:', 'info');
+        addOutput('');
+        addOutput('Connection Commands:', 'success');
+        addOutput('  exit/logout              - Return to jumphost');
+        addOutput('');
+        addOutput('System Commands:', 'success');
+        addOutput('  ls [-la]                 - List files and directories');
+        addOutput('  cd [directory]           - Change directory');
+        addOutput('  cat [file]               - Display file contents');
+        addOutput('  vi [file]                - Edit file');
+        addOutput('  pwd                      - Show current directory');
+        addOutput('  whoami                   - Show current user');
+        addOutput('  clear                    - Clear terminal');
+        addOutput('  history                  - Show command history');
+        addOutput('');
+        addOutput('System Administration:', 'success');
+        addOutput('  systemctl [action] [service] - Manage services');
+        addOutput('  firewall-cmd [options]       - Configure firewall');
+        addOutput('  yum [command] [package]      - Package management');
+        addOutput('  free [-h]                    - Show memory usage');
+        addOutput('  df [-h]                      - Show disk usage');
+        addOutput('');
+        addOutput('Storage Commands:', 'success');
+        addOutput('  dd                       - Create files/swap');
+        addOutput('  mkswap [file]            - Setup swap file');
+        addOutput('  swapon [file]            - Enable swap');
+        addOutput('');
+        addOutput('Research commands online for proper syntax and usage!', 'info');
+        addOutput('🧅 Remember: Good sysadmins are like ogres - they have layers of knowledge!', 'success');
+    }
 }

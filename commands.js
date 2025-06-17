@@ -49,7 +49,7 @@ function handleMainKeyPress(event) {
 // Check if command handles its own prompt display
 function commandHandlesOwnPrompt(command) {
     var cmd = command.split(' ')[0].toLowerCase();
-    var asyncCommands = ['dd', 'ping', 'yum', 'clear', 'start'];
+    var asyncCommands = ['dd', 'ping', 'yum', 'clear'];
     return asyncCommands.includes(cmd);
 }
 
@@ -284,7 +284,7 @@ function executeCommand(command) {
                 break;
             case 'pwd':
                 if (currentHost === 'jumphost') {
-                    addOutput('/home/training');
+                    addOutput('/home/acme-training');
                 } else {
                     addOutput(currentDir);
                 }
@@ -475,7 +475,7 @@ function connectToHost(args) {
     } else if (hostname === 'k8s-master-01.company.local' || hostname === 'k8s-master-01') {
         addOutput('Connecting to k8s-master-01.company.local...', 'info');
         addOutput('🔐 Authenticating with SSH keys...', 'info');
-        addOutput('⚠️ Warning: Production Kubernetes cluster!', 'warning');
+        addOutput('⚠️  Warning: Production Kubernetes cluster!', 'warning');
         addOutput('');
         currentHost = 'k8s';
         currentDir = '/root';
@@ -525,7 +525,6 @@ function startTraining() {
     addOutput('║                                                                              ║', 'info');
     addOutput('╚══════════════════════════════════════════════════════════════════════════════╝', 'info');
     addOutput('Training environment initialized. Choose a host to begin:', 'success');
-    showNewPrompt();
 }
 
 function disconnectFromHost() {
