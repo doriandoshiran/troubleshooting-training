@@ -126,7 +126,7 @@ var clusterFileSystem = {
     }
 };
 
-// Configuration file contents with easter eggs
+// Configuration file contents with easter eggs - STATIC VERSION
 var configFiles = {
     '/etc/fstab': `# /etc/fstab
 # Created by anaconda
@@ -245,10 +245,7 @@ security:
 # 
 # Pro tip: Like ogres and onions, good configs have layers!`,
 
-    '/proc/meminfo': function() {
-        var swapTotal = (typeof window !== 'undefined' && window.systemState && window.systemState.centos && window.systemState.centos.swapConfigured) ? '8388608' : '0';
-        var swapFree = swapTotal;
-        return `MemTotal:       16777216 kB
+    '/proc/meminfo': `MemTotal:       16777216 kB
 MemFree:         8388608 kB
 MemAvailable:   12582912 kB
 Buffers:          524288 kB
@@ -256,20 +253,12 @@ Cached:          2097152 kB
 SwapCached:            0 kB
 Active:          4194304 kB
 Inactive:        2097152 kB
-SwapTotal:       ${swapTotal} kB
-SwapFree:        ${swapFree} kB
-# Fun fact: This server has more RAM than Shrek's swamp has water!`;
-    },
+SwapTotal:       0 kB
+SwapFree:        0 kB
+# Fun fact: This server has more RAM than Shrek's swamp has water!`,
 
-    '/proc/swaps': function() {
-        var isSwapConfigured = (typeof window !== 'undefined' && window.systemState && window.systemState.centos && window.systemState.centos.swapConfigured);
-        return isSwapConfigured ? 
-            `Filename				Type		Size	Used	Priority
-/swapfile                               file		8388608	0	-2
-# Swap is like Shrek - not pretty, but essential!` :
-            `Filename				Type		Size	Used	Priority
-# No swap configured - even Shrek needs backup space!`;
-    },
+    '/proc/swaps': `Filename				Type		Size	Used	Priority
+# No swap configured - even Shrek needs backup space!`,
 
     '/proc/version': `Linux version 4.18.0-348.el8.x86_64 (mockbuild@centos.org) (gcc version 8.5.0) #1 SMP Tue Oct 19 15:14:05 UTC 2021
 Built with love, layers, and a little bit of ogre magic! 🧅`,
@@ -424,6 +413,7 @@ window.debugFiles = function() {
     console.log('ConfigFiles loaded:', Object.keys(window.configFiles || {}));
     console.log('CTF logs loaded:', Object.keys(window.ctfLogs || {}));
     console.log('Sample investigation notes:', window.configFiles['/root/troubleshooting/investigation-notes.txt'] ? 'FOUND' : 'NOT FOUND');
+    console.log('Sample meme logs:', window.configFiles['/root/troubleshooting/meme-logs.txt'] ? 'FOUND' : 'NOT FOUND');
 };
 
 // Initialize the files immediately
@@ -559,47 +549,21 @@ function viewFile(filename) {
     var content = null;
     var foundPath = null;
     
+    // Debug: Log what we're looking for
+    console.log('Looking for file:', filePath);
+    console.log('Available files:', Object.keys(configFiles));
+    
     // Try exact path first
     if (configFiles[filePath]) {
         content = configFiles[filePath];
         foundPath = filePath;
+        console.log('Found at exact path:', filePath);
     }
     // Try just the filename
     else if (configFiles[filename]) {
         content = configFiles[filename];
         foundPath = filename;
-    }
-    // Try common troubleshooting paths
-    else if (filename === 'investigation-notes.txt') {
-        var possiblePaths = [
-            '/root/troubleshooting/investigation-notes.txt',
-            'investigation-notes.txt'
-        ];
-        for (var i = 0; i < possiblePaths.length; i++) {
-            if (configFiles[possiblePaths[i]]) {
-                content = configFiles[possiblePaths[i]];
-                foundPath = possiblePaths[i];
-                break;
-            }
-        }
-    }
-    else if (filename === 'meme-logs.txt') {
-        var possiblePaths = [
-            '/root/troubleshooting/meme-logs.txt',
-            'meme-logs.txt'
-        ];
-        for (var i = 0; i < possiblePaths.length; i++) {
-            if (configFiles[possiblePaths[i]]) {
-                content = configFiles[possiblePaths[i]];
-                foundPath = possiblePaths[i];
-                break;
-            }
-        }
-    }
-    
-    // Handle function-based content
-    if (typeof content === 'function') {
-        content = content();
+        console.log('Found with filename:', filename);
     }
     
     if (content) {
@@ -630,6 +594,7 @@ function viewFile(filename) {
         }
         
     } else {
+        console.log('File not found in configFiles, checking filesystem...');
         var currentFS = getCurrentFileSystem();
         var dirContent = currentFS[currentDir];
         
@@ -640,9 +605,11 @@ function viewFile(filename) {
             } else {
                 addOutput('cat: ' + filename + ': File content simulation');
                 addOutput('Use the actual file paths for real content.');
+                console.log('File exists in filesystem but no content found');
             }
         } else {
             addOutput('cat: ' + filename + ': No such file or directory', 'error');
+            console.log('File not found anywhere');
             
             // Fun error messages
             if (filename.toLowerCase().includes('meme')) {
@@ -682,11 +649,6 @@ function editFile(filename) {
     // Check if configFiles exists
     var configFiles = window.configFiles || {};
     var content = configFiles[filePath];
-    
-    // Handle function-based content
-    if (typeof content === 'function') {
-        content = content();
-    }
     
     if (content) {
         addOutput('Current file contents:', 'info');
