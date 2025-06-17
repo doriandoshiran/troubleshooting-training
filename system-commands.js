@@ -611,7 +611,23 @@ function executeKubectl(args) {
                 var lines = logs.split('\n');
                 for (var i = 0; i < lines.length; i++) {
                     if (lines[i].trim()) {
-                        addOutput(lines[i]);
+                        var line = lines[i];
+                        var className = '';
+                        
+                        // Color code log levels
+                        if (line.includes(' ERROR ')) {
+                            className = 'error';
+                        } else if (line.includes(' WARN ')) {
+                            className = 'warning';
+                        } else if (line.includes(' INFO ')) {
+                            className = 'info';
+                        } else if (line.includes(' DEBUG ')) {
+                            className = 'info';
+                        } else if (line.includes(' FATAL ')) {
+                            className = 'error';
+                        }
+                        
+                        addOutput(line, className);
                     }
                 }
                 checkForFlag(logs);

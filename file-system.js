@@ -165,10 +165,10 @@ installonly_limit=5
 bugtracker_url=http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum
 distroverpkg=centos-release
 
-# Add proxy configuration here:
+# Corporate proxy configuration (uncomment and configure):
 # proxy=http://proxy.company.com:8080
-# proxy_username=your_username
-# proxy_password=your_password
+# proxy_username=corp_user
+# proxy_password=ProxyPass123
 
 # Fun fact: YUM stands for "Yellow dog Updater, Modified"
 # Not "Yet another Unnecessary Manager" as some people think!`,
@@ -217,11 +217,11 @@ cluster:
     
 database:
   type: "postgresql"
-  host: "CHANGE_ME"  # Database server hostname/IP
+  host: "CHANGE_ME"  # Set to: db.company.local (192.168.1.200)
   port: 5432
   database_name: "platform_db"
   username: "platform_user"
-  password: "CHANGE_ME"  # Database password - make it strong!
+  password: "CHANGE_ME"  # Set to: SecureDbPass2025!
   
 network:
   http_port: 80
@@ -238,9 +238,9 @@ security:
   cert_path: "/opt/platform/certs/platform.crt"
   key_path: "/opt/platform/certs/platform.key"
   
-# Edit these values for your environment:
-# - Set database.host to your database server IP
-# - Set database.password to a secure password (not "password123" or "shrek")
+# Required configuration values:
+# - database.host = "db.company.local" (IP: 192.168.1.200)
+# - database.password = "SecureDbPass2025!" (secure password)
 # - Verify all port configurations match your firewall rules
 # 
 # Pro tip: Like ogres and onions, good configs have layers!`,
@@ -675,9 +675,9 @@ function editFile(filename, editorName) {
         if (filePath === '/opt/platform/config/platform-config.yaml') {
             addOutput('');
             addOutput('💡 CONFIGURATION TIPS:', 'warning');
-            addOutput('1. Change "CHANGE_ME" values to appropriate settings');
-            addOutput('2. Set database.host to your database server IP');
-            addOutput('3. Set a secure database password (not "password123" or "shrek")');
+            addOutput('1. Change "CHANGE_ME" values to the specified settings');
+            addOutput('2. Set database.host to "db.company.local"');
+            addOutput('3. Set database.password to "SecureDbPass2025!"');
             addOutput('4. Verify all port configurations match your firewall rules');
             addOutput('🧅 Remember: Good configs are like ogres - they have layers!', 'success');
             
@@ -700,8 +700,8 @@ function editFile(filename, editorName) {
             addOutput('💡 YUM PROXY CONFIGURATION:', 'warning');
             addOutput('Uncomment and modify these lines:');
             addOutput('proxy=http://proxy.company.com:8080');
-            addOutput('proxy_username=your_username');
-            addOutput('proxy_password=your_password');
+            addOutput('proxy_username=corp_user');
+            addOutput('proxy_password=ProxyPass123');
             addOutput('Configuration completed!', 'success');
             
             if (typeof systemState !== 'undefined' && !systemState.centos.yumProxyConfigured) {

@@ -65,11 +65,16 @@
                 <h4>Task 4: Configure YUM Proxy</h4>
                 <p>Setup proxy for package management in corporate environment:</p>
                 <ul>
-                    <li>Edit YUM configuration file</li>
+                    <li>Edit YUM configuration file (/etc/yum.conf)</li>
                     <li>Add proxy server settings</li>
                     <li>Include authentication if needed</li>
                 </ul>
-                <p><strong>Example proxy:</strong> http://proxy.company.com:8080</p>
+                <p><strong>Required Settings:</strong></p>
+                <ul>
+                    <li>Proxy URL: http://proxy.company.com:8080</li>
+                    <li>Username: corp_user</li>
+                    <li>Password: ProxyPass123</li>
+                </ul>
                 
                 <h4>Task 5: Install Required Packages</h4>
                 <p>Install essential system dependencies:</p>
@@ -87,6 +92,13 @@
                     <li>Verify network port configurations</li>
                 </ul>
                 <p><strong>Config file:</strong> /opt/platform/config/platform-config.yaml</p>
+                <p><strong>Required Settings:</strong></p>
+                <ul>
+                    <li>Database host: db.company.local (192.168.1.200)</li>
+                    <li>Database password: SecureDbPass2025!</li>
+                    <li>Platform hostname: platform.company.local</li>
+                    <li>Platform IP: 192.168.1.100</li>
+                </ul>
             </div>
             
             <div class="tab-content" id="files">

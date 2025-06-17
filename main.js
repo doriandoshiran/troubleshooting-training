@@ -163,6 +163,8 @@ function showNewPrompt() {
         if (newInput) {
             newInput.focus();
             newInput.addEventListener('keydown', handleMainKeyPress);
+            // Clear any residual value
+            newInput.value = '';
         }
         
         scrollToBottom();
@@ -264,7 +266,7 @@ function checkForFlag(text) {
         
         if (!foundFlags.has(flagContent)) {
             foundFlags.add(flagContent);
-            addOutput('🚩 FLAG FOUND! FLAG{' + flagContent + '}', 'success');
+            // Removed the duplicate green flag message - flag is already visible in logs
             updateCtfProgress();
         }
     }
@@ -336,6 +338,15 @@ function setupCommandInput() {
         
         // Clear any initial value that might cause duplicate execution
         mainInput.value = '';
+    } else {
+        // Fallback: if no main input found, look for any command input
+        var anyInput = document.querySelector('.command-input');
+        if (anyInput) {
+            anyInput.removeEventListener('keydown', handleMainKeyPress);
+            anyInput.addEventListener('keydown', handleMainKeyPress);
+            anyInput.focus();
+            anyInput.value = '';
+        }
     }
 }
 
@@ -345,7 +356,7 @@ window.addEventListener('DOMContentLoaded', function() {
         // Initialize tab functionality
         initializeTabs();
         
-        // Setup command input handling
+        // Setup command input handling for the existing input in HTML
         setupCommandInput();
         
         // Setup focus management
@@ -355,6 +366,8 @@ window.addEventListener('DOMContentLoaded', function() {
         updateCtfProgress();
         updateTaskProgress();
         updatePrompt();
+        
+        // DON'T call showNewPrompt() here - use the existing prompt from HTML
         
         // Set up cleanup on page unload
         window.addEventListener('beforeunload', function() {
