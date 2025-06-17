@@ -288,16 +288,6 @@ function executeAsyncCommand(cmd, args) {
     return null;
 }
 
-// Missing function: editFile
-function editFile(filePath, editor) {
-    if (typeof executeEditor === 'function') {
-        executeEditor(editor, [filePath]);
-    } else {
-        addOutput('Error: executeEditor function not found', 'error');
-        addOutput('📝 Text editor functionality is not available', 'warning');
-    }
-}
-
 function showCommandHistory() {
     if (commandHistory.length === 0) {
         addOutput('No commands in history');
