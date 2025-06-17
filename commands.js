@@ -358,7 +358,6 @@ function executeCommand(command) {
             case 'uptime':
                 var uptime = Math.floor(Math.random() * 100) + 1;
                 addOutput('up ' + uptime + ' days, load average: 0.5, 0.3, 0.1');
-                addOutput('💪 This server has been running strong!', 'success');
                 break;
             default:
                 addOutput('bash: ' + cmd + ': command not found', 'error');
@@ -375,7 +374,6 @@ function executeCommand(command) {
                     var funResponses = [
                         '🧅 "That command is as real as Shrek\'s beauty routine!"',
                         '💡 "Like layers of an onion, try peeling back to basic commands!"',
-                        '🎭 "404 Command Not Found - but your determination is found!"',
                         '🐴 "Even Donkey knows that command doesn\'t exist!"'
                     ];
                     var randomResponse = funResponses[Math.floor(Math.random() * funResponses.length)];
@@ -469,7 +467,6 @@ function connectToHost(args) {
         addOutput('Connecting to k8s-master-01.company.local...', 'info');
         addOutput('🔐 Authenticating with SSH keys...', 'info');
         addOutput('⚠️  Warning: Production Kubernetes cluster!', 'warning');
-        addOutput('🚀 "Enter with determination and wisdom!" 💙', 'success');
         addOutput('');
         currentHost = 'k8s';
         currentDir = '/root';
@@ -519,8 +516,6 @@ function startTraining() {
     addOutput('║                                                                              ║', 'info');
     addOutput('╚══════════════════════════════════════════════════════════════════════════════╝', 'info');
     addOutput('Training environment initialized. Choose a host to begin:', 'success');
-    addOutput('🎯 "Ready for adventure? Time to level up your skills!" 💪', 'success');
-    showNewPrompt();
 }
 
 function disconnectFromHost() {
@@ -536,7 +531,7 @@ function disconnectFromHost() {
     if (hostName === 'prod-centos-01') {
         addOutput('🧅 "Farewell! Come back to my swamp anytime!" - Shrek', 'success');
     } else if (hostName === 'k8s-master-01') {
-        addOutput('🚀 "May your deployments be successful!" - System blessing', 'success');
+        addOutput('Connection closed.', 'info');
     }
     
     currentHost = 'jumphost';
@@ -592,7 +587,6 @@ function showHelp() {
         addOutput('  history                  - Show command history');
         addOutput('');
         addOutput('🚩 Find 3 flags hidden in logs and configurations!', 'warning');
-        addOutput('🎯 Debug with persistence - never give up!', 'success');
     } else if (currentHost === 'centos') {
         addOutput('🐧 CentOS System Administration Commands:', 'info');
         addOutput('');

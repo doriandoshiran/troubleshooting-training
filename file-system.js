@@ -313,14 +313,14 @@ Commands to investigate:
 Look for FLAGS in the output!
 
 💡 Pro tip: Debugging Kubernetes is like peeling an onion - lots of layers and it might make you cry!
-🎯 Remember: Stay persistent - never give up on finding the root cause!`,
+🔍 Remember: Stay persistent - investigate thoroughly!`,
 
     '/root/troubleshooting/meme-logs.txt': `🎭 KUBERNETES MEME TROUBLESHOOTING LOG 🎭
 
 [ERROR] Pod crashed harder than my hopes and dreams
 [WARN] Storage class not found - it's like looking for Shrek in a beauty contest
 [INFO] Service selector wrong - more lost than Donkey without Shrek
-[DEBUG] 🎯 Persistent debugging mode: ACTIVATED 🎯
+[DEBUG] 🔍 Debugging mode: ACTIVATED 🔍
 [ERROR] Database connection timeout - even Shrek waits for no one!
 [SUCCESS] Finally fixed! 🎉 Victory tastes better than onions!
 
@@ -346,7 +346,7 @@ var ctfLogs = {
 2025-06-16T14:30:36.890Z INFO  Container exit code: 1 (sadder than when Fiona turned into an ogre)
 2025-06-16T14:30:37.123Z DEBUG Investigation shows database service is running but unreachable
 2025-06-16T14:30:38.456Z DEBUG FLAG{DATABASE_CONNECTION_TIMEOUT_DETECTED}
-2025-06-16T14:30:39.789Z DEBUG 🎯 Stay focused, debug harder! 🎯`,
+2025-06-16T14:30:39.789Z DEBUG 🔍 Keep investigating! 🔍`,
 
     'database-pv-claim': `Name:          database-pv-claim
 Namespace:     default
@@ -375,7 +375,7 @@ metadata:
   namespace: default
   labels:
     app: nginx
-    # 🎯 Deployed with determination and precision 🎯
+    # 🔧 Deployed with care and precision 🔧
 spec:
   selector:
     app: nginx-app-WRONG  # This selector is as wrong as calling Shrek handsome!
@@ -397,7 +397,7 @@ spec:
 # FLAG{SERVICE_SELECTOR_LABEL_MISMATCH_FOUND}
 # 
 # 🧅 Remember: Labels are like ogres - they have to match exactly! 🧅
-# 🎯 Debug with persistence - never surrender! 🎯`
+# 🔍 Debug carefully - investigate thoroughly! 🔍`
 };
 
 // File operation functions with improved error handling
@@ -632,7 +632,7 @@ function editFile(filename) {
             addOutput('proxy=http://proxy.company.com:8080');
             addOutput('proxy_username=your_username');
             addOutput('proxy_password=your_password');
-            addOutput('🎯 Configure with determination!', 'success');
+            addOutput('Configuration completed!', 'success');
             
             if (!systemState.centos.yumProxyConfigured) {
                 systemState.centos.yumProxyConfigured = true;
