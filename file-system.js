@@ -1,5 +1,11 @@
 // File system simulation and file operations
 
+// Ensure global scope
+window.fileSystem = window.fileSystem || {};
+window.clusterFileSystem = window.clusterFileSystem || {};
+window.configFiles = window.configFiles || {};
+window.ctfLogs = window.ctfLogs || {};
+
 // File system simulation for CentOS host
 var fileSystem = {
     '/': {
@@ -400,6 +406,12 @@ spec:
 # 🔍 Debug carefully - investigate thoroughly! 🔍`
 };
 
+// Assign to window object for global access
+window.fileSystem = fileSystem;
+window.clusterFileSystem = clusterFileSystem;
+window.configFiles = configFiles;
+window.ctfLogs = ctfLogs;
+
 // File operation functions with improved error handling
 function listFiles(args) {
     var currentFS = getCurrentFileSystem();
@@ -519,9 +531,27 @@ function viewFile(filename) {
     }
     
     // Check if configFiles exists
-    if (typeof configFiles !== 'undefined' && configFiles[filePath]) {
-        var content = configFiles[filePath];
-        
+    var configFiles = window.configFiles || {};
+    
+    // For troubleshooting files, also check direct filename
+    var found = false;
+    var content = '';
+    
+    if (configFiles[filePath]) {
+        content = configFiles[filePath];
+        found = true;
+    } else if (configFiles[filename]) {
+        content = configFiles[filename];
+        found = true;
+    } else if (filename === 'investigation-notes.txt' && configFiles['/root/troubleshooting/investigation-notes.txt']) {
+        content = configFiles['/root/troubleshooting/investigation-notes.txt'];
+        found = true;
+    } else if (filename === 'meme-logs.txt' && configFiles['/root/troubleshooting/meme-logs.txt']) {
+        content = configFiles['/root/troubleshooting/meme-logs.txt'];
+        found = true;
+    }
+    
+    if (found) {
         // Handle dynamic content (like swap status)
         if (filePath === '/proc/meminfo' || filePath === '/proc/swaps') {
             content = content.replace(/\$\{([^}]+)\}/g, function(match, expr) {
@@ -544,9 +574,14 @@ function viewFile(filename) {
         }
         
         // Easter egg responses for special files
-        if (filePath.includes('shrek')) {
+        if (filePath.includes('shrek') || filename.includes('shrek')) {
             addOutput('', 'success');
             addOutput('🧅 Shrek wisdom has been revealed! Remember: Like onions, good sysadmins have layers! 🧅', 'success');
+        }
+        
+        if (filename === 'meme-logs.txt') {
+            addOutput('', 'success');
+            addOutput('🎭 "Some people think they can outsmart me... maybe, maybe. I have yet to meet one that can outsmart log files!" 🎭', 'success');
         }
         
     } else {
@@ -600,7 +635,8 @@ function editFile(filename) {
     addOutput('');
     
     // Check if configFiles exists
-    if (typeof configFiles !== 'undefined' && configFiles[filePath]) {
+    var configFiles = window.configFiles || {};
+    if (configFiles[filePath]) {
         addOutput('Current file contents:', 'info');
         var lines = configFiles[filePath].split('\n');
         for (var i = 0; i < lines.length; i++) {
