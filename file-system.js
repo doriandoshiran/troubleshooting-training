@@ -295,11 +295,7 @@ Pro Tips:
 2025-06-16T14:30:38.456Z DEBUG FLAG{FILESYSTEM_LOG_INVESTIGATION_COMPLETE}
 2025-06-16T14:30:39.789Z DEBUG 🔍 Container logs reveal network connectivity issues`,
 
-    '/var/log/containers/webapp-7d4b8c9f4d-xyz123_default_webapp-abc123.log': `{"log":"Starting webapp container...\\n","stream":"stdout","time":"2025-06-16T14:30:15.123456789Z"}
-{"log":"Loading configuration from /etc/config/app.yaml\\n","stream":"stdout","time":"2025-06-16T14:30:16.456789012Z"}
-{"log":"Connecting to database at db.company.local:5432\\n","stream":"stdout","time":"2025-06-16T14:30:17.789012345Z"}
-{"log":"ERROR: Failed to connect to database: connection timeout after 30s\\n","stream":"stderr","time":"2025-06-16T14:30:18.012345678Z"}
-{"log":"FLAG{CONTAINER_LOG_FORMAT_DISCOVERED}\\n","stream":"stdout","time":"2025-06-16T14:30:38.456789012Z"}`,
+    '/var/log/containers/webapp-7d4b8c9f4d-xyz123_default_webapp-abc123.log': '{"log":"Starting webapp container...\\n","stream":"stdout","time":"2025-06-16T14:30:15.123456789Z"}\n{"log":"Loading configuration from /etc/config/app.yaml\\n","stream":"stdout","time":"2025-06-16T14:30:16.456789012Z"}\n{"log":"Connecting to database at db.company.local:5432\\n","stream":"stdout","time":"2025-06-16T14:30:17.789012345Z"}\n{"log":"ERROR: Failed to connect to database: connection timeout after 30s\\n","stream":"stderr","time":"2025-06-16T14:30:18.012345678Z"}\n{"log":"FLAG{CONTAINER_LOG_FORMAT_DISCOVERED}\\n","stream":"stdout","time":"2025-06-16T14:30:38.456789012Z"}',
 
     '/var/log/kubernetes/kubelet.log': `I0616 14:30:10.123456       1 kubelet.go:1234] Starting kubelet
 I0616 14:30:11.234567       1 kubelet.go:1245] Kubelet version: v1.28.0
@@ -503,32 +499,281 @@ function executeEditor(editor, args) {
     var content = readFile(filePath);
     
     if (content !== null) {
-        addOutput('📝 Opening ' + filePath + ' with ' + editor + '...', 'info');
-        addOutput('');
-        addOutput('=== FILE CONTENT ===', 'info');
+        startInteractiveEditor(editor, filePath, content);
+    } else {
+        addOutput(editor + ': ' + filePath + ': No such file or directory', 'error');
+        addOutput('💡 The file doesn\'t exist. You could create it, but this is a read-only simulation!', 'info');
         
-        // Split content into lines and display with line numbers
-        var lines = content.split('\n');
-        lines.forEach(function(line, index) {
-            var lineNum = (index + 1).toString().padStart(3, ' ');
-            addOutput(lineNum + '  ' + line, 'file-content');
+        if (filePath.toLowerCase().includes('swamp')) {
+            addOutput('🧅 "Get out of my swamp!" - File not found in Shrek\'s domain!', 'warning');
+        }
+    }
+}
+
+function startInteractiveEditor(editor, filePath, originalContent) {
+    // Clear terminal and show editor interface
+    var terminal = document.getElementById('terminal-output');
+    terminal.innerHTML = '';
+    
+    addOutput('📝 ' + editor.toUpperCase() + ' - Interactive Editor', 'success');
+    addOutput('File: ' + filePath, 'info');
+    addOutput('═'.repeat(80), 'info');
+    addOutput('');
+    
+    // Create editable content area
+    var lines = originalContent.split('\n');
+    var editorDiv = document.createElement('div');
+    editorDiv.className = 'editor-content';
+    editorDiv.style.cssText = `
+        background: #1a1a1a;
+        border: 1px solid #333;
+        margin: 10px 0;
+        padding: 10px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        min-height: 200px;
+        max-height: 400px;
+        overflow-y: auto;
+        position: relative;
+    `;
+    
+    var textarea = document.createElement('textarea');
+    textarea.value = originalContent;
+    textarea.style.cssText = `
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        border: none;
+        color: #00ff00;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        resize: none;
+        outline: none;
+        min-height: 300px;
+    `;
+    
+    editorDiv.appendChild(textarea);
+    terminal.appendChild(editorDiv);
+    
+    // Add editor commands
+    addOutput('');
+    addOutput('Editor Commands:', 'warning');
+    if (editor === 'nano') {
+        addOutput('  Ctrl+X : Exit and save changes', 'info');
+        addOutput('  Ctrl+O : Save file (Write Out)', 'info');
+        addOutput('  Ctrl+G : Get help', 'info');
+    } else {
+        addOutput('  :w     : Save file', 'info');
+        addOutput('  :q     : Quit', 'info');
+        addOutput('  :wq    : Save and quit', 'info');
+        addOutput('  :q!    : Quit without saving', 'info');
+    }
+    addOutput('');
+    addOutput('💡 Type commands below or edit directly in the text area above', 'warning');
+    addOutput('');
+    
+    // Create special input for editor commands
+    var editorInputDiv = document.createElement('div');
+    editorInputDiv.className = 'input-line editor-input';
+    editorInputDiv.innerHTML = '<span class="prompt">' + (editor === 'nano' ? 'nano> ' : ':') + '</span><input type="text" class="command-input editor-command" autocomplete="off">';
+    terminal.appendChild(editorInputDiv);
+    
+    var editorInput = editorInputDiv.querySelector('.editor-command');
+    editorInput.focus();
+    
+    // Store editor state
+    window.editorState = {
+        editor: editor,
+        filePath: filePath,
+        originalContent: originalContent,
+        textarea: textarea,
+        modified: false
+    };
+    
+    // Handle editor commands
+    editorInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            var command = event.target.value.trim();
+            
+            if (command) {
+                addOutput((editor === 'nano' ? 'nano> ' : ':') + command);
+                handleEditorCommand(command);
+            }
+            
+            event.target.value = '';
+            event.preventDefault();
+        }
+    });
+    
+    // Handle text changes
+    textarea.addEventListener('input', function() {
+        window.editorState.modified = (textarea.value !== originalContent);
+    });
+    
+    // Handle keyboard shortcuts for nano
+    if (editor === 'nano') {
+        textarea.addEventListener('keydown', function(event) {
+            if (event.ctrlKey) {
+                switch(event.key.toLowerCase()) {
+                    case 'x':
+                        event.preventDefault();
+                        handleEditorCommand('exit');
+                        break;
+                    case 'o':
+                        event.preventDefault();
+                        handleEditorCommand('save');
+                        break;
+                    case 'g':
+                        event.preventDefault();
+                        handleEditorCommand('help');
+                        break;
+                }
+            }
         });
+    }
+    
+    scrollToBottom();
+}
+
+function handleEditorCommand(command) {
+    var state = window.editorState;
+    
+    if (!state) {
+        addOutput('Error: No active editor session', 'error');
+        return;
+    }
+    
+    var cmd = command.toLowerCase();
+    
+    if (state.editor === 'nano') {
+        switch(cmd) {
+            case 'exit':
+            case 'x':
+                if (state.modified) {
+                    addOutput('Save modified buffer? (Y/N)', 'warning');
+                    addOutput('💾 Changes detected! Type "y" to save, "n" to discard', 'info');
+                } else {
+                    exitEditor();
+                }
+                break;
+            case 'save':
+            case 'o':
+                saveFile();
+                break;
+            case 'y':
+                saveFile();
+                exitEditor();
+                break;
+            case 'n':
+                exitEditor();
+                break;
+            case 'help':
+            case 'g':
+                showNanoHelp();
+                break;
+            default:
+                addOutput('Unknown command: ' + command, 'error');
+                addOutput('Type Ctrl+G for help', 'info');
+        }
+    } else {
+        // Vi/Vim commands
+        switch(cmd) {
+            case 'w':
+                saveFile();
+                break;
+            case 'q':
+                if (state.modified) {
+                    addOutput('No write since last change (add ! to override)', 'error');
+                } else {
+                    exitEditor();
+                }
+                break;
+            case 'q!':
+                exitEditor();
+                break;
+            case 'wq':
+                saveFile();
+                exitEditor();
+                break;
+            case 'help':
+                showViHelp();
+                break;
+            default:
+                addOutput('Not an editor command: ' + command, 'error');
+                addOutput('Type :help for help', 'info');
+        }
+    }
+}
+
+function saveFile() {
+    var state = window.editorState;
+    var newContent = state.textarea.value;
+    
+    // Update file content in memory
+    fileContents[state.filePath] = newContent;
+    
+    addOutput('File saved: ' + state.filePath, 'success');
+    addOutput('💾 ' + newContent.split('\n').length + ' lines written', 'success');
+    
+    state.modified = false;
+    state.originalContent = newContent;
+    
+    // Check for task completion
+    checkFileEditCompletion(state.filePath, newContent);
+}
+
+function exitEditor() {
+    var state = window.editorState;
+    
+    addOutput('');
+    addOutput('📝 Editor closed', 'success');
+    addOutput('Returning to terminal...', 'info');
+    
+    // Clear editor state
+    window.editorState = null;
+    
+    // Return to normal terminal
+    setTimeout(function() {
+        document.getElementById('terminal-output').innerHTML = '';
+        addOutput('Terminal restored', 'success');
+        showNewPrompt();
+    }, 1000);
+}
+
+function showNanoHelp() {
+    addOutput('');
+    addOutput('📖 GNU nano Help', 'info');
+    addOutput('─'.repeat(40), 'info');
+    addOutput('Ctrl+X : Exit (will prompt to save)', 'info');
+    addOutput('Ctrl+O : Write Out (save)', 'info');
+    addOutput('Ctrl+G : Get Help', 'info');
+    addOutput('');
+    addOutput('💡 Make your changes in the text area above', 'warning');
+}
+
+function showViHelp() {
+    addOutput('');
+    addOutput('📖 Vi/Vim Help', 'info');
+    addOutput('─'.repeat(40), 'info');
+    addOutput(':w     : Write (save) file', 'info');
+    addOutput(':q     : Quit (fails if modified)', 'info');
+    addOutput(':wq    : Write and quit', 'info');
+    addOutput(':q!    : Quit without saving', 'info');
+    addOutput('');
+    addOutput('💡 Make your changes in the text area above', 'warning');
+}
+
+function checkFileEditCompletion(filePath, content) {
+    // Check YUM proxy configuration
+    if (filePath === '/etc/yum.conf') {
+        var hasProxy = content.includes('proxy=http://proxy.company.com:8080');
+        var hasUsername = content.includes('proxy_username=corp_user');
+        var hasPassword = content.includes('proxy_password=ProxyPass123');
         
-        addOutput('');
-        addOutput('=== END OF FILE ===', 'info');
-        addOutput('');
-        addOutput('📖 File contents displayed above', 'success');
-        addOutput('💡 In a real environment, you would edit this file here', 'info');
-        
-        // Special handling for YUM configuration
-        if (filePath === '/etc/yum.conf') {
+        if (hasProxy && hasUsername && hasPassword) {
             addOutput('');
-            addOutput('💡 YUM PROXY CONFIGURATION:', 'warning');
-            addOutput('Uncomment and modify these lines:');
-            addOutput('proxy=http://proxy.company.com:8080');
-            addOutput('proxy_username=corp_user');
-            addOutput('proxy_password=ProxyPass123');
-            addOutput('Configuration completed!', 'success');
+            addOutput('✅ YUM proxy configuration completed!', 'success');
+            addOutput('📡 Proxy settings have been properly configured', 'success');
             
             if (typeof systemState !== 'undefined' && !systemState.centos.yumProxyConfigured) {
                 systemState.centos.yumProxyConfigured = true;
@@ -538,20 +783,25 @@ function executeEditor(editor, args) {
                 if (typeof updateTaskProgress === 'function') {
                     updateTaskProgress();
                 }
-                addOutput('');
                 addOutput('✅ Task 4: YUM Proxy Configuration - COMPLETED', 'success');
             }
+        } else {
+            addOutput('💡 Remember to uncomment and configure the proxy settings:', 'warning');
+            addOutput('  proxy=http://proxy.company.com:8080', 'info');
+            addOutput('  proxy_username=corp_user', 'info');
+            addOutput('  proxy_password=ProxyPass123', 'info');
         }
+    }
+    
+    // Check platform configuration
+    if (filePath === '/opt/platform/config/platform-config.yaml') {
+        var hasDbHost = content.includes('host: "db.company.local"');
+        var hasDbPassword = content.includes('password: "SecureDbPass2025!"');
         
-        // Special handling for platform configuration
-        if (filePath === '/opt/platform/config/platform-config.yaml') {
+        if (hasDbHost && hasDbPassword) {
             addOutput('');
-            addOutput('💡 CONFIGURATION TIPS:', 'warning');
-            addOutput('1. Change "CHANGE_ME" values to the specified settings');
-            addOutput('2. Set database.host to "db.company.local"');
-            addOutput('3. Set database.password to "SecureDbPass2025!"');
-            addOutput('4. Verify all port configurations match your firewall rules');
-            addOutput('🧅 Remember: Good configs are like ogres - they have layers!', 'success');
+            addOutput('✅ Platform configuration completed!', 'success');
+            addOutput('🗃️  Database connection settings properly configured', 'success');
             
             if (typeof systemState !== 'undefined' && !systemState.centos.platformConfigured) {
                 systemState.centos.platformConfigured = true;
@@ -561,17 +811,12 @@ function executeEditor(editor, args) {
                 if (typeof updateTaskProgress === 'function') {
                     updateTaskProgress();
                 }
-                addOutput('');
                 addOutput('✅ Task 6: Platform Configuration - COMPLETED', 'success');
             }
-        }
-        
-    } else {
-        addOutput(editor + ': ' + filePath + ': No such file or directory', 'error');
-        addOutput('💡 The file doesn\'t exist. You could create it, but this is a read-only simulation!', 'info');
-        
-        if (filePath.toLowerCase().includes('swamp')) {
-            addOutput('🧅 "Get out of my swamp!" - File not found in Shrek\'s domain!', 'warning');
+        } else {
+            addOutput('💡 Remember to configure the required settings:', 'warning');
+            addOutput('  database.host = "db.company.local"', 'info');
+            addOutput('  database.password = "SecureDbPass2025!"', 'info');
         }
     }
 }

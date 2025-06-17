@@ -111,26 +111,10 @@ function executeFirewallCmd(args) {
             if (command.includes('--permanent')) {
                 addOutput('✅ Port ' + port + ' added permanently to firewall', 'success');
                 addOutput('🔒 This rule will survive reboots!', 'info');
+                addOutput('💡 Remember to reload firewall rules with --reload', 'warning');
             } else {
                 addOutput('⚠️  Port ' + port + ' added to firewall (temporary)', 'warning');
                 addOutput('💡 Use --permanent flag to make changes persistent', 'info');
-            }
-            
-            // Check if all required ports are opened
-            var requiredPorts = ['22/tcp', '80/tcp', '443/tcp', '8443/tcp', '5432/tcp', '9200/tcp', '6443/tcp'];
-            var allOpened = requiredPorts.every(function(p) {
-                return systemState.centos.openPorts.includes(p);
-            });
-            
-            if (allOpened && !completedTasks.has('firewall')) {
-                addOutput('');
-                addOutput('🎉 All required ports have been opened!', 'success');
-                addOutput('🔥 Your firewall is now configured properly!', 'success');
-                addOutput('✅ Task 1: Firewall Configuration - COMPLETED', 'success');
-                systemState.centos.firewallConfigured = true;
-                completedTasks.add('firewall');
-                updateTaskProgress();
-                checkAllTasksComplete();
             }
             
         } else {
@@ -143,6 +127,23 @@ function executeFirewallCmd(args) {
         if (systemState.centos.openPorts && systemState.centos.openPorts.length > 0) {
             addOutput('🔄 Firewall rules reloaded and active', 'success');
             addOutput('📋 Active ports: ' + systemState.centos.openPorts.join(', '), 'success');
+            
+            // Check if all required ports are opened AND firewall is reloaded
+            var requiredPorts = ['22/tcp', '80/tcp', '443/tcp', '8443/tcp', '5432/tcp', '9200/tcp', '6443/tcp'];
+            var allOpened = requiredPorts.every(function(p) {
+                return systemState.centos.openPorts.includes(p);
+            });
+            
+            if (allOpened && !completedTasks.has('firewall')) {
+                addOutput('');
+                addOutput('🎉 All required ports have been opened and firewall reloaded!', 'success');
+                addOutput('🔥 Your firewall is now properly configured and active!', 'success');
+                addOutput('✅ Task 1: Firewall Configuration - COMPLETED', 'success');
+                systemState.centos.firewallConfigured = true;
+                completedTasks.add('firewall');
+                updateTaskProgress();
+                checkAllTasksComplete();
+            }
         } else {
             addOutput('🔄 Firewall reloaded (no custom ports configured)', 'info');
         }
