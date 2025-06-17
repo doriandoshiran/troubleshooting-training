@@ -383,13 +383,12 @@ function executeDd(args) {
                 addOutput('8589934592 bytes (8.6 GB) copied, 45.2341 s, 190 MB/s', 'success');
                 addOutput('🎉 Swap file created successfully!', 'success');
                 addOutput('');
-                addOutput('Next steps:', 'info');
-                addOutput('1. chmod 600 /swapfile        # Set secure permissions');
-                addOutput('2. mkswap /swapfile           # Initialize swap area');
-                addOutput('3. swapon /swapfile           # Enable swap');
-                addOutput('4. Add to /etc/fstab          # Make persistent');
+                addOutput('💡 Next: Research how to prepare and activate swap space', 'info');
+                addOutput('Hint: You need to set permissions, initialize, and enable it', 'info');
+                addOutput('📚 Look up: chmod, mkswap, swapon commands online', 'warning');
+                addOutput('🗃️ Also research: making swap persistent in /etc/fstab', 'warning');
                 addOutput('');
-                addOutput('🎉 Swap creation completed successfully!', 'success');
+                addOutput('🎉 Swap file creation step completed successfully!', 'success');
                 // Force show new prompt after completion
                 setTimeout(function() {
                     showNewPrompt();
@@ -413,10 +412,15 @@ function executeDd(args) {
         return 'async';
     } else {
         addOutput('dd: invalid arguments', 'error');
-        addOutput('Example: dd if=/dev/zero of=/swapfile bs=1024 count=8388608', 'info');
-        addOutput('         dd if=/dev/zero of=/swapfile bs=1G count=8', 'info');
-        addOutput('💡 Specify input file (if=) and output file (of=)', 'warning');
-        addOutput('🧅 "Even ogres need proper syntax!" - Shrek', 'warning');
+        addOutput('Usage: dd if=SOURCE of=DESTINATION [options]', 'info');
+        addOutput('Common options:', 'info');
+        addOutput('  bs=SIZE     - Set block size (e.g., bs=1024, bs=1M, bs=1G)', 'info');
+        addOutput('  count=N     - Copy only N blocks', 'info');
+        addOutput('  if=FILE     - Input file (e.g., /dev/zero for zeros)', 'info');
+        addOutput('  of=FILE     - Output file (destination)', 'info');
+        addOutput('', 'info');
+        addOutput('💡 Research dd command usage online for proper syntax', 'warning');
+        addOutput('🧅 "Even ogres need to learn the right syntax!" - Shrek', 'warning');
         // Return null to show prompt immediately for invalid syntax
         return null;
     }
@@ -437,12 +441,12 @@ function executeMkswap(args) {
         addOutput('no label, UUID=12345678-1234-1234-1234-123456789012', 'success');
         addOutput('');
         addOutput('✅ Swap file initialized successfully!', 'success');
-        addOutput('💡 Next step: swapon /swapfile', 'info');
-        addOutput('🔄 Almost there - just need to activate it!', 'success');
+        addOutput('💡 Next: Research how to activate/enable the swap space', 'info');
+        addOutput('🔄 One more command needed to make it active!', 'success');
     } else {
         addOutput('mkswap: ' + file + ': No such file or directory', 'error');
-        addOutput('💡 Make sure the file exists first (use dd to create it)', 'info');
-        addOutput('Example: dd if=/dev/zero of=/swapfile bs=1G count=8', 'info');
+        addOutput('💡 Make sure the file exists first (create it with dd)', 'info');
+        addOutput('📚 Research: How to create files with dd command', 'info');
     }
 }
 
@@ -464,17 +468,16 @@ function executeSwapon(args) {
         updateTaskProgress();
         addOutput('✅ 8GB swap space is now active and ready!', 'success');
         addOutput('');
-        addOutput('To make swap persistent across reboots:', 'warning');
-        addOutput('📝 Add this line to /etc/fstab:');
-        addOutput('/swapfile swap swap defaults 0 0', 'info');
+        addOutput('💡 To make swap persistent across reboots:', 'warning');
+        addOutput('📝 Research: How to add swap entries to /etc/fstab', 'info');
+        addOutput('🔍 Look up: fstab file format and swap entries', 'info');
         addOutput('');
-        addOutput('💡 You can edit fstab with: vi /etc/fstab', 'info');
         addOutput('✅ Task 2: Swap Configuration - COMPLETED', 'success');
         checkAllTasksComplete();
     } else {
         addOutput('swapon: ' + file + ': No such file or directory', 'error');
         addOutput('💡 Make sure the swap file exists and is properly formatted', 'info');
-        addOutput('Steps: 1) dd to create, 2) mkswap to format, 3) swapon to activate', 'info');
+        addOutput('📚 Research: Complete swap setup process (dd, mkswap, swapon)', 'info');
     }
 }
 

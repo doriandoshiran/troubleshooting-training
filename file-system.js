@@ -150,6 +150,12 @@ var k8sFileSystem = {
 // File contents mapping
 var fileContents = {
     // CentOS files
+    '/root/test.txt': 'This is a test file in the root directory.\nYou can edit this file to practice your skills.\n\nRemember: Like ogres, files have layers of content!\n🧅 Happy testing!',
+    
+    '/root/.bash_profile': '# .bash_profile\n\n# Get the aliases and functions\nif [ -f ~/.bashrc ]; then\n\t. ~/.bashrc\nfi\n\n# User specific environment and startup programs\n\nPATH=$PATH:$HOME/bin\n\nexport PATH',
+    
+    '/root/.bash_history': '# Bash history file\nls\ncd /etc\ncat /etc/fstab\nvi /etc/yum.conf\nsystemctl status firewalld\nfirewall-cmd --list-ports\nyum update\nfree -h\ndf -h',
+    
     '/etc/fstab': '#\n# /etc/fstab\n# Created by anaconda on Mon Jun 16 14:00:00 2025\n#\n# Accessible filesystems, by reference, are maintained under \'/dev/disk\'\n# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info\n#\nUUID=12345678-1234-1234-1234-123456789abc /                       xfs     defaults        0 0\nUUID=87654321-4321-4321-4321-cba987654321 /boot                   xfs     defaults        0 0\nUUID=abcdef12-3456-7890-abcd-ef1234567890 swap                    swap    defaults        0 0\n\n# Add swap file entry here:\n# /swapfile swap swap defaults 0 0\n\n# 🧅 "Like ogres, good fstab files have layers!" - Shrek wisdom',
 
     '/etc/yum.conf': '[main]\ncachedir=/var/cache/yum/$basearch/$releasever\nkeepyourcache=0\ndebuglevel=2\nlogfile=/var/log/yum.log\nexactarch=1\nobsoletes=1\ngpgcheck=1\nplugins=1\ninstallonly_limit=5\nbugtracker_url=http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum\ndistroverpkg=centos-release\n\n# Corporate proxy configuration (uncomment and configure):\n# proxy=http://proxy.company.com:8080\n# proxy_username=corp_user\n# proxy_password=ProxyPass123\n\n# Fun fact: YUM stands for "Yellow dog Updater, Modified"\n# Not "Yet another Unnecessary Manager" as some people think!',
