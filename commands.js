@@ -652,7 +652,6 @@ function showHelp() {
         addOutput('');
         addOutput('Kubernetes Commands:', 'success');
         addOutput('  kubectl get [resource]   - List resources (pods, services, pvc, events)');
-        addOutput('  kubectl describe [type] [name] - Get detailed info');
         addOutput('  kubectl logs [pod-name]  - View pod logs');
         addOutput('');
         addOutput('System Commands:', 'success');
@@ -699,4 +698,3 @@ function showHelp() {
         addOutput('🧅 Remember: Good sysadmins are like ogres - they have layers of knowledge!', 'success');
     }
 }
-        addOutput('  
