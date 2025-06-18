@@ -367,6 +367,9 @@ function executeDd(args) {
         addOutput('⚠️  This may take a few minutes...', 'warning');
         addOutput('🧅 "Better out than in!" - Creating swap space like Shrek!', 'info');
         
+        // Mark that swap file creation has started
+        systemState.centos.swapFileCreated = true;
+        
         var progress = 0;
         var progressDiv = document.createElement('div');
         progressDiv.className = 'output info';
@@ -437,12 +440,18 @@ function executeMkswap(args) {
     }
     
     if (file === '/swapfile') {
-        addOutput('Setting up swapspace version 1, size = 8388604 KiB');
-        addOutput('no label, UUID=12345678-1234-1234-1234-123456789012', 'success');
-        addOutput('');
-        addOutput('✅ Swap file initialized successfully!', 'success');
-        addOutput('💡 Next: Research how to activate/enable the swap space', 'info');
-        addOutput('🔄 One more command needed to make it active!', 'success');
+        if (systemState.centos.swapFileCreated) {
+            addOutput('Setting up swapspace version 1, size = 8388604 KiB');
+            addOutput('no label, UUID=12345678-1234-1234-1234-123456789012', 'success');
+            addOutput('');
+            addOutput('✅ Swap file initialized successfully!', 'success');
+            addOutput('💡 Next: Research how to activate/enable the swap space', 'info');
+            addOutput('🔄 One more command needed to make it active!', 'success');
+        } else {
+            addOutput('mkswap: ' + file + ': No such file or directory', 'error');
+            addOutput('💡 Create the swap file first using the dd command', 'info');
+            addOutput('📚 Research: How to create files with dd command', 'info');
+        }
     } else {
         addOutput('mkswap: ' + file + ': No such file or directory', 'error');
         addOutput('💡 Make sure the file exists first (create it with dd)', 'info');
@@ -461,19 +470,25 @@ function executeSwapon(args) {
     }
     
     if (file === '/swapfile') {
-        addOutput('🎉 Swap file activated successfully!', 'success');
-        addOutput('');
-        systemState.centos.swapConfigured = true;
-        completedTasks.add('swap');
-        updateTaskProgress();
-        addOutput('✅ 8GB swap space is now active and ready!', 'success');
-        addOutput('');
-        addOutput('💡 To make swap persistent across reboots:', 'warning');
-        addOutput('📝 Research: How to add swap entries to /etc/fstab', 'info');
-        addOutput('🔍 Look up: fstab file format and swap entries', 'info');
-        addOutput('');
-        addOutput('✅ Task 2: Swap Configuration - COMPLETED', 'success');
-        checkAllTasksComplete();
+        if (systemState.centos.swapFileCreated) {
+            addOutput('🎉 Swap file activated successfully!', 'success');
+            addOutput('');
+            systemState.centos.swapConfigured = true;
+            completedTasks.add('swap');
+            updateTaskProgress();
+            addOutput('✅ 8GB swap space is now active and ready!', 'success');
+            addOutput('');
+            addOutput('💡 To make swap persistent across reboots:', 'warning');
+            addOutput('📝 Research: How to add swap entries to /etc/fstab', 'info');
+            addOutput('🔍 Look up: fstab file format and swap entries', 'info');
+            addOutput('');
+            addOutput('✅ Task 2: Swap Configuration - COMPLETED', 'success');
+            checkAllTasksComplete();
+        } else {
+            addOutput('swapon: ' + file + ': No such file or directory', 'error');
+            addOutput('💡 Create the swap file first using the dd command', 'info');
+            addOutput('📚 Research: Complete swap setup process (dd, mkswap, swapon)', 'info');
+        }
     } else {
         addOutput('swapon: ' + file + ': No such file or directory', 'error');
         addOutput('💡 Make sure the swap file exists and is properly formatted', 'info');

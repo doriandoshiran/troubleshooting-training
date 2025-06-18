@@ -209,7 +209,7 @@ function executeCommand(command) {
                 break;
             case 'clear':
                 clearTerminal();
-                return 'no_prompt'; // Don't call showNewPrompt - clearTerminal handles it
+                return 'no_prompt';
             case 'kubectl':
                 if (currentHost === 'k8s') {
                     executeKubectl(args);
@@ -313,16 +313,15 @@ function executeAsyncCommand(cmd, args) {
         case 'dd':
             if (currentHost === 'centos') {
                 var result = executeDd(args);
-                return result; // executeDd returns 'async' for valid commands, null for invalid
+                return result;
             } else {
                 addOutput('dd: command not found', 'error');
                 addOutput('🔄 DD command only available on CentOS!', 'warning');
-                return null; // Show prompt immediately for this error case
+                return null;
             }
         case 'ping':
             if (currentHost !== 'jumphost') {
                 return executePing(args);
-                // Don't show prompt immediately - executePing handles timing
             } else {
                 addOutput('ping: command not found on jumphost', 'error');
                 addOutput('🏓 No ping-pong on this jumphost!', 'warning');
@@ -331,7 +330,6 @@ function executeAsyncCommand(cmd, args) {
         case 'yum':
             if (currentHost === 'centos') {
                 return executeYum(args);
-                // executeYum handles its own timing
             } else {
                 addOutput('yum: command not found', 'error');
                 addOutput('🍰 No yum-yum here, only on CentOS!', 'warning');
@@ -371,25 +369,20 @@ function executeChmod(args) {
     
     // For swap file specifically
     if (filePath === '/swapfile') {
-        if (systemState && systemState.centos && systemState.centos.swapFileCreated) {
-            addOutput('chmod: changing permissions of \'/swapfile\' to ' + mode, 'info');
+        addOutput('chmod: changing permissions of \'/swapfile\' to ' + mode, 'info');
+        
+        if (mode === '600') {
+            addOutput('✅ Swap file permissions set correctly (600)', 'success');
+            addOutput('🔒 File is now readable and writable by owner only', 'success');
             
-            if (mode === '600') {
-                addOutput('✅ Swap file permissions set correctly (600)', 'success');
-                addOutput('🔒 File is now readable and writable by owner only', 'success');
-                
-                // Mark this step as completed
-                if (!systemState.centos.swapPermissionsSet) {
-                    systemState.centos.swapPermissionsSet = true;
-                    addOutput('🎯 Security requirement satisfied!', 'success');
-                }
-            } else {
-                addOutput('⚠️ Warning: ' + mode + ' permissions may not be secure for swap files', 'warning');
-                addOutput('💡 Recommended: chmod 600 /swapfile (owner read/write only)', 'info');
+            // Mark this step as completed
+            if (systemState && systemState.centos && !systemState.centos.swapPermissionsSet) {
+                systemState.centos.swapPermissionsSet = true;
+                addOutput('🎯 Security requirement satisfied!', 'success');
             }
         } else {
-            addOutput('chmod: cannot access \'/swapfile\': No such file or directory', 'error');
-            addOutput('💡 Create the swap file first using the dd command', 'info');
+            addOutput('⚠️ Warning: ' + mode + ' permissions may not be secure for swap files', 'warning');
+            addOutput('💡 Recommended: chmod 600 /swapfile (owner read/write only)', 'info');
         }
         return;
     }
@@ -436,6 +429,62 @@ function executeChmod(args) {
     }
 }
 
+// New echo command implementation
+function executeEcho(args) {
+    var text = args.join(' ');
+    
+    // Handle output redirection
+    if (text.includes('>>')) {
+        var parts = text.split('>>');
+        var content = parts[0].trim();
+        var targetFile = parts[1].trim();
+        
+        // Remove quotes from content if present
+        content = content.replace(/^['"]|['"]$/g, '');
+        
+        // Special handling for fstab
+        if (targetFile === '/etc/fstab') {
+            addOutput('Adding entry to /etc/fstab: ' + content, 'info');
+            
+            // Get current fstab content
+            var currentContent = fileContents['/etc/fstab'] || '';
+            
+            // Add the new line
+            fileContents['/etc/fstab'] = currentContent + '\n' + content;
+            
+            addOutput('✅ Entry added to /etc/fstab successfully', 'success');
+            
+            // Check if it's a swap entry
+            if (content.includes('swap')) {
+                addOutput('🔄 Swap entry added - will be persistent across reboots!', 'success');
+                addOutput('💡 Swap configuration is now complete!', 'info');
+            }
+            
+            return;
+        } else {
+            addOutput('echo: cannot write to \'' + targetFile + '\': Permission denied', 'error');
+            addOutput('💡 Only certain system files can be modified in this simulation', 'info');
+            return;
+        }
+    } else if (text.includes('>')) {
+        var parts = text.split('>');
+        var content = parts[0].trim();
+        var targetFile = parts[1].trim();
+        
+        // Remove quotes from content if present
+        content = content.replace(/^['"]|['"]$/g, '');
+        
+        addOutput('echo: writing to \'' + targetFile + '\'', 'info');
+        addOutput('⚠️ This would overwrite the file in a real system', 'warning');
+        return;
+    } else {
+        // Simple echo - just print the text
+        // Remove quotes if present
+        text = text.replace(/^['"]|['"]$/g, '');
+        addOutput(text);
+    }
+}
+
 function showCommandHistory() {
     if (commandHistory.length === 0) {
         addOutput('No commands in history');
@@ -443,7 +492,7 @@ function showCommandHistory() {
         return;
     }
     
-    var start = Math.max(0, commandHistory.length - 50); // Show last 50 commands
+    var start = Math.max(0, commandHistory.length - 50);
     for (var i = start; i < commandHistory.length; i++) {
         addOutput((i + 1) + '  ' + commandHistory[i]);
     }
@@ -506,7 +555,6 @@ function connectToHost(args) {
     } else {
         addOutput('ssh: Could not resolve hostname ' + hostname, 'error');
         
-        // Fun responses for wrong hostnames
         if (hostname.toLowerCase().includes('swamp')) {
             addOutput('🧅 Nice try, but Shrek\'s swamp is not a valid hostname!', 'warning');
         } else {
@@ -517,10 +565,9 @@ function connectToHost(args) {
 }
 
 function startTraining() {
-    // Prevent duplicate execution by checking if we recently showed this
     var now = Date.now();
     if (window.lastStartTime && (now - window.lastStartTime) < 2000) {
-        return; // Don't show again if called within 2 seconds
+        return;
     }
     window.lastStartTime = now;
     
@@ -649,4 +696,6 @@ function showHelp() {
         addOutput('  swapon [file]            - Enable swap');
         addOutput('');
         addOutput('Research commands online for proper syntax and usage!', 'info');
-        addOutput('
+        addOutput('🧅 Remember: Good sysadmins are like ogres - they have layers of knowledge!', 'success');
+    }
+}
