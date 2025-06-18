@@ -197,9 +197,9 @@ function switchTab(tabName) {
     
     // Ensure terminal input maintains focus
     setTimeout(function() {
-        var mainInput = document.getElementById('main-command-input');
-        if (mainInput) {
-            mainInput.focus();
+        var activeInput = document.querySelector('.command-input');
+        if (activeInput) {
+            activeInput.focus();
         }
     }, 100);
 }
@@ -318,32 +318,26 @@ function showNewPrompt() {
 
 // Enhanced input focus management
 function maintainInputFocus() {
-    var mainInput = document.getElementById('main-command-input');
-    if (mainInput) {
-        // Keep focus on main input
-        mainInput.addEventListener('blur', function() {
-            setTimeout(function() {
-                if (document.activeElement.tagName !== 'INPUT') {
-                    mainInput.focus();
-                }
-            }, 50);
-        });
-        
-        // Focus on terminal click
-        var terminal = document.getElementById('terminal-output');
-        if (terminal) {
-            terminal.addEventListener('click', function() {
-                mainInput.focus();
-            });
-        }
-        
-        // Focus on document click (unless clicking on tabs)
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.tab-container') && !event.target.closest('.tab-content')) {
-                mainInput.focus();
+    // Focus on terminal click
+    var terminal = document.getElementById('terminal-output');
+    if (terminal) {
+        terminal.addEventListener('click', function() {
+            var activeInput = document.querySelector('.command-input');
+            if (activeInput) {
+                activeInput.focus();
             }
         });
     }
+    
+    // Focus on document click (unless clicking on tabs)
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.sidebar')) {
+            var activeInput = document.querySelector('.command-input');
+            if (activeInput) {
+                activeInput.focus();
+            }
+        }
+    });
 }
 
 // Progress tracking functions

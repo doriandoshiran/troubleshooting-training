@@ -699,3 +699,4 @@ function showHelp() {
         addOutput('🧅 Remember: Good sysadmins are like ogres - they have layers of knowledge!', 'success');
     }
 }
+        addOutput('  
