@@ -176,6 +176,9 @@ function executeFirewallCmd(args) {
 // Global variable to track interactive commands
 var interactiveCommand = null;
 
+// Global variable to track installed packages
+var installedPackages = new Set();
+
 function executeYum(args) {
     var command = args[0];
     
@@ -235,8 +238,13 @@ function executeYum(args) {
         
         setTimeout(function() {
             var isNtp = packages.includes('ntp');
+            
+            // Define all required packages for the task
+            var requiredPackages = ['wget', 'curl', 'unzip', 'tar', 'net-tools', 'device-mapper-persistent-data', 'lvm2'];
+            
+            // Check if any of the packages being installed are in the required list
             var hasRequiredPackages = packages.some(function(pkg) {
-                return ['wget', 'curl', 'unzip', 'tar', 'net-tools', 'device-mapper-persistent-data', 'lvm2'].includes(pkg);
+                return requiredPackages.includes(pkg);
             });
             
             if (isNtp || hasRequiredPackages) {
@@ -250,13 +258,42 @@ function executeYum(args) {
                 setTimeout(function() {
                     addOutput('Complete!', 'success');
                     
-                    if (hasRequiredPackages && !systemState.centos.packagesInstalled) {
+                    // Add the successfully installed packages to our tracking
+                    packages.forEach(function(pkg) {
+                        if (requiredPackages.includes(pkg)) {
+                            installedPackages.add(pkg);
+                        }
+                    });
+                    
+                    // Show progress
+                    addOutput('📦 Installed packages: ' + Array.from(installedPackages).join(', '), 'info');
+                    
+                    // Check if ALL required packages are now installed
+                    var allRequiredInstalled = requiredPackages.every(function(pkg) {
+                        return installedPackages.has(pkg);
+                    });
+                    
+                    if (allRequiredInstalled && !systemState.centos.packagesInstalled) {
                         systemState.centos.packagesInstalled = true;
                         completedTasks.add('packages');
                         updateTaskProgress();
-                        addOutput('🎉 Required system packages installed successfully!', 'success');
+                        addOutput('');
+                        addOutput('🎉 ALL required system packages installed successfully!', 'success');
+                        addOutput('📋 Complete package list: ' + requiredPackages.join(', '), 'success');
                         addOutput('✅ Task 5: Package Installation - COMPLETED', 'success');
                         checkAllTasksComplete();
+                    } else if (hasRequiredPackages) {
+                        // Show what's still needed
+                        var stillNeeded = requiredPackages.filter(function(pkg) {
+                            return !installedPackages.has(pkg);
+                        });
+                        
+                        if (stillNeeded.length > 0) {
+                            addOutput('');
+                            addOutput('💡 Progress made! Still need to install: ' + stillNeeded.join(', '), 'warning');
+                            addOutput('📊 Installed: ' + installedPackages.size + '/' + requiredPackages.length + ' required packages', 'info');
+                            addOutput('🎯 Install all required packages to complete Task 5', 'info');
+                        }
                     }
                     
                     if (isNtp) {
@@ -307,6 +344,16 @@ function executeYum(args) {
             addOutput('coreutils.x86_64              8.22-24.el7                   @anaconda');
             addOutput('kernel.x86_64                 3.10.0-1160.el7               @anaconda');
             addOutput('systemd.x86_64                219-78.el7                    @anaconda');
+            
+            // Show our tracked packages too
+            if (installedPackages.size > 0) {
+                addOutput('');
+                addOutput('Recently installed packages for training:', 'info');
+                Array.from(installedPackages).forEach(function(pkg) {
+                    addOutput(pkg + '.x86_64                    latest                        @yum-install');
+                });
+            }
+            
             addOutput('📦 Showing sample of installed packages', 'info');
         } else {
             addOutput('Usage: yum list [installed|available|updates]', 'info');
@@ -761,4 +808,3 @@ function executeKubectl(args) {
         addOutput('💡 Start with: kubectl get pods', 'info');
     }
 }
-        
