@@ -316,25 +316,49 @@ function showNewPrompt() {
     }, 10);
 }
 
-// Enhanced input focus management
+// Enhanced input focus management - FIXED VERSION
 function maintainInputFocus() {
-    // Focus on terminal click
+    // Only focus on terminal click if not selecting text
     var terminal = document.getElementById('terminal-output');
     if (terminal) {
-        terminal.addEventListener('click', function() {
+        terminal.addEventListener('click', function(event) {
+            // Don't interfere if user is selecting text
+            if (window.getSelection().toString().length > 0) {
+                return; // Allow text selection
+            }
+            
+            // Don't focus if clicking on already selected text
+            if (window.getSelection().rangeCount > 0) {
+                return;
+            }
+            
             var activeInput = document.querySelector('.command-input');
             if (activeInput) {
-                activeInput.focus();
+                // Small delay to allow selection to complete
+                setTimeout(function() {
+                    if (window.getSelection().toString().length === 0) {
+                        activeInput.focus();
+                    }
+                }, 10);
             }
         });
     }
     
-    // Focus on document click (unless clicking on tabs)
+    // Focus on document click (unless clicking on tabs or selecting text)
     document.addEventListener('click', function(event) {
+        // Don't interfere with text selection
+        if (window.getSelection().toString().length > 0) {
+            return;
+        }
+        
         if (!event.target.closest('.sidebar')) {
             var activeInput = document.querySelector('.command-input');
             if (activeInput) {
-                activeInput.focus();
+                setTimeout(function() {
+                    if (window.getSelection().toString().length === 0) {
+                        activeInput.focus();
+                    }
+                }, 10);
             }
         }
     });
