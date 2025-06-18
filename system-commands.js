@@ -25,7 +25,7 @@ function executeSystemctl(args) {
                 checkAllTasksComplete();
                 showNewPrompt();
             }, 1500);
-            return;
+            return 'async';
         } else if (action === 'enable') {
             addOutput('Enabling ntpd service...', 'info');
             addOutput('Created symlink from /etc/systemd/system/multi-user.target.wants/ntpd.service to /usr/lib/systemd/system/ntpd.service', 'success');
@@ -64,7 +64,7 @@ function executeSystemctl(args) {
                 addOutput('firewalld service restarted successfully', 'success');
                 showNewPrompt();
             }, 1000);
-            return;
+            return 'async';
         }
     } else if (service === 'sshd') {
         if (action === 'status') {
@@ -173,6 +173,9 @@ function executeFirewallCmd(args) {
     }
 }
 
+// Global variable to track interactive commands
+var interactiveCommand = null;
+
 function executeYum(args) {
     var command = args[0];
     
@@ -200,24 +203,23 @@ function executeYum(args) {
             addOutput('');
             var downloadSize = Math.floor(Math.random() * 200 + 50);
             addOutput('Total download size: ' + downloadSize + ' MB');
+            
+            // Create interactive prompt
             addOutput('Is this ok [y/N]: ', 'warning');
             
-            setTimeout(function() {
-                addOutput('y');
-                addOutput('Downloading packages...', 'info');
-                addOutput('📦 Package downloads in progress...', 'info');
-                setTimeout(function() {
-                    addOutput('Running transaction', 'info');
-                    addOutput('🔄 Installing updates...', 'info');
-                    setTimeout(function() {
-                        addOutput('Complete!', 'success');
-                        addOutput('🎉 System updated with ' + packageCount + ' packages!', 'success');
-                        showNewPrompt();
-                    }, 1500);
-                }, 2000);
-            }, 1000);
+            // Set up interactive mode
+            interactiveCommand = {
+                type: 'yum-update-confirm',
+                packageCount: packageCount,
+                downloadSize: downloadSize
+            };
+            
+            // Create special input for this interaction
+            createInteractiveInput('yum-confirm');
+            
         }, 1000);
-        return;
+        return 'async';
+        
     } else if (command === 'install') {
         var packages = args.slice(1);
         if (packages.length === 0) {
@@ -271,7 +273,8 @@ function executeYum(args) {
                 showNewPrompt();
             }
         }, 1500);
-        return;
+        return 'async';
+        
     } else if (command === 'search') {
         var searchTerm = args[1];
         if (!searchTerm) {
@@ -312,6 +315,82 @@ function executeYum(args) {
         addOutput('yum: unknown command "' + command + '"', 'error');
         addOutput('Available commands: update, install, search, list', 'info');
         addOutput('💡 Try "yum --help" for more options', 'info');
+    }
+}
+
+// Function to create interactive input for special commands
+function createInteractiveInput(type) {
+    var terminal = document.getElementById('terminal-output');
+    
+    // Remove any existing input lines
+    var existingInputs = terminal.querySelectorAll('.input-line');
+    existingInputs.forEach(function(inputLine) {
+        if (inputLine.parentNode) {
+            inputLine.parentNode.removeChild(inputLine);
+        }
+    });
+    
+    // Create a new input line for the interactive command
+    var newInputLine = document.createElement('div');
+    newInputLine.className = 'input-line interactive-input';
+    newInputLine.innerHTML = '<input type="text" class="command-input interactive-command-input" autocomplete="off" data-type="' + type + '">';
+    
+    terminal.appendChild(newInputLine);
+    
+    // Focus the new input and set up event handler
+    var newInput = newInputLine.querySelector('.command-input');
+    if (newInput) {
+        newInput.focus();
+        newInput.addEventListener('keydown', handleInteractiveInput);
+        newInput.value = '';
+    }
+    
+    scrollToBottom();
+}
+
+// Function to handle interactive input (like y/n prompts)
+function handleInteractiveInput(event) {
+    if (event.key === 'Enter') {
+        var input = event.target;
+        var response = input.value.trim().toLowerCase();
+        var inputType = input.getAttribute('data-type');
+        
+        // Show the user's response
+        addOutput(response);
+        
+        // Remove the interactive input line
+        var inputLine = input.closest('.input-line');
+        if (inputLine && inputLine.parentNode) {
+            inputLine.parentNode.removeChild(inputLine);
+        }
+        
+        // Handle the response based on the command type
+        if (inputType === 'yum-confirm' && interactiveCommand) {
+            if (response === 'y' || response === 'yes') {
+                addOutput('Downloading packages...', 'info');
+                addOutput('📦 Package downloads in progress...', 'info');
+                
+                setTimeout(function() {
+                    addOutput('Running transaction', 'info');
+                    addOutput('🔄 Installing updates...', 'info');
+                    
+                    setTimeout(function() {
+                        addOutput('Complete!', 'success');
+                        addOutput('🎉 System updated with ' + interactiveCommand.packageCount + ' packages!', 'success');
+                        interactiveCommand = null;
+                        showNewPrompt();
+                    }, 1500);
+                }, 2000);
+            } else {
+                addOutput('Operation cancelled by user', 'warning');
+                addOutput('💡 No packages were updated', 'info');
+                interactiveCommand = null;
+                showNewPrompt();
+            }
+        }
+        
+        event.preventDefault();
+        event.stopPropagation();
     }
 }
 
@@ -682,3 +761,4 @@ function executeKubectl(args) {
         addOutput('💡 Start with: kubectl get pods', 'info');
     }
 }
+        
