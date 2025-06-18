@@ -213,7 +213,15 @@
         </div>
     </div>
 
-    <script src="file-system.js"></script>
+    <!-- File System Scripts - Load in Order -->
+    <script src="file-system-structure.js"></script>
+    <script src="centos-file-contents.js"></script>
+    <script src="k8s-config-files.js"></script>
+    <script src="k8s-log-files.js"></script>
+    <script src="k8s-troubleshooting-docs.js"></script>
+    <script src="file-operations.js"></script>
+    
+    <!-- Other Scripts -->
     <script src="system-commands.js"></script>
     <script src="commands.js"></script>
     <script src="main.js"></script>
