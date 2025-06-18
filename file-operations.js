@@ -45,18 +45,7 @@ function readFile(filePath) {
         filePath = filePath.replace(/\/+/g, '/');
     }
     
-    var content = readFile(filePath);
-    
-    if (content !== null) {
-        startInteractiveEditor(editor, filePath, content);
-    } else {
-        addOutput(editor + ': ' + filePath + ': No such file or directory', 'error');
-        if (filePath.toLowerCase().includes('swamp')) {
-            addOutput('🧅 "Get out of my swamp!" - File not found in Shrek\'s domain!', 'warning');
-        } else {
-            addOutput('💡 The file doesn\'t exist. You could create it, but this is a read-only simulation!', 'info');
-        }
-    }
+    return fileContents[filePath] || null;
 }
 
 function startInteractiveEditor(editor, filePath, originalContent) {
@@ -341,13 +330,7 @@ window.ctfLogs = {
 // Initialize file contents when page loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeFileContents();
-});.startsWith('/')) {
-        filePath = currentDir + '/' + filePath;
-        filePath = filePath.replace(/\/+/g, '/');
-    }
-    
-    return fileContents[filePath] || null;
-}
+});
 
 function fileExists(filePath) {
     var currentFS = getCurrentFileSystem();
@@ -528,4 +511,21 @@ function executeEditor(editor, args) {
         return;
     }
     
-    if (!filePath
+    if (!filePath.startsWith('/')) {
+        filePath = currentDir + '/' + filePath;
+        filePath = filePath.replace(/\/+/g, '/');
+    }
+    
+    var content = readFile(filePath);
+    
+    if (content !== null) {
+        startInteractiveEditor(editor, filePath, content);
+    } else {
+        addOutput(editor + ': ' + filePath + ': No such file or directory', 'error');
+        if (filePath.toLowerCase().includes('swamp')) {
+            addOutput('🧅 "Get out of my swamp!" - File not found in Shrek\'s domain!', 'warning');
+        } else {
+            addOutput('💡 The file doesn\'t exist. You could create it, but this is a read-only simulation!', 'info');
+        }
+    }
+}
