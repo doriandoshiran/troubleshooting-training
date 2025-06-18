@@ -316,51 +316,78 @@ function showNewPrompt() {
     }, 10);
 }
 
-// Enhanced input focus management - FIXED VERSION
+// FIXED: Input focus management that respects text selection
 function maintainInputFocus() {
-    // Only focus on terminal click if not selecting text
     var terminal = document.getElementById('terminal-output');
-    if (terminal) {
-        terminal.addEventListener('click', function(event) {
-            // Don't interfere if user is selecting text
-            if (window.getSelection().toString().length > 0) {
-                return; // Allow text selection
-            }
-            
-            // Don't focus if clicking on already selected text
-            if (window.getSelection().rangeCount > 0) {
-                return;
-            }
-            
-            var activeInput = document.querySelector('.command-input');
-            if (activeInput) {
-                // Small delay to allow selection to complete
+    var isTextSelected = false;
+    
+    // Track when user starts selecting text
+    terminal.addEventListener('mousedown', function(event) {
+        // Don't interfere if user is starting a text selection
+        if (event.detail > 1) { // Double-click or more
+            isTextSelected = true;
+        }
+    });
+    
+    terminal.addEventListener('mousemove', function(event) {
+        // If mouse is moving with button down, user is selecting
+        if (event.buttons === 1) {
+            isTextSelected = true;
+        }
+    });
+    
+    terminal.addEventListener('mouseup', function(event) {
+        // Check if user actually selected text
+        setTimeout(function() {
+            var selection = window.getSelection();
+            if (selection.toString().length > 0) {
+                isTextSelected = true;
+                // Keep text selected for a reasonable time
                 setTimeout(function() {
-                    if (window.getSelection().toString().length === 0) {
+                    isTextSelected = false;
+                }, 5000); // 5 seconds to copy
+            } else {
+                isTextSelected = false;
+                // Only focus if no text is selected and not clicking on sidebar
+                if (!event.target.closest('.sidebar')) {
+                    var activeInput = document.querySelector('.command-input');
+                    if (activeInput) {
                         activeInput.focus();
                     }
-                }, 10);
+                }
             }
-        });
-    }
+        }, 10);
+    });
     
-    // Focus on document click (unless clicking on tabs or selecting text)
+    // Handle selection changes
+    document.addEventListener('selectionchange', function() {
+        var selection = window.getSelection();
+        if (selection.toString().length > 0) {
+            isTextSelected = true;
+        } else {
+            // Small delay before allowing focus return
+            setTimeout(function() {
+                isTextSelected = false;
+            }, 100);
+        }
+    });
+    
+    // Focus on document click only when appropriate
     document.addEventListener('click', function(event) {
-        // Don't interfere with text selection
-        if (window.getSelection().toString().length > 0) {
+        // Don't interfere with text selection or sidebar clicks
+        if (isTextSelected || event.target.closest('.sidebar')) {
             return;
         }
         
-        if (!event.target.closest('.sidebar')) {
-            var activeInput = document.querySelector('.command-input');
-            if (activeInput) {
-                setTimeout(function() {
-                    if (window.getSelection().toString().length === 0) {
-                        activeInput.focus();
-                    }
-                }, 10);
+        // Small delay to allow other events to process
+        setTimeout(function() {
+            if (!isTextSelected && window.getSelection().toString().length === 0) {
+                var activeInput = document.querySelector('.command-input');
+                if (activeInput) {
+                    activeInput.focus();
+                }
             }
-        }
+        }, 50);
     });
 }
 

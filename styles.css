@@ -82,6 +82,11 @@ body {
     font-size: 14px;
     line-height: 1.3;
     font-family: 'Consolas', 'Courier New', monospace;
+    /* Enable text selection in terminal */
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
 }
 
 .input-line {
@@ -96,6 +101,9 @@ body {
     margin-right: 8px;
     white-space: nowrap;
     font-weight: normal;
+    /* Allow selection of prompt text */
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 .command-input {
@@ -114,6 +122,22 @@ body {
     white-space: pre-wrap;
     font-family: 'Consolas', 'Courier New', monospace;
     line-height: 1.3;
+    /* Make all output text selectable */
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+/* Improve text selection appearance */
+.terminal ::selection {
+    background: #555555;
+    color: #ffffff;
+}
+
+.terminal ::-moz-selection {
+    background: #555555;
+    color: #ffffff;
 }
 
 .error {
@@ -265,4 +289,3 @@ body {
         padding: 12px;
     }
 }
-    
