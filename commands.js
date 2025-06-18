@@ -176,6 +176,22 @@ function executeCommand(command) {
                     editFile(args[0], cmd);
                 }
                 break;
+            case 'chmod':
+                if (currentHost === 'jumphost') {
+                    addOutput('bash: chmod: command not found on jumphost', 'error');
+                    addOutput('🔒 No permission changes allowed on this jumphost!', 'warning');
+                } else {
+                    executeChmod(args);
+                }
+                break;
+            case 'echo':
+                if (currentHost === 'jumphost') {
+                    addOutput('bash: echo: command not found on jumphost', 'error');
+                    addOutput('🔊 No echo on this jumphost!', 'warning');
+                } else {
+                    executeEcho(args);
+                }
+                break;
             case 'pwd':
                 if (currentHost === 'jumphost') {
                     addOutput('/home/acme-training');
@@ -327,6 +343,99 @@ function executeAsyncCommand(cmd, args) {
     return null;
 }
 
+// New chmod command implementation
+function executeChmod(args) {
+    if (args.length < 2) {
+        addOutput('chmod: missing operand', 'error');
+        addOutput('Usage: chmod MODE FILE', 'info');
+        addOutput('Example: chmod 600 /swapfile', 'info');
+        return;
+    }
+    
+    var mode = args[0];
+    var filePath = args[1];
+    
+    // Validate mode (basic validation for common modes)
+    var validModes = ['600', '644', '755', '700', '444', '555', '777', '664', '666'];
+    if (!validModes.includes(mode)) {
+        addOutput('chmod: invalid mode: \'' + mode + '\'', 'error');
+        addOutput('Common modes: 600 (rw-------), 644 (rw-r--r--), 755 (rwxr-xr-x)', 'info');
+        return;
+    }
+    
+    // Check if file exists (simplified check)
+    if (!filePath.startsWith('/')) {
+        filePath = currentDir + '/' + filePath;
+        filePath = filePath.replace(/\/+/g, '/');
+    }
+    
+    // For swap file specifically
+    if (filePath === '/swapfile') {
+        if (systemState && systemState.centos && systemState.centos.swapFileCreated) {
+            addOutput('chmod: changing permissions of \'/swapfile\' to ' + mode, 'info');
+            
+            if (mode === '600') {
+                addOutput('✅ Swap file permissions set correctly (600)', 'success');
+                addOutput('🔒 File is now readable and writable by owner only', 'success');
+                
+                // Mark this step as completed
+                if (!systemState.centos.swapPermissionsSet) {
+                    systemState.centos.swapPermissionsSet = true;
+                    addOutput('🎯 Security requirement satisfied!', 'success');
+                }
+            } else {
+                addOutput('⚠️ Warning: ' + mode + ' permissions may not be secure for swap files', 'warning');
+                addOutput('💡 Recommended: chmod 600 /swapfile (owner read/write only)', 'info');
+            }
+        } else {
+            addOutput('chmod: cannot access \'/swapfile\': No such file or directory', 'error');
+            addOutput('💡 Create the swap file first using the dd command', 'info');
+        }
+        return;
+    }
+    
+    // For other files, simulate basic chmod functionality
+    var commonFiles = [
+        '/etc/passwd', '/etc/shadow', '/etc/hosts', '/etc/fstab', 
+        '/root/.bashrc', '/root/test.txt', '/opt/platform/config/platform-config.yaml'
+    ];
+    
+    var fileExists = false;
+    for (var i = 0; i < commonFiles.length; i++) {
+        if (filePath === commonFiles[i]) {
+            fileExists = true;
+            break;
+        }
+    }
+    
+    if (fileExists) {
+        addOutput('chmod: changing permissions of \'' + filePath + '\' to ' + mode, 'info');
+        
+        // Provide educational feedback about different permission modes
+        switch (mode) {
+            case '600':
+                addOutput('🔒 Permissions: rw------- (owner read/write only)', 'info');
+                break;
+            case '644':
+                addOutput('📖 Permissions: rw-r--r-- (owner read/write, others read)', 'info');
+                break;
+            case '755':
+                addOutput('🚀 Permissions: rwxr-xr-x (owner full, others read/execute)', 'info');
+                break;
+            case '700':
+                addOutput('🔒 Permissions: rwx------ (owner full access only)', 'info');
+                break;
+            default:
+                addOutput('📋 Permissions set to ' + mode, 'info');
+        }
+        
+        addOutput('✅ File permissions changed successfully', 'success');
+    } else {
+        addOutput('chmod: cannot access \'' + filePath + '\': No such file or directory', 'error');
+        addOutput('💡 Use "ls" to check if the file exists', 'info');
+    }
+}
+
 function showCommandHistory() {
     if (commandHistory.length === 0) {
         addOutput('No commands in history');
@@ -418,29 +527,29 @@ function startTraining() {
     addOutput('╔══════════════════════════════════════════════════════════════════════════════╗', 'info');
     addOutput('║                        ACME Corporation Training Program                     ║', 'info');
     addOutput('║                                                                              ║', 'info');
-    addOutput('║  Welcome to the Infrastructure Security Training Environment                 ║', 'info');
+    addOutput('║  Welcome to the Infrastructure Security Training Environment               ║', 'info');
     addOutput('║                                                                              ║', 'info');
-    addOutput('║  Available Training Hosts:                                                   ║', 'info');
+    addOutput('║  Available Training Hosts:                                                  ║', 'info');
     addOutput('║                                                                              ║', 'info');
-    addOutput('║  🖥️  prod-centos-01.company.local    - CentOS 7.9 system preparation         ║', 'info');
-    addOutput('║      • Configure firewall and network security                               ║', 'info');
-    addOutput('║      • Setup swap, NTP, and system services                                  ║', 'info');
-    addOutput('║      • Install and configure enterprise platform                             ║', 'info');
+    addOutput('║  🖥️  prod-centos-01.company.local    - CentOS 7.9 system preparation       ║', 'info');
+    addOutput('║      • Configure firewall and network security                              ║', 'info');
+    addOutput('║      • Setup swap, NTP, and system services                                 ║', 'info');
+    addOutput('║      • Install and configure enterprise platform                           ║', 'info');
     addOutput('║                                                                              ║', 'info');
-    addOutput('║  ☸️  k8s-master-01.company.local     - Kubernetes troubleshooting            ║', 'info');
-    addOutput('║      • Investigate pod crashes and service issues                            ║', 'info');
-    addOutput('║      • Debug storage and networking problems                                 ║', 'info');
-    addOutput('║      • Find hidden security flags in logs (CTF challenges)                   ║', 'info');
+    addOutput('║  ☸️  k8s-master-01.company.local     - Kubernetes troubleshooting          ║', 'info');
+    addOutput('║      • Investigate pod crashes and service issues                          ║', 'info');
+    addOutput('║      • Debug storage and networking problems                                ║', 'info');
+    addOutput('║      • Find hidden security flags in logs (CTF challenges)                 ║', 'info');
     addOutput('║                                                                              ║', 'info');
-    addOutput('║  Training Objectives:                                                        ║', 'info');
-    addOutput('║  • Master Linux system administration skills                                 ║', 'info');
-    addOutput('║  • Learn Kubernetes troubleshooting techniques                               ║', 'info');
-    addOutput('║  • Develop security incident investigation abilities                         ║', 'info');
-    addOutput('║  • Practice with real-world enterprise scenarios                             ║', 'info');
+    addOutput('║  Training Objectives:                                                       ║', 'info');
+    addOutput('║  • Master Linux system administration skills                                ║', 'info');
+    addOutput('║  • Learn Kubernetes troubleshooting techniques                             ║', 'info');
+    addOutput('║  • Develop security incident investigation abilities                        ║', 'info');
+    addOutput('║  • Practice with real-world enterprise scenarios                           ║', 'info');
     addOutput('║                                                                              ║', 'info');
     addOutput('║  Connection Instructions:                                                    ║', 'info');
-    addOutput('║  ssh root@prod-centos-01.company.local    (System preparation)               ║', 'info');
-    addOutput('║  ssh root@k8s-master-01.company.local     (Kubernetes troubleshooting)       ║', 'info');
+    addOutput('║  ssh root@prod-centos-01.company.local    (System preparation)            ║', 'info');
+    addOutput('║  ssh root@k8s-master-01.company.local     (Kubernetes troubleshooting)    ║', 'info');
     addOutput('║                                                                              ║', 'info');
     addOutput('╚══════════════════════════════════════════════════════════════════════════════╝', 'info');
     addOutput('Training environment initialized. Choose a host to begin:', 'success');
@@ -524,6 +633,8 @@ function showHelp() {
         addOutput('  whoami                   - Show current user');
         addOutput('  clear                    - Clear terminal');
         addOutput('  history                  - Show command history');
+        addOutput('  chmod [mode] [file]      - Change file permissions');
+        addOutput('  echo [text]              - Display text or write to files');
         addOutput('');
         addOutput('System Administration:', 'success');
         addOutput('  systemctl [action] [service] - Manage services');
@@ -538,6 +649,4 @@ function showHelp() {
         addOutput('  swapon [file]            - Enable swap');
         addOutput('');
         addOutput('Research commands online for proper syntax and usage!', 'info');
-        addOutput('🧅 Remember: Good sysadmins are like ogres - they have layers of knowledge!', 'success');
-    }
-}
+        addOutput('

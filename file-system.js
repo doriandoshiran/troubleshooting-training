@@ -160,7 +160,7 @@ var fileContents = {
     
     '/root/.bash_history': '# Bash history file\nls\ncd /etc\ncat /etc/fstab\nvi /etc/yum.conf\nsystemctl status firewalld\nfirewall-cmd --list-ports\nyum update\nfree -h\ndf -h\n# HIDDEN_FLAG{BASH_HISTORY_EXPLORED}\nshrek\ndonkey\nfiona',
     
-    '/etc/fstab': '#\n# /etc/fstab\n# Created by anaconda on Mon Jun 16 14:00:00 2025\n#\n# Accessible filesystems, by reference, are maintained under \'/dev/disk\'\n# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info\n#\nUUID=12345678-1234-1234-1234-123456789abc /                       xfs     defaults        0 0\nUUID=87654321-4321-4321-4321-cba987654321 /boot                   xfs     defaults        0 0\nUUID=abcdef12-3456-7890-abcd-ef1234567890 swap                    swap    defaults        0 0\n\n# Add swap file entry here:\n# /swapfile swap swap defaults 0 0\n\n# 🧅 "Like ogres, good fstab files have layers!" - Shrek wisdom',
+    '/etc/fstab': '#\n# /etc/fstab\n# Created by anaconda on Mon Jun 16 14:00:00 2025\n#\n# Accessible filesystems, by reference, are maintained under \'/dev/disk\'\n# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info\n#\nUUID=12345678-1234-1234-1234-123456789abc /                       xfs     defaults        0 0\nUUID=87654321-4321-4321-4321-cba987654321 /boot                   xfs     defaults        0 0\nUUID=abcdef12-3456-7890-abcd-ef1234567890 swap                    swap    defaults        0 0\n\n# Add swap file entry here:\n# /swapfile none swap sw 0 0\n\n# Remember: Good fstab files are properly configured for system stability',
 
     '/etc/yum.conf': '[main]\ncachedir=/var/cache/yum/$basearch/$releasever\nkeepyourcache=0\ndebuglevel=2\nlogfile=/var/log/yum.log\nexactarch=1\nobsoletes=1\ngpgcheck=1\nplugins=1\ninstallonly_limit=5\nbugtracker_url=http://bugs.centos.org/set_project.php?project_id=23&ref=http://bugs.centos.org/bug_report_page.php?category=yum\ndistroverpkg=centos-release\n\n# Corporate proxy configuration (uncomment and configure):\n# proxy=http://proxy.company.com:8080\n# proxy_username=corp_user\n# proxy_password=ProxyPass123\n\n# Fun fact: YUM stands for "Yellow dog Updater, Modified"\n# Not "Yet another Unnecessary Manager" as some people think!',
 
@@ -416,10 +416,10 @@ function executeEditor(editor, args) {
         startInteractiveEditor(editor, filePath, content);
     } else {
         addOutput(editor + ': ' + filePath + ': No such file or directory', 'error');
-        addOutput('💡 The file doesn\'t exist. You could create it, but this is a read-only simulation!', 'info');
-        
         if (filePath.toLowerCase().includes('swamp')) {
             addOutput('🧅 "Get out of my swamp!" - File not found in Shrek\'s domain!', 'warning');
+        } else {
+            addOutput('💡 The file doesn\'t exist. You could create it, but this is a read-only simulation!', 'info');
         }
     }
 }
@@ -710,6 +710,18 @@ function checkFileEditCompletion(filePath, content) {
             addOutput('💡 Remember to configure the required settings:', 'warning');
             addOutput('  database.host = "db.company.local"', 'info');
             addOutput('  database.password = "SecureDbPass2025!"', 'info');
+        }
+    }
+    
+    // Check fstab configuration for swap
+    if (filePath === '/etc/fstab') {
+        var hasSwapEntry = content.includes('/swapfile') && content.includes('swap');
+        
+        if (hasSwapEntry) {
+            addOutput('');
+            addOutput('✅ Swap entry added to /etc/fstab!', 'success');
+            addOutput('🔄 Swap will now persist across system reboots', 'success');
+            addOutput('💡 Swap configuration is now fully complete!', 'info');
         }
     }
 }

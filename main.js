@@ -25,7 +25,7 @@ var systemState = {
 
 // Available commands for tab completion
 var availableCommands = [
-    'ls', 'cd', 'cat', 'vi', 'pwd', 'clear', 'mkdir', 'chmod', 'help',
+    'ls', 'cd', 'cat', 'vi', 'pwd', 'clear', 'mkdir', 'chmod', 'echo', 'help',
     'systemctl', 'firewall-cmd', 'yum', 'rpm', 'service', 'chkconfig',
     'free', 'df', 'du', 'ps', 'top', 'netstat', 'ss', 'ping', 'curl', 'wget',
     'dd', 'mkswap', 'swapon', 'swapoff', 'mount', 'umount', 'fdisk',
