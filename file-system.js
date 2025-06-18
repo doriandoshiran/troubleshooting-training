@@ -415,14 +415,14 @@ function startInteractiveEditor(editor, filePath, originalContent) {
     addOutput('  GNU nano 2.1.2-svn                File: ' + filePath, 'info');
     addOutput('');
     
-    // Create editable content area that looks like real nano
+    // Create editable content area that looks like real nano - BIGGER SIZE
     var editorDiv = document.createElement('div');
     editorDiv.className = 'editor-content';
-    editorDiv.style.cssText = 'background: #0c0c0c; border: none; margin: 0; padding: 0; font-family: \'Courier New\', monospace; font-size: 14px; min-height: 300px; max-height: 400px; overflow-y: auto; position: relative;';
+    editorDiv.style.cssText = 'background: #0c0c0c; border: none; margin: 0; padding: 0; font-family: \'Courier New\', monospace; font-size: 14px; min-height: 500px; max-height: 600px; overflow-y: auto; position: relative;';
     
     var textarea = document.createElement('textarea');
     textarea.value = originalContent;
-    textarea.style.cssText = 'width: 100%; height: 300px; background: transparent; border: none; color: #ffffff; font-family: \'Courier New\', monospace; font-size: 14px; resize: none; outline: none; padding: 5px; margin: 0;';
+    textarea.style.cssText = 'width: 100%; height: 500px; background: transparent; border: none; color: #ffffff; font-family: \'Courier New\', monospace; font-size: 14px; resize: none; outline: none; padding: 5px; margin: 0;';
     
     editorDiv.appendChild(textarea);
     terminal.appendChild(editorDiv);
@@ -432,7 +432,7 @@ function startInteractiveEditor(editor, filePath, originalContent) {
     addOutput('^G Get Help  ^O Write Out ^W Where Is  ^K Cut Text  ^J Justify   ^C Cur Pos', 'info');
     addOutput('^X Exit      ^R Read File ^\\ Replace   ^U Uncut Text^T To Spell  ^_ Go To Line', 'info');
     
-    // Focus the textarea immediately
+    // Focus the textarea immediately and prevent losing focus
     textarea.focus();
     
     // Store editor state
@@ -447,6 +447,23 @@ function startInteractiveEditor(editor, filePath, originalContent) {
     // Handle text changes
     textarea.addEventListener('input', function() {
         window.editorState.modified = (textarea.value !== originalContent);
+    });
+    
+    // FIXED: Better focus management for nano editor
+    textarea.addEventListener('blur', function() {
+        // Immediately refocus the textarea when it loses focus
+        // unless user is interacting with save/exit prompts
+        setTimeout(function() {
+            if (window.editorState && window.editorState.textarea) {
+                window.editorState.textarea.focus();
+            }
+        }, 10);
+    });
+    
+    // Prevent losing focus when clicking in editor area
+    editorDiv.addEventListener('click', function(event) {
+        event.preventDefault();
+        textarea.focus();
     });
     
     // Handle keyboard shortcuts (like real nano)
@@ -668,12 +685,25 @@ function checkFileEditCompletion(filePath, content) {
         }
     }
     
-    // Check platform configuration
+    // FIXED: Better platform configuration detection
     if (filePath === '/opt/platform/config/platform-config.yaml') {
-        var hasDbHost = content.includes('host: "db.company.local"');
-        var hasDbPassword = content.includes('password: "SecureDbPass2025!"');
+        // More flexible detection - look for the actual values, not quoted versions
+        var hasDbHost = content.includes('db.company.local');
+        var hasDbPassword = content.includes('SecureDbPass2025!');
         
-        if (hasDbHost && hasDbPassword) {
+        // Also check for quoted versions
+        var hasDbHostQuoted = content.includes('"db.company.local"');
+        var hasDbPasswordQuoted = content.includes('"SecureDbPass2025!"');
+        
+        // Accept either quoted or unquoted versions
+        var dbHostConfigured = hasDbHost || hasDbHostQuoted;
+        var dbPasswordConfigured = hasDbPassword || hasDbPasswordQuoted;
+        
+        // Additional check: make sure we're not just seeing the comments
+        var hostInCorrectPlace = content.match(/host:\s*["']?db\.company\.local["']?/);
+        var passwordInCorrectPlace = content.match(/password:\s*["']?SecureDbPass2025!["']?/);
+        
+        if ((dbHostConfigured && dbPasswordConfigured) || (hostInCorrectPlace && passwordInCorrectPlace)) {
             addOutput('');
             addOutput('✅ Platform configuration completed!', 'success');
             addOutput('🗃️  Database connection settings properly configured', 'success');
@@ -687,11 +717,18 @@ function checkFileEditCompletion(filePath, content) {
                     updateTaskProgress();
                 }
                 addOutput('✅ Task 6: Platform Configuration - COMPLETED', 'success');
+                
+                // Check if all tasks are now complete
+                if (typeof checkAllTasksComplete === 'function') {
+                    checkAllTasksComplete();
+                }
             }
         } else {
             addOutput('💡 Remember to configure the required settings:', 'warning');
-            addOutput('  database.host = "db.company.local"', 'info');
-            addOutput('  database.password = "SecureDbPass2025!"', 'info');
+            addOutput('  database.host = "db.company.local" (or without quotes)', 'info');
+            addOutput('  database.password = "SecureDbPass2025!" (or without quotes)', 'info');
+            addOutput('  Current host setting: ' + (hostInCorrectPlace ? 'CONFIGURED' : 'NOT CONFIGURED'), dbHostConfigured ? 'success' : 'warning');
+            addOutput('  Current password setting: ' + (passwordInCorrectPlace ? 'CONFIGURED' : 'NOT CONFIGURED'), dbPasswordConfigured ? 'success' : 'warning');
         }
     }
     
@@ -716,4 +753,3 @@ window.ctfLogs = {
 
     'nginx-service-config': 'Name:                     nginx-service\nNamespace:                default\nLabels:                   app=nginx\nAnnotations:              <none>\nSelector:                 app=nginx-wrong\nType:                     LoadBalancer\nIP Family Policy:        SingleStack\nIP Families:             IPv4\nIP:                      10.96.100.200\nIPs:                     10.96.100.200\nLoadBalancer Ingress:    <pending>\nPort:                    http  80/TCP\nTargetPort:              80/TCP\nNodePort:                http  30081/TCP\nEndpoints:               <none>\nSession Affinity:        None\nExternal Traffic Policy: Cluster\nEvents:\n  Type     Reason                Age               Message\n  ----     ------                ----              -------\n  Warning  SyncLoadBalancerFailed 5m (x10 over 30m) Error syncing load balancer: failed to ensure load balancer: no available nodes for service\n  Normal   EnsuringLoadBalancer   2m                Ensuring load balancer\n  Warning  ServiceSelectorMismatch 1m               Service selector "app=nginx-wrong" does not match any pods (should be "app=nginx")\n  Normal   ConfigurationFixed     30s               FLAG{SERVICE_SELECTOR_MISMATCH_RESOLVED}\n\n🔗 Service troubleshooting reveals selector mismatch!'
 };
-    
